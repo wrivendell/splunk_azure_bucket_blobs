@@ -161,38 +161,40 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				for filter in arguments.args.blob_ignore_list:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
 					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter])
+		
+		# Actual running
 		for container in all_blobs_by_containers_dict_list:
 			if arguments.args.list_create_output:
-				print("- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container + " -")
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container])
+				print("- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] + " -")
+			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] ])
 			if len(container_names_to_search_list) > 0:
 				if not blob_service.isInList(container['name'], container_names_to_search_list, container_names_search_list_equals_or_contains, False):
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container ])
+					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] ])
 					if arguments.args.list_create_output:
-						print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container + " -")
+						print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] + " -")
 					continue
 			if len(container_names_to_ignore_list) > 0:
 				if blob_service.isInList(container['name'], container_names_to_ignore_list, container_names_ignore_list_equals_or_contains, False):
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container ])
+					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] ])
 					if arguments.args.list_create_output:
-						print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container + " -")
+						print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] + " -")
 					continue
 			for blob in container['blobs']:
 				if len(blob_names_to_search_list) > 0:
 					if not blob_service.isInList(blob['name'], blob_names_to_search_list, blob_names_search_list_equals_or_contains, False):
-						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob ])
+						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] ])
 						if arguments.args.list_create_output:
-							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob + " -")
+							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] + " -")
 						continue
 				if len(blob_names_to_ignore_list) > 0:
 					if blob_service.isInList(blob['name'], blob_names_to_ignore_list, blob_names_ignore_list_equals_or_contains, False):
-						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob ])
+						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] ])
 						if arguments.args.list_create_output:
-							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob + " -")
+							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] + " -")
 						continue
 				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
 				if arguments.args.list_create_output:
-					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob + " -")
+					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
 				master_bucket_download_list.append(tmp_list)
 		if not arguments.args.standalone:
 			# send to bucket sorter for idx cluster distribution
