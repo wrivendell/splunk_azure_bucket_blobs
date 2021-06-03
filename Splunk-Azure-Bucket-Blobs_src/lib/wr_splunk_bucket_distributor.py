@@ -131,13 +131,27 @@ class Bucketeer():
 		for bucket_path in self.list_of_bucket_list_details:
 			# break out the bucket details
 			print(bucket_path)
+			print("hello 0")
+			if bucket_path[1] <= 0:
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping blod with 0 byte size: " + bucket_path + " -")
+				continue
 			print("hello 1")
-			try:
-				try:
-					bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE).group(1)
-					print(bucket_id_full)
-					print("hello 2")
-					bucket_path_full = re.search('(.+)(db_)', bucket_path[0], re.IGNORECASE).group(1)
+			bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE).group(1)
+			if not bucket_id_full:
+				bucket_id_full = re.search('(rb_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE).group(1)
+			if not bucket_id_full:
+				print(bucket_id_full)
+				print("hello 2")
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + bucket_path + ". Skipping- ")
+				continue
+			else:
+				bucket_path_full = re.search('(.+)(db_)', bucket_path[0], re.IGNORECASE).group(1)
+				if not bucket_path_full:
+					bucket_path_full = re.search('(.+)(rb_)', bucket_path[0], re.IGNORECASE).group(1)
+				if not bucket_path_full:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + bucket_path + ". Skipping- ")
+					continue
+				else:
 					print(bucket_path_full)
 					print("hello 3")
 					bucket_state_path = Path(bucket_path_full).parts[0] # cold, warm, hot, or if frozen, custom folder
@@ -149,8 +163,6 @@ class Bucketeer():
 					bucket_db_path = Path(bucket_path_full).parts[2] # frozendb, colddb, db
 					print(bucket_index_path)
 					print("hello 6")
-				except:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + bucket_path + "- ")
 				try:
 					bucket_id_guid = bucket_id_full.split('_')[4].split('/')[0]
 					print(bucket_index_path)
@@ -186,10 +198,6 @@ class Bucketeer():
 				bucket_info_tuples_list.append(bucket_tuple)
 				print("hello 11")
 				bucket_info_tuples_list.sort(key=lambda x: x[1])
-			except Exception as ex:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Error Parsing Bucket Details for: " + bucket_path + ", skipping. -")
-				print(ex)
-				continue
 		return(bucket_info_tuples_list)
 
 	# organize the master list into lists by state path (cold, warm, or custom folder for frozen)
@@ -320,9 +328,21 @@ class Bucketeer():
 
 	# do all three of the above in one go
 	def organizeMasterListByStateIndexDB(self, bucket_info_tuples_list:list):
-		tmp_list1 = self.organizeBucketTuplesByStatePath(bucket_info_tuples_list)
-		tmp_list2 = self.organizeBucketTuplesByIndexPathFromStatePath(tmp_list1)
-		separated_master_bucket_tuple_list = self.organizeBucketTuplesByDBPathFromIndexPathList(tmp_list2)
+		try:
+			tmp_list1 = self.organizeBucketTuplesByStatePath(bucket_info_tuples_list)
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Organizing By State Path. -")
+			print(ex)
+		try:
+			tmp_list2 = self.organizeBucketTuplesByIndexPathFromStatePath(tmp_list1)
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Organizing By Index Path. -")
+			print(ex)
+		try:
+			separated_master_bucket_tuple_list = self.organizeBucketTuplesByDBPathFromIndexPathList(tmp_list2)
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Organizing By DB Path. -")
+			print(ex)
 		return(separated_master_bucket_tuple_list)
 
 	# split a large list into smaller lists
@@ -374,27 +394,31 @@ class Bucketeer():
 		lowest_lst = []
 		highest_lst = []
 		margin = 15
-		while not len_balanced:
-			for idx, lst in enumerate(master_list_of_lists): # get lowest and highest lists in the master list
-				if len(lst) < lowest:
-					lowest = len(lst)
-					lowest_lst = lst
-				elif len(lst) > highest:
-						highest = len(lst)
-						highest_lst = lst
-				if not idx >= len(master_list_of_lists) - 1: # ensure a full iteration goes through before changing anything
-					continue
-				elif restart:
+		try:
+			while not len_balanced:
+				for idx, lst in enumerate(master_list_of_lists): # get lowest and highest lists in the master list
+					if len(lst) < lowest:
+						lowest = len(lst)
+						lowest_lst = lst
+					elif len(lst) > highest:
+							highest = len(lst)
+							highest_lst = lst
+					if not idx >= len(master_list_of_lists) - 1: # ensure a full iteration goes through before changing anything
 						continue
-				else:
-					high_low_diff = highest - lowest
-					if high_low_diff > margin:     # if lists are within margin lengths of each other, consider that fine
-						high_low_diff = high_low_diff / 2
-						lowest_lst = lowest_lst.extend(highest_lst[0:high_low_diff]) # move half the delta to the lowest from highest
-						del highest_lst[0:high_low_diff]
-						restart = True # run again to ensure balanced, will repeat process til all within "equal" margin
+					elif restart:
+							continue
 					else:
-						len_balanced = True
+						high_low_diff = highest - lowest
+						if high_low_diff > margin:     # if lists are within margin lengths of each other, consider that fine
+							high_low_diff = high_low_diff / 2
+							lowest_lst = lowest_lst.extend(highest_lst[0:high_low_diff]) # move half the delta to the lowest from highest
+							del highest_lst[0:high_low_diff]
+							restart = True # run again to ensure balanced, will repeat process til all within "equal" margin
+						else:
+							len_balanced = True
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length -")
+			print(ex)
 		# check list byte sizes (MB)
 		master_list_of_lists.sort()
 		lowest = 999999999999999999999 # set this high so the first one is always lower than it and sets the bar
@@ -403,61 +427,69 @@ class Bucketeer():
 		restart = False
 		lowest_lst = []
 		highest_lst = []
-		while not size_balanced:
-			for idx, lst in enumerate(master_list_of_lists): # get lowest and highest sizes lists in the master list
-				tmp_size_total = 0
-				for b in lst:
-					tmp_size_total = tmp_size_total + (b[6]/1024.0**2) # convert to mb so we're using smaller nums
-				if tmp_size_total < lowest:
-					lowest = tmp_size_total
-					lowest_lst = lst
-				elif tmp_size_total > highest:
-					highest = tmp_size_total
-					highest_lst = lst
-				if not idx >= len(master_list_of_lists) - 1: # ensure a full iteration goes through before changing anything
-					continue
-				elif restart:
-					continue
-				else:
-					high_low_diff = highest - lowest
-					margin_diff = highest / len(master_list_of_lists)
-					if high_low_diff > margin_diff:
-						high_low_diff = high_low_diff / 2
-						tmp_move_list = []
-						tmp_move_size = 0
-						for b in highest_lst:
-							tmp_move_size = tmp_move_size + (b[6]/1024.0**2)
-							tmp_move_list.append(b)
-							if tmp_move_size >= high_low_diff:
-								break
-						if tmp_move_list:
-							for ml in tmp_move_list:
-								lowest_lst.append(ml)
-								highest_lst.remove(ml)
-						restart = True # run again to ensure balanced
-					else:
-						size_balanced = True
-		# ensure bucket files didnt get moved away from their friends
-		master_list_of_lists.sort()
-		for idx, lst in enumerate(master_list_of_lists):
-			for cur_list_b in lst:
-				for other_idx, other_lst in enumerate(master_list_of_lists):
-					if idx == other_idx: # dont check self since in the same master list as other sub lists
+		try:
+			while not size_balanced:
+				for idx, lst in enumerate(master_list_of_lists): # get lowest and highest sizes lists in the master list
+					tmp_size_total = 0
+					for b in lst:
+						tmp_size_total = tmp_size_total + (b[6]/1024.0**2) # convert to mb so we're using smaller nums
+					if tmp_size_total < lowest:
+						lowest = tmp_size_total
+						lowest_lst = lst
+					elif tmp_size_total > highest:
+						highest = tmp_size_total
+						highest_lst = lst
+					if not idx >= len(master_list_of_lists) - 1: # ensure a full iteration goes through before changing anything
 						continue
-					for other_list_b in other_lst: # compare item to items in other lists for matching buckets
-						if cur_list_b[0] == other_list_b[0] and cur_list_b[1] == other_list_b[1]: #check earliest and latest first
-							if cur_list_b[2] == other_list_b[2]: #check ID
-								if cur_list_b[5] == other_list_b[5]: #check Replicated status
-									if cur_list_b[8] == other_list_b[8] and cur_list_b[9] == other_list_b[9] and cur_list_b[10] == other_list_b[10]: #paths match = same bucket file in other list
-										lst.append(other_list_b)
-										other_lst.remove(other_list_b)
+					elif restart:
+						continue
+					else:
+						high_low_diff = highest - lowest
+						margin_diff = highest / len(master_list_of_lists)
+						if high_low_diff > margin_diff:
+							high_low_diff = high_low_diff / 2
+							tmp_move_list = []
+							tmp_move_size = 0
+							for b in highest_lst:
+								tmp_move_size = tmp_move_size + (b[6]/1024.0**2)
+								tmp_move_list.append(b)
+								if tmp_move_size >= high_low_diff:
+									break
+							if tmp_move_list:
+								for ml in tmp_move_list:
+									lowest_lst.append(ml)
+									highest_lst.remove(ml)
+							restart = True # run again to ensure balanced
+						else:
+							size_balanced = True
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length by combined file size. -")
+			print(ex)
+		# ensure bucket files didnt get moved away from their friends
+		try:
+			master_list_of_lists.sort()
+			for idx, lst in enumerate(master_list_of_lists):
+				for cur_list_b in lst:
+					for other_idx, other_lst in enumerate(master_list_of_lists):
+						if idx == other_idx: # dont check self since in the same master list as other sub lists
+							continue
+						for other_list_b in other_lst: # compare item to items in other lists for matching buckets
+							if cur_list_b[0] == other_list_b[0] and cur_list_b[1] == other_list_b[1]: #check earliest and latest first
+								if cur_list_b[2] == other_list_b[2]: #check ID
+									if cur_list_b[5] == other_list_b[5]: #check Replicated status
+										if cur_list_b[8] == other_list_b[8] and cur_list_b[9] == other_list_b[9] and cur_list_b[10] == other_list_b[10]: #paths match = same bucket file in other list
+											lst.append(other_list_b)
+											other_lst.remove(other_list_b)
+											continue
+									else:
 										continue
 								else:
 									continue
 							else:
 								continue
-						else:
-							continue
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by like bucket files -")
+			print(ex)
 		return(master_list_of_lists)
 
 	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, separated_master_bucket_tuple_list:list):
@@ -465,14 +497,22 @@ class Bucketeer():
 		final_peer_download_lists = [] # if theres 5 peers, there  will be 5 lists in here
 		for x in range(peer_num):  # create the empty placeholder list of sub lists
 			final_peer_download_lists.append([])
-		for state_list in separated_master_bucket_tuple_list:
-			for index_list in state_list:
-				for db_list in index_list: # update ongoing list
-					tmp_master_list_of_lists = self.splitList(db_list, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
-					for idx, lst in enumerate(tmp_master_list_of_lists):
-						final_peer_download_lists[idx].extend(lst)
-		final_peer_download_lists = self.balanceListOfLists(final_peer_download_lists) # this function will run balance checks and return the final list
-		final_peer_download_lists.sort()
+		try:
+			for state_list in separated_master_bucket_tuple_list:
+				for index_list in state_list:
+					for db_list in index_list: # update ongoing list
+						tmp_master_list_of_lists = self.splitList(db_list, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
+						for idx, lst in enumerate(tmp_master_list_of_lists):
+							final_peer_download_lists[idx].extend(lst)
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Splitting list after peer divide had an issue. -")
+			print(ex)
+		try:
+			final_peer_download_lists = self.balanceListOfLists(final_peer_download_lists) # this function will run balance checks and return the final list
+			final_peer_download_lists.sort()
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Balancing lists. -")
+			print(ex)
 		return(final_peer_download_lists)
 
 	def verifyBucketList(self, bucket_list:list) -> bool:
@@ -500,12 +540,10 @@ class Bucketeer():
 				self.list_of_bucket_list_details = bucket_list
 			else:
 				self.list_of_bucket_list_details.extend(bucket_list)
-		try:
 			if self.verifyBucketList(self.list_of_bucket_list_details):
 				idx_cluster_peers = self.getPeerGUIDS()
 				bucket_info_tuples_list = self.splitBucketDetails()
 				if bucket_info_tuples_list:
-					try:
 						separated_master_bucket_tuple_list = self.organizeMasterListByStateIndexDB(bucket_info_tuples_list)
 						print("hello 12")
 						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, separated_master_bucket_tuple_list)
@@ -516,17 +554,8 @@ class Bucketeer():
 								self.this_peer_index = idx
 								break
 						return(True)
-					except Exception as ex:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):  Exception: -")
-						print(ex)
-						sys.exit()
 			else:
-				return(False) 
-		except Exception as ex:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):  Exception: -")
-			print(ex)
-			sys.exit()
-
+				return(False)
 
 ### RUNTIME ###########################################
 if __name__ == "__main__":
