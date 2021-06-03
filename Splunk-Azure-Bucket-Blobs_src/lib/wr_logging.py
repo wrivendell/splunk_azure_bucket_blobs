@@ -108,10 +108,9 @@ class LogFile():
 		self.log_path = (self.log_folder) + '/' + (self.log_file).replace('//','/').replace('\\\\','\\')
 
 	def writeLinesToFile(self, lines: list, level=1, include_break=True):
-		print(self.log_level)
 		retry = 4
 		while retry > 0:
-			if not self.log_level == 1 or self.log_level == 2 or self.log_level == 3:
+			if not self.log_level == 1 or not self.log_level == 2 or not self.log_level == 3:
 				self.log_level = 1
 			if level <= self.log_level or level == 9:
 				try:
@@ -189,16 +188,16 @@ class CSVFile():
 				else:
 					print("Could not write to log file, check permissions of " + (self.log_folder) )
 
-	def updateCSVCellByHeader(header_to_search_under: str, value_to_serch, header_to_update: str, value_to_write):
+	def updateCSVCellByHeader(header_to_search_under: str, value_to_search, header_to_update: str, value_to_write):
 		'''
 		Search by header for a string to find the row.
 		Then update / add value under a header with the value in value_to_write
 		'''
 		try:
 			data = pandas.read_csv(self.log_path)
+			data.loc[data [ (header_to_search_under) ] == (value_to_search), (header_to_update)] = (value_to_write)
 		except:
 			print('- Could not read csv specified. -')
-			data.loc[df [ (header_to_search_under) ] == (value_to_serch), (header_to_update)] = (value_to_write)
 		retry = 4
 		while retry > 0:
 			try:
@@ -213,3 +212,17 @@ class CSVFile():
 					retry -= 1
 				else:
 					print("- WRLog(" + str(sys._getframe().f_lineno) +"): Could not write to log file, check permissions of " + (self.log_folder) + " -")
+
+	def getCSVValueByHeaders(first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under: str) -> list:
+		'''
+		Search by header for a string to find the row.
+		Return the (True, str(<value>)) if found.
+		'''
+		try:
+			df = pandas.read_csv(self.log_path)
+			value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
+			return(True, value)
+			#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
+		except:
+			print('- Could not read csv specified. -')
+			return(False, "")
