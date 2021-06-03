@@ -128,14 +128,14 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 	Container and blob names can be exact matches or specified contains(False)
 	Leaving those lists blank, return all blobs in all containers by default
 	'''
-	print("- SABB(" + str(sys._getframe().f_lineno) +"): Attempting to create master blob download list, this could take awhile. -")
+	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Attempting to create master blob download list, this could take awhile. -")
 	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Attempting to create master blob download list, this could take awhile."])
 	if not arguments.args.list_create_output:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): You could set -lco to True for more entertaining feedback while you wait. -")
 	time.sleep(3)
 	try:
+		tmp_master_list_log_lines = []
 		all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers()
-
 		# FEED BACK FOR USER
 		# Container filters
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed -")
@@ -216,17 +216,15 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 						continue
 				if arguments.args.standalone:
 					# already downloaded check
-					tmp_master_list_log_lines = []
 					if checkAlreadyDownloaded(str(blob['name'])):
 						tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(blob['name']) )
 						if arguments.args.list_create_output:
 							print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(blob['name']) + " -")
 						continue
-				else:
-					tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
-					if arguments.args.list_create_output:
-						print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
-					master_bucket_download_list.append(tmp_list)
+				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
+				if arguments.args.list_create_output:
+					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
+				master_bucket_download_list.append(tmp_list)
 		if not arguments.args.standalone:
 			# send to bucket sorter for idx cluster distribution
 			if not azure_bucket_sorter.start(master_bucket_download_list):
