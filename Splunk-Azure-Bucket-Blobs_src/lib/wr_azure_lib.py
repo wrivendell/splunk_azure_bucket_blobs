@@ -140,12 +140,12 @@ class BlobService():
 			tmp_blob_list = []
 			container_client = blob_service_client.get_container_client( (container_name) )
 			blob_list = container_client.list_blobs()
-			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(blob_list)) + " -")
+			#print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(blob_list)) + " -")
 			for blob in blob_list:
 				if names_only:
 					tmp_blob_list.append( blob['name'] )
 				else:
-					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing BLOB: " + blob['name'] + " -")
+			#		print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing BLOB: " + blob['name'] + " -")
 					d_blob = dict(blob)
 					tmp_dict = {}
 					for k,v in d_blob.items():
@@ -175,33 +175,33 @@ class BlobService():
 		Probes each container for blobs contained and writes all out to a list of dicts. One dict per container
 		containing container info plus an embedded list of dicts continaing all blobs info
 		'''
-		#try:
-		tmp_container_blob_dict_list = []
-		all_containers_dict_list = self.getContainers()
-		for container in all_containers_dict_list:
-			print("\n\n\n- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing CONTAINER: " + container['name'] + " -")
-			found = True
-			if container_name_list:
-				found = False
-				for i in container_name_list:
-					if not i in container['name']:
-						continue
-					else:
-						found = True
-						break
-			if not found:
-				print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Not in list, skipping. -")
-				continue
-			else:
-				print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Added -")
-			tmp_blobs_dict_list = self.getBlobsByContainer(container['name'])
-			tmp_container_dict = container
-			tmp_container_dict['blobs'] = (tmp_blobs_dict_list)
-			tmp_container_blob_dict_list.append(tmp_container_dict)
-		return(tmp_container_blob_dict_list)
-		#except Exception as ex:
-		#	print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
-		#	print(ex)
+		try:
+			tmp_container_blob_dict_list = []
+			all_containers_dict_list = self.getContainers()
+			for container in all_containers_dict_list:
+				print("\n\n\n- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing CONTAINER: " + container['name'] + " -")
+				found = True
+				if container_name_list:
+					found = False
+					for i in container_name_list:
+						if not i in container['name']:
+							continue
+						else:
+							found = True
+							break
+				if not found:
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Not in list, skipping. -")
+					continue
+				else:
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Added -")
+				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'])
+				tmp_container_dict = container
+				tmp_container_dict['blobs'] = (tmp_blobs_dict_list)
+				tmp_container_blob_dict_list.append(tmp_container_dict)
+			return(tmp_container_blob_dict_list)
+		except Exception as ex:
+			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
+			print(ex)
 	
 	def downloadBlobByName(self, blob_name:str, expected_blob_size:int, container_name:str, dest_download_loc_root='./blob_downloads/', bypass_size_compare=False, timeout=5000) -> list:
 		'''
