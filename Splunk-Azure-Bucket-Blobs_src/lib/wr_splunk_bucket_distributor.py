@@ -133,7 +133,7 @@ class Bucketeer():
 			print(bucket_path)
 			print("hello 0")
 			if bucket_path[1] <= 0:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping blod with 0 byte size: " + bucket_path + " -")
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping blod with 0 byte size: " + str(bucket_path) + " -")
 				continue
 			print("hello 1")
 			bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE).group(1)
@@ -142,14 +142,14 @@ class Bucketeer():
 			if not bucket_id_full:
 				print(bucket_id_full)
 				print("hello 2")
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + bucket_path + ". Skipping- ")
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
 				continue
 			else:
 				bucket_path_full = re.search('(.+)(db_)', bucket_path[0], re.IGNORECASE).group(1)
 				if not bucket_path_full:
 					bucket_path_full = re.search('(.+)(rb_)', bucket_path[0], re.IGNORECASE).group(1)
 				if not bucket_path_full:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + bucket_path + ". Skipping- ")
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
 					continue
 				else:
 					print(bucket_path_full)
