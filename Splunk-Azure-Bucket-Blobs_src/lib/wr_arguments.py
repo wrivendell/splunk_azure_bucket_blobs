@@ -38,7 +38,7 @@ def Arguments():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--file', type=open, action=LoadFromFile)
 	parser.add_argument("-do", "--detailed_output", type=str2bool, nargs='?', const=True, default=False, required=False, help="True to out more verbose console messages. Doesn't affect logging verbosity.")
-	parser.add_argument("-lco", "--list_create_output", type=str2bool, nargs='?', const=True, default=True, required=False, help="True to out more verbose console messages. Doesn't affect logging verbosity.")
+	parser.add_argument("-lco", "--list_create_output", type=str2bool, nargs='?', const=True, default=True, required=False, help="True to out more verbose info during the list creation portion which can take a long time.")
 	parser.add_argument("-cs", "--connect_string", nargs='?', default='', required=True, help="Full connection string to blob storage")
 	parser.add_argument("-dl", "--dest_download_loc_root", nargs='?', default='./blob_downloads/', required=False, help="Full path to root location to download all the blobs. Blobs will retain THEIR file structure on top of this root. Default: ./blob_downloads")
 	parser.add_argument("-tc", "--thread_count", type=checkPositive, nargs='?', default=10, required=False, help="Amount of download threads to run simultaneously.")

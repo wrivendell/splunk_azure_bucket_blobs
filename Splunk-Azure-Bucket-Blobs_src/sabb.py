@@ -110,8 +110,10 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 	Container and blob names can be exact matches or specified contains(False)
 	Leaving those lists blank, return all blobs in all containers by default
 	'''
-	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Attempting to create master blob download list -")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Attempting to create master blob download list"])
+	print("- SABB(" + str(sys._getframe().f_lineno) +"): Attempting to create master blob download list, this could take awhile. -")
+	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Attempting to create master blob download list, this could take awhile."])
+	if not arguments.args.list_create_output:
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): You could set -lco to True for more entertaining feedback while you wait. -")
 	time.sleep(3)
 	try:
 		all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers()

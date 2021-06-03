@@ -3,6 +3,7 @@
 ### Python3
 python3 sabb.py \
     -do False \
+    -lco True \
     -cs "DefaultEndpointsProtocol=https;AccountName=psdfeazuretest;AccountKey=tkjQwSIYEc+quRbWYO+6Bk0QAMJA2Y561KjA98fpi1JT9SLCD9lDjFRMLNhFQZICn5H/t106UTB1BAgStvLomQ==;EndpointSuffix=core.windows.net"               \
     -dl "./blob_downloads/"            \
     -tc "20" \
@@ -19,6 +20,7 @@ python3 sabb.py \
 # You should always try and use this version as it doesn't need any outside dependencies
 # \  = indicates cmd continues on next line in bash
 # do = detailed output (console only, doesn't affect logging)
+# lco = list_create_output - gives more feedback during the list creation portion
 # cs = Azure Connection String
 # dl = destination download root (where the blobs will download to)
 # tc = thread count - how many downloads to have active at once
