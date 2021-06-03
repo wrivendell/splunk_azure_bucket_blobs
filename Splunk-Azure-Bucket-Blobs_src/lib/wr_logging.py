@@ -218,11 +218,14 @@ class CSVFile():
 		Search by header for a string to find the row.
 		Return the (True, str(<value>)) if found.
 		'''
-		try:
-			df = pandas.read_csv(self.log_path)
-			value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
-			return(True, value)
-			#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
-		except:
-			print('- Could not read csv specified. -')
+		if os.path.exists(self.log_path):
+			try:
+				df = pandas.read_csv(self.log_path)
+				value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
+				return(True, value)
+				#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
+			except:
+				print('- Could not read csv specified. -')
+				return(False, "")
+		else:
 			return(False, "")
