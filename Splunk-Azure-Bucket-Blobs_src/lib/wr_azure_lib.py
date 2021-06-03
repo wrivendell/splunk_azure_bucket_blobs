@@ -141,6 +141,7 @@ class BlobService():
 			container_client = blob_service_client.get_container_client( (container_name) )
 			blob_list = container_client.list_blobs()
 			tmp_blist = container_client.list_blobs()
+			tmp_blist = list(tmp_blist)
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(tmp_blist)) + " -")
 			for blob in blob_list:
 				if names_only:
