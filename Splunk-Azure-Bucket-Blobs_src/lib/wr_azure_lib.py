@@ -200,8 +200,8 @@ class BlobService():
 			tmp_container_blob_dict_list.append(tmp_container_dict)
 		return(tmp_container_blob_dict_list)
 		#except Exception as ex:
-			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
-			print(ex)
+		#	print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
+		#	print(ex)
 	
 	def downloadBlobByName(self, blob_name:str, expected_blob_size:int, container_name:str, dest_download_loc_root='./blob_downloads/', bypass_size_compare=False, timeout=5000) -> list:
 		'''
