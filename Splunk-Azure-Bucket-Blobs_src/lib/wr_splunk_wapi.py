@@ -509,6 +509,8 @@ class SplunkService():
 		Return IDX Peer GUIDS - raw=True for full JSON return
 		'''
 		response = self.apiCall('/services/cluster/master/peers')
+		if not response.status_code == 200:
+			print("- WAPI(" + str(sys._getframe().f_lineno) +"): Splunk API login failed, check credentials?! -")
 		j_data = json.loads(response.text)
 		if not guids_only:
 			return(j_data)
