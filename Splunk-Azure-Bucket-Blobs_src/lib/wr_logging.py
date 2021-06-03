@@ -71,7 +71,7 @@ def removeOldLogFiles(log_folder:str, log_file:str, log_retention_days:int):
 	for f in all_files_list:
 		if str(log_file) in f:
 			any_old_found = False
-			if isLogFileOld(f) or log_retention_days == 0:
+			if isLogFileOld(f, log_retention_days) or log_retention_days == 0:
 				any_old_found = True
 				try:
 					os.remove(f)
