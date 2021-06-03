@@ -108,6 +108,7 @@ class LogFile():
 		self.log_path = (self.log_folder) + '/' + (self.log_file).replace('//','/').replace('\\\\','\\')
 
 	def writeLinesToFile(self, lines: list, level=1, include_break=True):
+		print(self.log_level)
 		retry = 4
 		while retry > 0:
 			if not self.log_level == 1 or self.log_level == 2 or self.log_level == 3:
