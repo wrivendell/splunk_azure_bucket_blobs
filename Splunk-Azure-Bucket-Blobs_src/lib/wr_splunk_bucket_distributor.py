@@ -130,18 +130,34 @@ class Bucketeer():
 		bucket_info_tuples_list = []
 		for bucket_path in self.list_of_bucket_list_details:
 			# break out the bucket details
+			print(bucket_path)
+			print("hello 1")
 			try:
 				try:
 					bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE).group(1)
+					print(bucket_id_full)
+					print("hello 2")
 					bucket_path_full = re.search('(.+)(db_)', bucket_path[0], re.IGNORECASE).group(1)
+					print(bucket_path_full)
+					print("hello 3")
 					bucket_state_path = Path(bucket_path_full).parts[0] # cold, warm, hot, or if frozen, custom folder
+					print(bucket_state_path)
+					print("hello 4")
 					bucket_index_path = Path(bucket_path_full).parts[1] # barracuda, mcafee etc
+					print(bucket_index_path)
+					print("hello 5")
 					bucket_db_path = Path(bucket_path_full).parts[2] # frozendb, colddb, db
+					print(bucket_index_path)
+					print("hello 6")
 				except:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + bucket_path + "- ")
 				try:
 					bucket_id_guid = bucket_id_full.split('_')[4].split('/')[0]
+					print(bucket_index_path)
+					print("hello 7")
 					bucket_id_standalone = False
+					print(bucket_index_path)
+					print("hello 8")
 				except:
 					bucket_id_guid = 'none'
 					bucket_id_standalone = True
@@ -149,6 +165,8 @@ class Bucketeer():
 					bucket_id_origin = False
 				else:
 					bucket_id_origin = True
+				print(bucket_id_origin)
+				print("hello 9")
 				bucket_id_earliest = bucket_id_full.split('_')[1]
 				bucket_id_latest = bucket_id_full.split('_')[2]
 				bucket_id_id = bucket_id_full.split('_')[3]
@@ -162,8 +180,11 @@ class Bucketeer():
 						if idx > 1:
 							tmp_bucket_list.append(item)
 				bucket_tuple = tuple(tmp_bucket_list)
+				print(bucket_tuple)
+				print("hello 10")
 				# add to master list
 				bucket_info_tuples_list.append(bucket_tuple)
+				print("hello 11")
 				bucket_info_tuples_list.sort(key=lambda x: x[1])
 			except Exception as ex:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Error Parsing Bucket Details for: " + bucket_path + ", skipping. -")
@@ -486,7 +507,9 @@ class Bucketeer():
 				if bucket_info_tuples_list:
 					try:
 						separated_master_bucket_tuple_list = self.organizeMasterListByStateIndexDB(bucket_info_tuples_list)
+						print("hello 12")
 						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, separated_master_bucket_tuple_list)
+						print("hello 13")
 						for idx, p in enumerate(idx_cluster_peers):
 							if p == self.my_guid:
 								self.this_peer_download_list = self.final_peer_download_lists[idx]
