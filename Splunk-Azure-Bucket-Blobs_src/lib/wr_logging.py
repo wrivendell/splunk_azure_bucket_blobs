@@ -188,7 +188,7 @@ class CSVFile():
 				else:
 					print("Could not write to log file, check permissions of " + (self.log_folder) )
 
-	def updateCSVCellByHeader(header_to_search_under: str, value_to_search, header_to_update: str, value_to_write):
+	def updateCellByHeader(self, header_to_search_under: str, value_to_search, header_to_update: str, value_to_write):
 		'''
 		Search by header for a string to find the row.
 		Then update / add value under a header with the value in value_to_write
@@ -213,7 +213,7 @@ class CSVFile():
 				else:
 					print("- WRLog(" + str(sys._getframe().f_lineno) +"): Could not write to log file, check permissions of " + (self.log_folder) + " -")
 
-	def getCSVValueByHeaders(first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under: str) -> list:
+	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under: str) -> list:
 		'''
 		Search by header for a string to find the row.
 		Return the (True, str(<value>)) if found.
