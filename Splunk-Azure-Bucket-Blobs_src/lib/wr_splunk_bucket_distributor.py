@@ -461,7 +461,7 @@ class Bucketeer():
 		if bucket_list:
 			for b in bucket_list:
 				if not isinstance(b[0], str) and isinstance(b[1], int):
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Bucket list format example found was " + (b) +" and verification failed, cannot continue, ensure format starts with proper <str>, <bytes> -")
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Bucket list format example found was " + str(b) +" and verification failed, cannot continue, ensure format starts with proper <str>, <bytes> -")
 					sys.exit()
 			return(True)
 		else:
@@ -479,20 +479,31 @@ class Bucketeer():
 				self.list_of_bucket_list_details = bucket_list
 			else:
 				self.list_of_bucket_list_details.extend(bucket_list)
-		if self.verifyBucketList(self.list_of_bucket_list_details):
-			idx_cluster_peers = self.getPeerGUIDS()
-			bucket_info_tuples_list = self.splitBucketDetails()
-			if bucket_info_tuples_list:
-				separated_master_bucket_tuple_list = self.organizeMasterListByStateIndexDB(bucket_info_tuples_list)
-				self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, separated_master_bucket_tuple_list)
-				for idx, p in enumerate(idx_cluster_peers):
-					if p == self.my_guid:
-						self.this_peer_download_list = self.final_peer_download_lists[idx]
-						self.this_peer_index = idx
-						break
-				return(True)
-		else:
-			return(False) 
+		try:
+			if self.verifyBucketList(self.list_of_bucket_list_details):
+				idx_cluster_peers = self.getPeerGUIDS()
+				bucket_info_tuples_list = self.splitBucketDetails()
+				if bucket_info_tuples_list:
+					try:
+						separated_master_bucket_tuple_list = self.organizeMasterListByStateIndexDB(bucket_info_tuples_list)
+						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, separated_master_bucket_tuple_list)
+						for idx, p in enumerate(idx_cluster_peers):
+							if p == self.my_guid:
+								self.this_peer_download_list = self.final_peer_download_lists[idx]
+								self.this_peer_index = idx
+								break
+						return(True)
+					except Exception as ex:
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):  Exception: -")
+						print(ex)
+						sys.exit()
+			else:
+				return(False) 
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):  Exception: -")
+			print(ex)
+			sys.exit()
+
 
 ### RUNTIME ###########################################
 if __name__ == "__main__":

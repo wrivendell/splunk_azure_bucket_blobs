@@ -142,7 +142,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed"])
 		print("\n")
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters -")
-
+		
 		# Container filters
 		if len(container_names_to_search_list) > 0:
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters"])
