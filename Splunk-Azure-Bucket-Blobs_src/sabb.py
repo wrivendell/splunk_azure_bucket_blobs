@@ -153,7 +153,6 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 			for filter in arguments.args.container_search_list:
 				print("- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter + " -")
 				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):  Will ONLY download blobs found where container " + cfilter_type + ": " + filter])
-		print("\n")
 		if len(container_names_to_ignore_list) > 0:
 			if arguments.args.container_ignore_list_type:
 				cfilter_type = "EXACTLY MATCHES"
