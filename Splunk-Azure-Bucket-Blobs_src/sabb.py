@@ -58,8 +58,7 @@ log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket 
 # create queues
 wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=False) # downloads blobs from Azure
 wrq_logging = wrq.Queue('parent_logging', 1, debug=False) # queues log writes to avoid "file already open" type errors
-wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=False) # queues csv wri
-tes to master status report
+wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=False) # queues csv writes to master status report
 list_index = 0 # starting point for checking finished job queue when updating CSV
 
 # Print Console Info
