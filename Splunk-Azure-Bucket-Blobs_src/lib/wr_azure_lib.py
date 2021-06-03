@@ -140,12 +140,12 @@ class BlobService():
 			tmp_blob_list = []
 			container_client = blob_service_client.get_container_client( (container_name) )
 			blob_list = container_client.list_blobs()
-			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(blob_list)) + " -")
+			#print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + len(blob_list) + " -")
 			for blob in blob_list:
 				if names_only:
 					tmp_blob_list.append( blob['name'] )
 				else:
-			#		print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing BLOB: " + blob['name'] + " -")
+#					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing BLOB: " + blob['name'] + " -")
 					d_blob = dict(blob)
 					tmp_dict = {}
 					for k,v in d_blob.items():
