@@ -145,6 +145,7 @@ class BlobService():
 				if names_only:
 					tmp_blob_list.append( blob['name'] )
 				else:
+					print(blob['name'])
 #					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing BLOB: " + blob['name'] + " -")
 					d_blob = dict(blob)
 					tmp_dict = {}
