@@ -90,6 +90,24 @@ def currentDate(include_time=False, raw_or_str=False):
 		else:
 			return(datetime.datetime.now().strftime('%Y_%m_%d'))
 
+def checkAlreadyDownloaded(blob_name) -> bool:
+	'''
+	Returns True or False, True if already downloaded.
+	The return from the csv list should only contain one value so access with <returned>[1][0]
+	If it contains more, there are dupes in your CSV. That return is a set with a bool, list
+	'''
+	check_completed = log_csv.getValueByHeaders('Blob_Path_Name', blob_name, 'Download_Complete')
+	if check_completed[0]:
+		if check_completed[1]:
+			if check_completed[1][0] == 'SUCCESS':
+				return(True)
+			else:
+				return(False)
+		else:
+			return(False)
+	else:
+		return(False)
+
 # get list of all blobs to download
 def makeBlobDownloadList(container_names_to_search_list=[], 
 						 container_names_to_ignore_list=[], 
@@ -196,14 +214,14 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 						if arguments.args.list_create_output:
 							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] + " -")
 						continue
-				# already downloaded check
-				tmp_master_list_log_lines =[]
-				check_completed = log_csv.getValueByHeaders('Blob_Path_Name', blob['name'], 'Download_Complete')
-				if check_completed[0] and check_completed[1] == 'SUCCESS':
-					tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(blob['name']) )
-					if arguments.args.list_create_output:
-						print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(blob['name']) + " -")
-					continue
+				if arguments.args.standalone:
+					# already downloaded check
+					tmp_master_list_log_lines = []
+					if checkAlreadyDownloaded(str(blob['name'])):
+						tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(blob['name']) )
+						if arguments.args.list_create_output:
+							print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(blob['name']) + " -")
+						continue
 				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
 				if arguments.args.list_create_output:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
@@ -218,15 +236,15 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				master_bucket_download_list = []
 				tmp_master_list_log_lines =[]
 				for i in azure_bucket_sorter.this_peer_download_list:
-					check_completed = log_csv.getValueByHeaders('Blob_Path_Name', str(i[7]), 'Download_Complete')
-					if check_completed[0] and check_completed[1] == 'SUCCESS':
+					if checkAlreadyDownloaded(str(i[7])):
 						tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(i[7]) )
 						if arguments.args.list_create_output:
-							print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -")
+							print("\n- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -\n")
 						continue
 					else:
 						master_bucket_download_list.append( [ i[7], i[6], i[11], i[12] ] )
-				wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
+		if tmp_master_list_log_lines:
+			wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
 	except Exception as ex:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Exception: -")
 		print(ex)
