@@ -167,7 +167,9 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 		# Actual running
 		for container in all_blobs_by_containers_dict_list:
 			if arguments.args.list_create_output:
+				print("\n")
 				print("- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] + " -")
+				print("\n")
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] ])
 			if len(container_names_to_search_list) > 0:
 				if not blob_service.isInList(container['name'], container_names_to_search_list, container_names_search_list_equals_or_contains, False):
@@ -194,6 +196,14 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 						if arguments.args.list_create_output:
 							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] + " -")
 						continue
+				# already downloaded check
+				tmp_master_list_log_lines =[]
+				check_completed = log_csv.getValueByHeaders('Blob_Path_Name', blob['name'], 'Download_Complete')
+				if check_completed[0] and check_completed[1] == 'SUCCESS':
+					tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(blob['name']) )
+					if arguments.args.list_create_output:
+						print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(blob['name']) + " -")
+					continue
 				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
 				if arguments.args.list_create_output:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
@@ -211,8 +221,8 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 					check_completed = log_csv.getValueByHeaders('Blob_Path_Name', str(i[7]), 'Download_Complete')
 					if check_completed[0] and check_completed[1] == 'SUCCESS':
 						tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(i[7]) )
-					if arguments.args.list_create_output:
-						print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -")
+						if arguments.args.list_create_output:
+							print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -")
 						continue
 					else:
 						master_bucket_download_list.append( [ i[7], i[6], i[11], i[12] ] )
