@@ -183,6 +183,9 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter])
 		
 		# Actual running
+		if not all_blobs_by_containers_dict_list:
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): No Containers Found -")
+			return(False)
 		for container in all_blobs_by_containers_dict_list:
 			if arguments.args.list_create_output:
 				print("\n")
