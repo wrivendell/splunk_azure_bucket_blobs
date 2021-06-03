@@ -50,7 +50,7 @@ def isLogFileOld(file, log_retention_days):
 	else:
 		return False
 
-def removeOldLogFiles(log_folder:str, log_file:str, log_retention_days:int):
+def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retention_days:int):
 	"""
 	Removes all Log Files in that are older then a certain date
 	Must be called manually
@@ -65,7 +65,7 @@ def removeOldLogFiles(log_folder:str, log_file:str, log_retention_days:int):
 	if not os.path.exists(log_folder):
 		print("-" + (log_folder)+" does not exist or couldn't be accessed, will attempt to create -")
 	if not all_files_list:
-		print("- WRLog(" + str(sys._getframe().f_lineno) +"): No old logs found for removal in " + name + " -")
+		print("- WRLog(" + str(sys._getframe().f_lineno) +"): No old logs found for removal in " + class_name + " -")
 		return
 	print("- WRLog(" + str(sys._getframe().f_lineno) +"): Removing old log files -")
 	for f in all_files_list:
@@ -104,7 +104,7 @@ class LogFile():
 			except:
 				print("- WRLog(" + str(sys._getframe().f_lineno) +"): " + (self.log_folder) + ' - could not be accessed or created. Check permissions?')
 		if remove_old_logs:
-			removeOldLogFiles(self.log_folder, self.log_file, self.log_retention_days)
+			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		self.log_path = (self.log_folder) + '/' + (self.log_file).replace('//','/').replace('\\\\','\\')
 
 	def writeLinesToFile(self, lines: list, level=1, include_break=True):
@@ -149,7 +149,7 @@ class CSVFile():
 		else:
 			self.log_file = datetime.datetime.now().strftime("%Y_%m_%d")+"_" + (self.name) + ".csv"
 		if remove_old_logs:
-			removeOldLogFiles(self.log_folder, self.log_file, self.log_retention_days)
+			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		if not os.path.exists(self.log_folder):
 			try:
 				os.makedirs( (self.log_folder), exist_ok=True)
