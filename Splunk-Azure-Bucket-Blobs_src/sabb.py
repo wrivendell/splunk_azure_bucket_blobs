@@ -202,28 +202,25 @@ def updateCompletedWRQDownloadJobs():
 				for j in wrq_download.jobs_completed[list_index:last_index]:
 					if arguments.args.detailed_output:
 						print("   - Adding newly completed download job to status report: " + str(j[0].name))
-					log_line=['Adding newly completed download job to status report: ' + str(j[0].name), 3]
-					tmp_log_lines_jobs.append(log_line)
+					tmp_log_lines_jobs.append('Adding newly completed download job to status report: ' + str(j[0].name) )
 					tmp_row = []
 					command_args_list = j[1].replace("'","").replace('"',"").replace("[","").replace("]","").replace(" ","")
 					command_args_list = list(command_args_list.split(","))
 					file_verify = compareDownloadSize( command_args_list[1], str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					if file_verify[0]:
 						status_string = 'SUCCESS'
-						log_line=['File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]), 3]
-						tmp_log_dl_list.append(log_line)
+						tmp_log_dl_list.append('File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					else:
 						status_string = 'FAILED'
-						log_line=['File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]), 3]
-						tmp_log_dl_list.append(log_line)
+						tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					# 0 = blob name - 1 = bytes size - 2 = container - 3 = downloaded to path
 					tmp_row = [command_args_list[2], command_args_list[3], command_args_list[0], int(command_args_list[1]) / 1000000, file_verify[1], (status_string), currentDate(include_time=True), j[0].name, j[0].ident]
 					rows_list.append(tmp_row)
 				if run_me:
 					wrq_csv_report.add(log_csv.writeLinesToCSV, [[(rows_list), ['Container_Name', 'Downloaded_To', 'Blob_Path_Name', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Download_Completed_Date', 'Thread_Name', 'Thread_ID']]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
-					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs)]])
-					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list)]])
+					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs)], 3])
+					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list)], 3])
 				list_index = last_index
 		except Exception as ex:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"):  Exception: -")
