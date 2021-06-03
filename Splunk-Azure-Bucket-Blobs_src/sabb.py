@@ -469,7 +469,7 @@ if __name__ == "__main__":
 
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Adding download job list to download queue: wrq_download -")
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) +" is number of items in the list -")
-	log_file.writeLinesToFile([str(len(master_bucket_download_list)) +" is number of items in the list to download"]
+	log_file.writeLinesToFile( [str(len(master_bucket_download_list)) + " is number of items in the list to download"] )
 	if not arguments.args.standalone:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
