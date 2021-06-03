@@ -465,7 +465,7 @@ if __name__ == "__main__":
 	start_length_of_download_list = len(master_bucket_download_list)
 	wrq_download.add(blob_service.downloadBlobByName, master_bucket_download_list, start_after_add=False)
 
-	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Adding download job list to download queue: wrq_download -")
+	print("- SABB(" + str(sys._getframe().f_lineno) +"): Adding download job list to download queue: wrq_download -")
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) +" is number of items in the list -")
 	log_file.writeLinesToFile( [str(len(master_bucket_download_list)) + " is number of items in the list to download"] )
 	if not arguments.args.standalone:
