@@ -138,7 +138,7 @@ class Bucketeer():
 					bucket_index_path = Path(bucket_path_full).parts[1] # barracuda, mcafee etc
 					bucket_db_path = Path(bucket_path_full).parts[2] # frozendb, colddb, db
 				except:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? - ")
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + bucket_path + "- ")
 				try:
 					bucket_id_guid = bucket_id_full.split('_')[4].split('/')[0]
 					bucket_id_standalone = False
