@@ -182,7 +182,7 @@ class BlobService():
 				if container_name_list:
 					found = False
 					for i in container_name_list:
-						if not i in container:
+						if not i in container['name']:
 							continue
 						else:
 							found = True
