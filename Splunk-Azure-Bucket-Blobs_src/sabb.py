@@ -219,8 +219,8 @@ def updateCompletedWRQDownloadJobs():
 				if run_me:
 					wrq_csv_report.add(log_csv.writeLinesToCSV, [[(rows_list), ['Container_Name', 'Downloaded_To', 'Blob_Path_Name', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Download_Completed_Date', 'Thread_Name', 'Thread_ID']]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
-					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs)], 3])
-					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list)], 3])
+					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs), 3]])
+					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list), 3]])
 				list_index = last_index
 		except Exception as ex:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"):  Exception: -")
