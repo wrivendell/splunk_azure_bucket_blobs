@@ -93,7 +93,7 @@ class BlobService():
 		else:
 			return(False, v)
 
-	def getContainers(self, names_only=False) -> list:
+	def getContainers(self, names_only=True) -> list:
 		'''
 		Get a list of containers that the specified connection string has access too.
 		Default is a list of dicts, each containing all info of a container.
@@ -167,7 +167,7 @@ class BlobService():
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
 
-	def getAllBlobsByContainers(self) -> list:
+	def getAllBlobsByContainers(self, container_name_list=[]) -> list:
 		'''
 		Probes all available containers to the provided connectionstring (access to) and gets all container names.
 		Probes each container for blobs contained and writes all out to a list of dicts. One dict per container
@@ -177,6 +177,21 @@ class BlobService():
 			tmp_container_blob_dict_list = []
 			all_containers_dict_list = self.getContainers()
 			for container in all_containers_dict_list:
+				print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing: " + container['name'] + " -")
+				found = True
+				if container_name_list:
+					found = False
+					for i in container_name_list:
+						if not i in container:
+							continue
+						else:
+							found = True
+							break
+				if not found:
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Not in list, skipping. -")
+					continue
+				else:
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Added -")
 				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'])
 				tmp_container_dict = container
 				tmp_container_dict['blobs'] = (tmp_blobs_dict_list)
