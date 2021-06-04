@@ -48,7 +48,8 @@ if not arguments.args.standalone:
 											 sp_uname=arguments.args.splunk_username,
 											 sp_pword=arguments.args.splunk_password, 
 											 sp_idx_cluster_master_uri=arguments.args.cluster_master, 
-											 port=arguments.args.cluster_master_port)
+											 port=arguments.args.cluster_master_port,
+											 size_error_margin=arguments.args.size_error_margin)
 # Print Console Info
 if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Blob interactive service class created: blob_service" + " -")
