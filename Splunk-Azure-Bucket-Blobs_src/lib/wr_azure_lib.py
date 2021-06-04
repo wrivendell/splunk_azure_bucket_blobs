@@ -223,9 +223,9 @@ class BlobService():
 		'''
 		try:
 			tmp_container_blob_dict_list = []
-			all_containers_dict_list = self.getContainers(container_search_list)
+			all_containers_dict_list = self.getContainers(container_search_list=container_search_list)
 			for container in all_containers_dict_list:
-				print("\n\n\n- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing CONTAINER: " + str(container['name']) + " -")
+				print("\n\n\n- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing CONTAINER: " + container['name'] + " -")
 				found = True
 				if container_search_list:
 					found = False
