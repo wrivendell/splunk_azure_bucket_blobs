@@ -549,7 +549,6 @@ class Bucketeer():
 						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
 							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for b in lst2[0]: # for each item in list 2
-									print(donor_size_total, lst2[1])
 									if donor_size_total >= lst2[1]:
 										break
 									donor_size_total = donor_size_total + b[6]/1024.0**2
