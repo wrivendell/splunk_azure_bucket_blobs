@@ -108,6 +108,21 @@ def checkAlreadyDownloaded(blob_name) -> bool:
 	else:
 		return(False)
 
+def appendGUIDCheck(bucket_detail_list:list) -> set:
+	'''
+	If needing a name change,
+	Returns a  True, <replacement list with the new bucket download to name as the last element>
+	Otherwise a False, ""
+	'''
+	if bucket_detail_list[4]: # if standalone is true 
+		tmp_split = bucket_detail_list[7].split(str('_' + bucket_detail_list[2])) # split original path at the _bucketID
+		new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[2]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name +"-")
+		bucket_detail_list.append( new_bucket_name )
+		return(True, bucket_detail_list)
+	else:
+		return(False, "")
+
 # get list of all blobs to download
 def makeBlobDownloadList(container_names_to_search_list=[], 
 						 container_names_to_ignore_list=[], 
@@ -243,7 +258,12 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 							print("\n- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -\n")
 						continue
 					else:
-						master_bucket_download_list.append( [ i[7], i[6], i[11], i[12] ] )
+						# check and see if the bucket came from a standalone and needs a GUID appeneded
+						standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[11], i[12] ])
+						if standalone_rename_check[0]:
+							master_bucket_download_list.append(standalone_rename_check[1])
+						else:
+							master_bucket_download_list.append( [ i[7], i[6], i[11], i[12] ] )
 		if tmp_master_list_log_lines:
 			wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
 	except Exception as ex:

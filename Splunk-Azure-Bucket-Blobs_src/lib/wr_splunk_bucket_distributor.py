@@ -136,53 +136,59 @@ class Bucketeer():
 		bucket_info_tuples_list = []
 		for bucket_path in self.list_of_bucket_list_details:
 			# break out the bucket details
-			print(bucket_path)
-			print("hello 0")
+			if self.debug:
+				print(bucket_path)
+#			print("hello 0")
 			if bucket_path[1] <= 0:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping blob with 0 byte size: " + str(bucket_path) + " -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Skipping blob with 0 byte size: " + str(bucket_path)] )
 				continue
-			print("hello 1")
+#			print("hello 1")
 			bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE).group(1)  # db_ onward
 			if not bucket_id_full:
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Not a DB bucket, trying RB: " + str(bucket_path)] )
 				bucket_id_full = re.search('(rb_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE).group(1)
 			if not bucket_id_full:
-				print(bucket_id_full)
-				print("hello 2")
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
+				if self.debug:
+					print(bucket_id_full)
+#					print("hello 2")
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_id_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
+				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_id_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
 				continue
 			else:
 				bucket_path_full = re.search('(.+)(db_)', bucket_path[0], re.IGNORECASE).group(1)
 				if not bucket_path_full:
 					bucket_path_full = re.search('(.+)(rb_)', bucket_path[0], re.IGNORECASE).group(1)
 				if not bucket_path_full:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
-					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket ID. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_path_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_path_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
 					continue
 				else:
-					print("hello 3")
+#					print("hello 3")
 					try:
 						bucket_db_path = Path(bucket_path_full).parts[-1] # frozendb, colddb, db
-						print("path_db: ", str(bucket_db_path))
+						if self.debug:
+							print("path_db: ", str(bucket_db_path))
 					except:
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_db_path. " + str(bucket_path) + ". Skipping- ")
 						self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_db_path. Failed on: " + str(bucket_path) + ". Skipping." ])
 						continue
 					try:
 						bucket_index_path = Path(bucket_path_full).parts[-2]  # barracuda, mcafee etc
-						print("path_index: ", str(bucket_index_path))
+						if self.debug:
+							print("path_index: ", str(bucket_index_path))
 					except:
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_index_path. " + str(bucket_path) + ". Skipping- ")
 						self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_index_path. Failed on: " + str(bucket_path) + ". Skipping." ])
 						continue
-					print("hello 4")
+#					print("hello 4")
 					try:
 						bucket_state_path = Path(bucket_path_full).parts[-3] # cold, warm, hot, or if frozen, custom folder
-						print("path_state: ", str(bucket_state_path))
+						if self.debug:
+							print("path_state: ", str(bucket_state_path))
 					except:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Might be internal_db. Adding it: " + str(bucket_path))
+						if self.debug:
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Might be internal_db. Adding it: " + str(bucket_path))
 						self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_state_path. Might be internal_db. Adding it: " + str(bucket_path) ])
 						if '/' in bucket_path_full:
 							bucket_state_path = "/"
@@ -190,7 +196,7 @@ class Bucketeer():
 							bucket_state_path = "\\"
 						else:
 							bucket_state_path = ""
-						print("hello 5")
+#						print("hello 5")
 				try:
 					bucket_id_guid = bucket_id_full.split('/')[0].split('\\')[0]
 					try:
@@ -200,14 +206,15 @@ class Bucketeer():
 						bucket_id_guid = 'none'
 						bucket_id_standalone = True
 						self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Bucket is standalone and not part of a cluster: " + str(bucket_path) ])
-					print("bucket_guid: ", str(bucket_id_guid))
-					print("hello 6")
+					if self.debug:
+						print("bucket_guid: ", str(bucket_id_guid))
+#					print("hello 6")
 				except:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_guid. " + str(bucket_path) + ". Skipping- ")
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: CCan't parse bucket_guid. Failed on: " + str(bucket_path) + ". Skipping." ])
-					print("hello 7")
+#					print("hello 7")
 					continue
-				print("hello 8")
+#				print("hello 8")
 				if 'rb' in str(bucket_id_full.split('_')[0]):
 					bucket_id_origin = False
 				elif 'db' in str(bucket_id_full.split('_')[0]):
@@ -216,31 +223,39 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping -")
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping." ])
 					continue
-				print(bucket_id_origin)
-				print("hello 9")
+				if self.debug:
+					print(bucket_id_origin)
+#				print("hello 9")
 				try:
 					bucket_id_earliest = bucket_id_full.split('_')[1]
 					bucket_id_latest = bucket_id_full.split('_')[2]
 					bucket_id_id = bucket_id_full.split('_')[3] # three number id between latest and GUID (if applicable)
+					if self.debug:
+						print(bucket_id_earliest)
+						print(bucket_id_latest)
+						print(bucket_id_id)
 				except:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse earliest/latest or bucket id. Failed on: " + str(bucket_path) + ". Skipping- ")
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse earliest/latest or bucket id. Failed on: " + str(bucket_path) + ". Skipping." ])
-					print("hello 10")
+#					print("hello 10")
 					continue
 				# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
 				tmp_bucket_list = [bucket_id_earliest, bucket_id_latest, bucket_id_id,
 								bucket_id_guid, bucket_id_standalone, bucket_id_origin, bucket_path[1], bucket_path[0],
 								str(bucket_state_path), str(bucket_index_path), str(bucket_db_path)
 								]
-				print("hello 11")
+#				print("hello 11")
 				# add additional items not used back to the list
 				if len(bucket_path) > 2:
+					if self.debug:
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding original additional items we received back to bucket details.")
 					for idx, item in enumerate(bucket_path):
 						if idx > 1:
 							tmp_bucket_list.append(item)
 				bucket_tuple = tuple(tmp_bucket_list)
-				print("final_details: ", bucket_tuple)
-				print("hello 12")
+				if self.debug:
+					print("final_details: ", bucket_tuple)
+#				print("hello 12")
 				# add to master list
 				bucket_info_tuples_list.append(bucket_tuple)
 				bucket_info_tuples_list.sort(key=lambda x: x[1])

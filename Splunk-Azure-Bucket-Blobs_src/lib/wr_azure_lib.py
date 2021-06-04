@@ -9,6 +9,7 @@
 
 ### IMPORTS ###########################################
 import os, datetime, sys, re
+from time import time
 
 from . import wr_logging as log
 
@@ -236,12 +237,14 @@ class BlobService():
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
 	
-	def downloadBlobByName(self, blob_name:str, expected_blob_size:int, container_name:str, dest_download_loc_root='./blob_downloads/', bypass_size_compare=False, timeout=5000) -> list:
+	def downloadBlobByName(self, blob_name:str, expected_blob_size:int, container_name:str, dest_download_loc_root='./blob_downloads/', replace_file_name="", bypass_size_compare=False, timeout=5000) -> list:
 		'''
 		Downloads a specified blob file from a container locally to wherever this script (by default)
 		is run from in the subfolder ./blob_downloads/<container_name>/<rest of path from Azure blob name>
 
 		expected_blob_size is in bytes (as per return from Azure)
+
+		Replace filename will remove the blob name completely so reconstruct it however you want! Leave alone to use blob name as default
 
 		Checks the expected blob size (grabbed from the RAW file info data)
 		against the actual downloaded size to confirm completed succesfully.
@@ -265,7 +268,10 @@ class BlobService():
 				download_dir = (dest_download_loc_root) + (container_name) + '/'
 			else:
 				download_dir = (dest_download_loc_root) + '/' + (container_name) + '/'
-		filename_full = (download_dir) + str(blob_name) # path to full file
+		if replace_file_name:
+			filename_full = (download_dir) + str(replace_file_name) # path to full file
+		else:
+			filename_full = (download_dir) + str(blob_name) # path to full file
 		file_path = str(Path(filename_full).parent) # path to directory holding the final file.whatever
 		if re.search('^(.+?)(?:[a-zA-Z0-9.,$;])', filename_full, re.IGNORECASE).group(1):
 			file_path = re.search('^(.+?)(?:[a-zA-Z0-9.,$;])', filename_full, re.IGNORECASE).group(1) + file_path
@@ -278,7 +284,7 @@ class BlobService():
 			print(ex)
 		blob = BlobClient.from_connection_string(conn_str=(self.connect_str), container_name=(container_name), blob_name=(blob_name))
 		with open( (filename_full), "wb") as my_blob:
-			blob_data = blob.download_blob(validate_content=True, max_concurrency=5, timeout=5000)
+			blob_data = blob.download_blob(validate_content=True, max_concurrency=5, timeout=(timeout))
 			downloaded_blob_size = (blob_data.readinto(my_blob))
 			if bypass_size_compare:
 				return(True, downloaded_blob_size * 1000000, '(MB)')
