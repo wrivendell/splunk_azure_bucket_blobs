@@ -97,7 +97,7 @@ class BlobService():
 		else:
 			return(False, v)
 
-	def getContainers(self, names_only=False) -> list:
+	def getContainers(self, names_only=False, container_search_list=[]) -> list:
 		'''
 		Get a list of containers that the specified connection string has access too.
 		Default is a list of dicts, each containing all info of a container.
@@ -111,6 +111,19 @@ class BlobService():
 					tmp_container_list.append( container['name'] )
 				else:
 					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Found Container: " + container['name'] +" -")
+					found = True
+					if container_search_list:
+						found = False
+						for i in container_search_list:
+							if not i in container['name']:
+								continue
+							else:
+								found = True
+								break
+					if not found:
+						print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + str(container['name']) + " Not in list, skipping. -")
+						self.log_file.writeLinesToFile( ["(" + str(sys._getframe().f_lineno) + ") " + str(container['name']) + " Not in list, skipping."] )
+						continue
 					# azure leaves datetime native objects in raw data converting them to date formats json can understand
 					d_container = dict(container)
 					tmp_dict = {}
@@ -210,7 +223,7 @@ class BlobService():
 		'''
 		try:
 			tmp_container_blob_dict_list = []
-			all_containers_dict_list = self.getContainers()
+			all_containers_dict_list = self.getContainers(container_search_list)
 			for container in all_containers_dict_list:
 				print("\n\n\n- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing CONTAINER: " + container['name'] + " -")
 				found = True

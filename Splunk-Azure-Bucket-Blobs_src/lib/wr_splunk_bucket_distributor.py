@@ -87,7 +87,7 @@ class Bucketeer():
 		self.sp_pword = sp_pword
 		self.sp_idx_cluster_master_uri = sp_idx_cluster_master_uri
 		self.port = port
-		self.size_error_margin = size_error_margin
+		self.size_error_margin = size_error_margin / 100
 
 		# see if cluster master URI is available
 		if not self.sp_idx_cluster_master_uri:
@@ -230,7 +230,10 @@ class Bucketeer():
 				try:
 					bucket_id_earliest = bucket_id_full.split('_')[1]
 					bucket_id_latest = bucket_id_full.split('_')[2]
-					bucket_id_id = bucket_id_full.split('_')[3] # three number id between latest and GUID (if applicable)
+					if not bucket_id_standalone:
+						bucket_id_id = bucket_id_full.split('_')[3] # three number id between latest and GUID (if applicable)
+					else:
+						bucket_id_id = bucket_id_full.split('_')[3].split('/')[0].split('\\')[0]
 					if self.debug:
 						print(bucket_id_earliest)
 						print(bucket_id_latest)
