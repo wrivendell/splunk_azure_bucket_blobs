@@ -128,7 +128,7 @@ class Queue():
 		self.total_time_taken = 0 # sum of time taken for all jobs in minutes - accumulates
 		self.average_job_time = 0 # average time per job in minutes
 		self.estimated_finish_time = 0 # estimated time to copletion based on average
-		self.log_file = log.LogFile('wrq_' + self.name + '.log', log_folder='../logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
+		self.log_file = log.LogFile('wrq_' + self.name + '.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 		'''
 		The following tuples have two entries and are in the format of

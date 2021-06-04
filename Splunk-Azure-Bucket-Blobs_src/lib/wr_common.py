@@ -10,7 +10,7 @@ import datetime, time, sys, os
 from . import wr_logging as log
 
 ### LOGGING CLASS ###########################################
-log_file = log.LogFile('wrc.log', log_folder='../logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
+log_file = log.LogFile('wrc.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 ### FUNCTIONS ###########################################
 

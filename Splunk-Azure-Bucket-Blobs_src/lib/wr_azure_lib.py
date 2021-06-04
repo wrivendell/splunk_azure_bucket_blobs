@@ -40,7 +40,7 @@ class BlobService():
 		except Exception as ex:
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
-		self.log_file = log.LogFile('wazure.log', log_folder='../logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
+		self.log_file = log.LogFile('wazure.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 	def isInList(self, string_to_test:str, list_to_check_against:list, equals_or_contains=True, string_in_list_or_items_in_list_in_string=True) -> bool:
 		'''
@@ -133,7 +133,7 @@ class BlobService():
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
 
-	def getBlobsByContainer(self, container_name, names_only=False) -> list:
+	def getBlobsByContainer(self, container_name, blob_search_list=[], names_only=False) -> list:
 		'''
 		Get all blobs in a specified container. Returns a list contianing dicts.
 		Default is one dict per blob with all info for that blob file.
@@ -155,6 +155,22 @@ class BlobService():
 						print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Found no file, just path in BLOB: " + str(blob['name']) + " Skipping. -")
 						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Found no file, just path in BLOB: " + str(blob['name']) + " Skipping." ] )
 						continue
+					else:
+						found = True
+						if blob_search_list:
+							found = False
+							for i in blob_search_list:
+								if not i in blob['name']:
+									continue
+								else:
+									found = True
+									break
+					if not found:
+						print("- WAZURE(" + str(sys._getframe().f_lineno) +"): BLOB: " + str(blob['name']) + " Not in search list, skipping. -")
+						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): BLOB: " + str(blob['name']) + " Not in search list, skipping." ] )
+						continue
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): BLOB: " + str(blob['name']) + " ADDED. -")
+					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") BLOB: " + str(blob['name']) + " ADDED." ] )						
 					d_blob = dict(blob)
 					tmp_dict = {}
 					for k,v in d_blob.items():
@@ -179,7 +195,7 @@ class BlobService():
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Exception: " + str(blob['name']) ] ) 
 			print(ex)
 
-	def getAllBlobsByContainers(self, container_name_list=[]) -> list:
+	def getAllBlobsByContainers(self, container_search_list=[], blob_search_list=[]) -> list:
 		'''
 		Probes all available containers to the provided connectionstring (access to) and gets all container names.
 		Probes each container for blobs contained and writes all out to a list of dicts. One dict per container
@@ -191,9 +207,9 @@ class BlobService():
 			for container in all_containers_dict_list:
 				print("\n\n\n- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing CONTAINER: " + container['name'] + " -")
 				found = True
-				if container_name_list:
+				if container_search_list:
 					found = False
-					for i in container_name_list:
+					for i in container_search_list:
 						if not i in container['name']:
 							continue
 						else:
@@ -206,7 +222,7 @@ class BlobService():
 				else:
 					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + str(container['name']) + " Added -")
 					self.log_file.writeLinesToFile( ["(" + str(sys._getframe().f_lineno) + ") " + str(container['name']) + " Added." ] )
-				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'])
+				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'], blob_search_list)
 				tmp_container_dict = container
 				tmp_container_dict['blobs'] = (tmp_blobs_dict_list)
 				tmp_container_blob_dict_list.append(tmp_container_dict)

@@ -89,7 +89,7 @@ class SplunkService():
 		self.sp_port = sp_port
 		self.sp_uname = sp_uname
 		self.sp_pword = sp_pword
-		self.log_file = log.LogFile('wapi.log', log_folder='../logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
+		self.log_file = log.LogFile('wapi.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 	# a "naive" but readable-friendly code way of checking if a string is in a list, exact or contains options
 	def isInList(self, string_to_test:str, list_to_check_against:list, equals_or_contains=True) -> bool:

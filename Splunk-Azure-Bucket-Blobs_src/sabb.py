@@ -135,14 +135,14 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 	time.sleep(3)
 	try:
 		tmp_master_list_log_lines = []
-		all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers(container_names_to_search_list)
+		all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers(container_names_to_search_list, blob_names_to_search_list)
 		# FEED BACK FOR USER
 		# Container filters
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed"])
 		print("\n")
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters -")
-		
+
 		# Container filters
 		if len(container_names_to_search_list) > 0:
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters"])
