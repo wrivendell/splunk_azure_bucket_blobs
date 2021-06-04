@@ -19,7 +19,7 @@ def checkFileSize(log_file: str, roll_size_bytes=50000000, max_files_to_keep=0, 
 		if os.path.getsize(log_file) >= roll_size_bytes: #25000000:
 			counter = 0
 			if debug:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +"): File to be rotated / removed: {}".format(log_file))
+				print("- WRLog(" + str(sys._getframe().f_lineno) + "): File to be rotated / removed: {}".format(log_file))
 			while os.path.exists((log_file) + "_" + str(counter)):
 				counter = (counter) + 1
 			else:
@@ -58,16 +58,16 @@ def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retentio
 	# fetch list of every file in (log_folder)
 	all_files_list = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser( (log_folder) )) for f in fn]
 	if all_files_list:
-		print("- WRLog(" + str(sys._getframe().f_lineno) +"): Log files Found: -")
+		print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : Log files Found: -")
 		for f in all_files_list:
 			if str(log_file) in f:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +"): " + f + " -") 
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : " + f + " -") 
 	if not os.path.exists(log_folder):
 		print("-" + (log_folder)+" does not exist or couldn't be accessed, will attempt to create -")
 	if not all_files_list:
-		print("- WRLog(" + str(sys._getframe().f_lineno) +"): No old logs found for removal in " + class_name + " -")
+		print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : No old logs found for removal in " + class_name + " -")
 		return
-	print("- WRLog(" + str(sys._getframe().f_lineno) +"): Removing old log files -")
+	print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : Removing old log files -")
 	for f in all_files_list:
 		if str(log_file) in f:
 			any_old_found = False
@@ -75,11 +75,11 @@ def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retentio
 				any_old_found = True
 				try:
 					os.remove(f)
-					print("- WRLog(" + str(sys._getframe().f_lineno) +"): " + (f) + " deleted -")
+					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : " + (f) + " deleted -")
 				except:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +"): " +  (f) + " could not be deleted, permissions? -")
+					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : " +  (f) + " could not be deleted, permissions? -")
 			if not any_old_found:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +"): No more logs older than " + str(log_retention_days) + " days found. -")
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : No more logs older than " + str(log_retention_days) + " days found. -")
 
 ### CLASSES ###########################################
 
@@ -102,7 +102,7 @@ class LogFile():
 			try:
 				os.makedirs( (self.log_folder), exist_ok=True)
 			except:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +"): " + (self.log_folder) + ' - could not be accessed or created. Check permissions?')
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : " + (self.log_folder) + ' - could not be accessed or created. Check permissions?')
 		if remove_old_logs:
 			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		self.log_path = (self.log_folder) + '/' + (self.log_file).replace('//','/').replace('\\\\','\\')
@@ -126,14 +126,14 @@ class LogFile():
 					retry = 0
 					checkFileSize(self.log_file, self.roll_size_bytes, self.max_files_to_keep, self.debug)
 				except Exception as ex:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +"): Exception: -")
+					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Exception: -")
 					print(ex)
 					if retry > 0:
 						print("Retrying write: " + (retry))
 						time.sleep(0.1)
 						retry -= 1
 					else:
-						print("- WRLog(" + str(sys._getframe().f_lineno) +"): Could not write to log file, check permissions of " + (self.log_folder) + " -")
+						print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Could not write to log file, check permissions of " + (self.log_folder) + " -")
 			else:
 				retry = 0
 
@@ -179,7 +179,7 @@ class CSVFile():
 				csv_file.close
 				retry = 0
 			except Exception as ex:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +"): Exception: -")
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Exception: -")
 				print(ex)
 				if retry > 0:
 					print("Retrying write: " + (retry))
@@ -204,14 +204,14 @@ class CSVFile():
 				data.to_csv(self.log_path)
 				retry = 0
 			except Exception as ex:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +"): Exception: -")
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Exception: -")
 				print(ex)
 				if retry > 0:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +"): Retrying write: " + (retry) + " -")
+					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Retrying write: " + (retry) + " -")
 					time.sleep(0.1)
 					retry -= 1
 				else:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +"): Could not write to log file, check permissions of " + (self.log_folder) + " -")
+					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Could not write to log file, check permissions of " + (self.log_folder) + " -")
 
 	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under: str) -> list:
 		'''

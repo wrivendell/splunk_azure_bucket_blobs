@@ -459,7 +459,6 @@ class Bucketeer():
 		lowest = 999999999999999999999
 		highest = 0
 		len_balanced = False
-		restart = False
 		lowest_lst = []
 		highest_lst = []
 		margin = 15
@@ -472,19 +471,13 @@ class Bucketeer():
 					elif len(lst) > highest:
 							highest = len(lst)
 							highest_lst = lst
-					if not idx >= len(master_list_of_lists) - 1: # ensure a full iteration goes through before changing anything
-						continue
-					elif restart:
-							continue
-					else:
-						high_low_diff = highest - lowest
-						if high_low_diff > margin:     # if lists are within margin lengths of each other, consider that fine
-							high_low_diff = high_low_diff / 2
-							lowest_lst = lowest_lst.extend(highest_lst[0:high_low_diff]) # move half the delta to the lowest from highest
-							del highest_lst[0:high_low_diff]
-							restart = True # run again to ensure balanced, will repeat process til all within "equal" margin
-						else:
-							len_balanced = True
+				high_low_diff = highest - lowest
+				if high_low_diff > margin:     # if lists are within margin lengths of each other, consider that fine
+					high_low_diff = high_low_diff / 2
+					lowest_lst = lowest_lst.extend(highest_lst[0:high_low_diff]) # move half the delta to the lowest from highest
+					del highest_lst[0:high_low_diff]
+				else:
+					len_balanced = True
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per peer balance: Finished."])
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length -")
@@ -493,48 +486,60 @@ class Bucketeer():
 		# check list byte sizes (MB)
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by size of blobs in list."])
 		master_list_of_lists.sort()
-		lowest = 999999999999999999999 # set this high so the first one is always lower than it and sets the bar
-		highest = 0
+		lowest = float(999999999999999999999.0) # set this high so the first one is always lower than it and sets the bar
+		highest = float(0.0)
 		size_balanced = False
-		restart = False
 		lowest_lst = []
 		highest_lst = []
+		total_size = 0
 		try:
+			total_size = 0
+			# get total size of all lists combined
+			for lst in master_list_of_lists:
+				tmp_size_total = 0
+				for b in lst:
+					tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
+				total_size = total_size + tmp_size_total
+			# get average MB per list
+			average_size_per = total_size / len(master_list_of_lists)
+			margin = average_size_per * 0.1 # 10% margin
+			above_margin = []
+			below_margin = []
+			within_margin = []
 			while not size_balanced:
 				for idx, lst in enumerate(master_list_of_lists): # get lowest and highest sizes lists in the master list
 					tmp_size_total = 0
 					for b in lst:
 						tmp_size_total = tmp_size_total + (b[6]/1024.0**2) # convert to mb so we're using smaller nums
-					if tmp_size_total < lowest:
-						lowest = tmp_size_total
-						lowest_lst = lst
-					elif tmp_size_total > highest:
-						highest = tmp_size_total
-						highest_lst = lst
-					if not idx >= len(master_list_of_lists) - 1: # ensure a full iteration goes through before changing anything
-						continue
-					elif restart:
-						continue
-					else:
-						high_low_diff = highest - lowest
-						margin_diff = highest / len(master_list_of_lists)
-						if high_low_diff > margin_diff:
-							high_low_diff = high_low_diff / 2
-							tmp_move_list = []
-							tmp_move_size = 0
-							for b in highest_lst:
-								tmp_move_size = tmp_move_size + (b[6]/1024.0**2)
-								tmp_move_list.append(b)
-								if tmp_move_size >= high_low_diff:
-									break
-							if tmp_move_list:
-								for ml in tmp_move_list:
-									lowest_lst.append(ml)
-									highest_lst.remove(ml)
-							restart = True # run again to ensure balanced
+					tmp_diff_from_avg = tmp_size_total - average_size_per
+					if abs(tmp_diff_from_avg) > margin:
+						if tmp_diff_from_avg < 0:
+							tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
+							below_margin.append([lst, abs(tmp_diff_from_margin)])
 						else:
-							size_balanced = True
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per list size: Finished."])
+							tmp_diff_from_margin = tmp_diff_from_avg - margin
+							above_margin.append([lst, abs(tmp_diff_from_margin)])
+					else:
+						within_margin.append([lst, abs(tmp_diff_from_avg)])
+				for lst in below_margin:
+					receiver_size_total = 0 
+					for lst2 in above_margin:
+						donor_size_total = 0
+						if lst2[1] < lst[1]:
+							while not donor_size_total >= lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
+								for b in lst2[0]: # for each item in list 2
+										donor_size_total = donor_size_total + b[6]/1024.0**2
+										lst[1] = lst[1] + b[6]/1024.0**2
+										lst[0].append(b)
+										lst2[0].remove(b)
+						else:
+							while not receiver_size_total >= lst[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
+								for b in lst2[0]: # for each item in list 2
+										donor_size_total = donor_size_total + b[6]/1024.0**2
+										lst[0].append(b)
+										lst2[0].remove(b)
+				size_balanced = True
+				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per list size: Finished."])
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length by combined file size. -")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per list size: FAILED."])
