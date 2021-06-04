@@ -114,12 +114,20 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 	Returns a  True, <replacement list with the new bucket download to name as the last element>
 	Otherwise a False, ""
 	'''
-	if bucket_detail_list[4]: # if standalone is true 
-		tmp_split = bucket_detail_list[7].split(str('_' + bucket_detail_list[2])) # split original path at the _bucketID
-		new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[2]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name +"-")
-		bucket_detail_list.append( new_bucket_name )
-		return(True, bucket_detail_list)
+	if bucket_detail_list[4]: # if standalone is true
+		try:
+			print("STANDALONE!!!!")
+			tmp_split = bucket_detail_list[7].split(str('_' + bucket_detail_list[2])) # split original path at the _bucketID
+			new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[2]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name +"-")
+			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name])
+			bucket_detail_list.append( new_bucket_name )
+			return(True, bucket_detail_list)
+		except Exception as ex:
+			print(ex)
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): FAILED appending GUID to stnadalone bucket -")
+			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): FAILED appending GUID to stnadalone bucket."])
+
 	else:
 		return(False, "")
 
