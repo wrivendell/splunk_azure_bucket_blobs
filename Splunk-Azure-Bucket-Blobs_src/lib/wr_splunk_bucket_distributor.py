@@ -625,9 +625,7 @@ class Bucketeer():
 				bucket_info_tuples_list = self.splitBucketDetails()
 				if bucket_info_tuples_list:
 						separated_master_bucket_tuple_list = self.organizeMasterListByStateIndexDB(bucket_info_tuples_list)
-						print("hello 12")
 						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, separated_master_bucket_tuple_list)
-						print("hello 13")
 						for idx, p in enumerate(idx_cluster_peers):
 							if p == self.my_guid:
 								self.this_peer_download_list = self.final_peer_download_lists[idx]

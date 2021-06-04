@@ -494,8 +494,8 @@ if __name__ == "__main__":
 		sys.exit()
 	# add download jobs to download queue
 	start_length_of_download_list = len(master_bucket_download_list)
-	print("exiting so not to download any real data outside of UK")
-	sys.exit()
+#	print("exiting so not to download any real data outside of UK")
+#	sys.exit()
 	wrq_download.add(blob_service.downloadBlobByName, master_bucket_download_list, start_after_add=False)
 
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Adding download job list to download queue: wrq_download -")
