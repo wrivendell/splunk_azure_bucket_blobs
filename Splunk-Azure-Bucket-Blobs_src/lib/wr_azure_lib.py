@@ -149,7 +149,7 @@ class BlobService():
 			counter = 0
 			for blob in blob_list:
 				counter += 1
-				if counter >= 10001:
+				if counter >= 1001:
 					print("breaking at 1000 for testing")
 					break
 				if names_only:
