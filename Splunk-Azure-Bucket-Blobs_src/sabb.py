@@ -117,17 +117,18 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 	if bucket_detail_list[4]: # if standalone is true
 		try:
 			print("STANDALONE!!!!")
-			tmp_split = bucket_detail_list[7].split(str('_' + bucket_detail_list[2])) # split original path at the _bucketID
-			new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[2]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
+			tmp_split = bucket_detail_list[0].split(str('_' + bucket_detail_list[5])) # split original path at the _bucketID
+			new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[5]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name +"-")
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name])
+			del bucket_detail_list[-1]
+			del bucket_detail_list[-1]
 			bucket_detail_list.append( new_bucket_name )
 			return(True, bucket_detail_list)
 		except Exception as ex:
 			print(ex)
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): FAILED appending GUID to stnadalone bucket -")
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): FAILED appending GUID to stnadalone bucket."])
-
 	else:
 		return(False, "")
 
@@ -267,7 +268,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 						continue
 					else:
 						# check and see if the bucket came from a standalone and needs a GUID appeneded
-						standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[11], i[12] ])
+						standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[11], i[12], i[4], i[2] ])
 						if standalone_rename_check[0]:
 							master_bucket_download_list.append(standalone_rename_check[1])
 						else:
