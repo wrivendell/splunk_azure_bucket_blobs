@@ -15,7 +15,8 @@ python3 sabb.py \
     -csl "vmt0pc"\
     -cslt False \
     -bsl "frozendb"\
-    -bslt False 
+    -bslt False \
+    -sem 1.5 
 # SEE README FOR ARG DETAILS - THIS SH file is for running the compiled AIO(all in one) version
 # You should always try and use this version as it doesn't need any outside dependencies
 # \  = indicates cmd continues on next line in bash
@@ -39,3 +40,4 @@ python3 sabb.py \
 # ciglt = container_ignore_list_type - same as cslt but for ignore list above
 # bigl = blob_ignore_list - same as cigl but for blob names found inside containers
 # biglt = blob_ignore_list_type - same as ciglt but for the blob_ignore_list above
+# sem = size_error_margin - Custom margin of error (%) when balancing download jobs among peers. Will balance by total size of all blobs added up. Smaller margin is more balanced. If any errors during this stage, raise this a bit higher
