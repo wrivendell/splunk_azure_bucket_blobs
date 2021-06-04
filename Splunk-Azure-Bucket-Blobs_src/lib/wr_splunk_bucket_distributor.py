@@ -30,7 +30,7 @@ azure_buckets = buckets.Bucketeer()
 
 class Bucketeer():
 	# this is the startup script, init?
-	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, debug=False):
+	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, debug=False, size_error_margin=2.5):
 		'''
 		Optionally, Provide Splunk IDX Cluster Master and API port e.g.  splunk_idx_cluster_master_uri="https://cm1.mysplunk.go_me.com" 
 			Port is set to default, port=8089 
@@ -87,6 +87,7 @@ class Bucketeer():
 		self.sp_pword = sp_pword
 		self.sp_idx_cluster_master_uri = sp_idx_cluster_master_uri
 		self.port = port
+		self.size_error_margin = size_error_margin
 
 		# see if cluster master URI is available
 		if not self.sp_idx_cluster_master_uri:
@@ -450,6 +451,7 @@ class Bucketeer():
 		2. Check byte sizes of downloads sum and redisctribute when needed / possible
 		3. Ensure all files for buckets are on the same list
 		'''
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by amount of jobs per peer. -")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by amount of jobs per peer."])
 		for list_item in master_list_of_lists:
 			if not list_item:
@@ -463,7 +465,14 @@ class Bucketeer():
 		highest_lst = []
 		margin = 15
 		try:
+			counter = 0
+			timeout_counter = 55000000 # 5min timeout to move on 
 			while not len_balanced:
+				counter += 1
+				if counter >= timeout_counter:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing job length stopped after 5 mins and moved on as is. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing job length stopped after 5 mins and moved on as is."])
+					break
 				for idx, lst in enumerate(master_list_of_lists): # get lowest and highest lists in the master list
 					if len(lst) < lowest:
 						lowest = len(lst)
@@ -484,13 +493,10 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per peer balance: Failed."])
 			print(ex)
 		# check list byte sizes (MB)
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by size of blobs in list. -")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by size of blobs in list."])
 		master_list_of_lists.sort()
-		lowest = float(999999999999999999999.0) # set this high so the first one is always lower than it and sets the bar
-		highest = float(0.0)
 		size_balanced = False
-		lowest_lst = []
-		highest_lst = []
 		total_size = 0
 		try:
 			total_size = 0
@@ -502,12 +508,19 @@ class Bucketeer():
 				total_size = total_size + tmp_size_total
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
-			margin = average_size_per * 0.1 # 10% margin
-			above_margin = []
-			below_margin = []
-			within_margin = []
+			margin = average_size_per * self.size_error_margin # % margin
+			counter = 0
+			timeout_counter = 55000000 # 5 or so min timeout to move on 
 			while not size_balanced:
-				for idx, lst in enumerate(master_list_of_lists): # get lowest and highest sizes lists in the master list
+				counter += 1
+				if counter >= timeout_counter:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped after 5 mins and moved on as is. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing by size stopped after 5 mins and moved on as is."])
+					break
+				above_margin = []
+				below_margin = []
+				within_margin = []
+				for lst in master_list_of_lists:
 					tmp_size_total = 0
 					for b in lst:
 						tmp_size_total = tmp_size_total + (b[6]/1024.0**2) # convert to mb so we're using smaller nums
@@ -521,25 +534,42 @@ class Bucketeer():
 							above_margin.append([lst, abs(tmp_diff_from_margin)])
 					else:
 						within_margin.append([lst, abs(tmp_diff_from_avg)])
-				for lst in below_margin:
-					receiver_size_total = 0 
+				for i in within_margin:
+					above_margin.append(i)
+					within_margin.remove(i)
+				if not below_margin:
+					size_balanced = True
+				for lst1 in below_margin:
+					receiver_original_ask = lst1[1]
 					for lst2 in above_margin:
 						donor_size_total = 0
-						if lst2[1] < lst[1]:
-							while not donor_size_total >= lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
+						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
+							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for b in lst2[0]: # for each item in list 2
-										donor_size_total = donor_size_total + b[6]/1024.0**2
-										lst[1] = lst[1] + b[6]/1024.0**2
-										lst[0].append(b)
-										lst2[0].remove(b)
+									print(donor_size_total, lst2[1])
+									if donor_size_total >= lst2[1]:
+										break
+									donor_size_total = donor_size_total + b[6]/1024.0**2
+									lst1[1] = lst1[1] + b[6]/1024.0**2
+									lst1[0].append(b)
+									lst2[0].remove(b)
 						else:
-							while not receiver_size_total >= lst[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
+							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for b in lst2[0]: # for each item in list 2
-										donor_size_total = donor_size_total + b[6]/1024.0**2
-										lst[0].append(b)
-										lst2[0].remove(b)
-				size_balanced = True
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per list size: Finished."])
+									if donor_size_total >= receiver_original_ask:
+										break
+									donor_size_total = donor_size_total + b[6]/1024.0**2
+									lst1[1] = lst1[1] + b[6]/1024.0**2
+									lst1[0].append(b)
+									lst2[0].remove(b)
+			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a error margin of: " + str(self.size_error_margin*100) + "%"])
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a error margin of: " + str(self.size_error_margin*100) + "%")
+			for lst in master_list_of_lists:
+				tmp_size_total = 0
+				for b in lst:
+					tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
+				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + ": List Total Size (mb): " + str(tmp_size_total) ])
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): List Total Size (mb): " + str(tmp_size_total))
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length by combined file size. -")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per list size: FAILED."])

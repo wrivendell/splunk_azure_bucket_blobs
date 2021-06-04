@@ -149,8 +149,8 @@ class BlobService():
 			counter = 0
 			for blob in blob_list:
 				counter += 1
-				if counter >= 1001:
-					print("breaking at 1000 for testing")
+				if counter >= 5001:
+					print("breaking at 5000 for testing")
 					break
 				if names_only:
 					tmp_blob_list.append( blob['name'] )
