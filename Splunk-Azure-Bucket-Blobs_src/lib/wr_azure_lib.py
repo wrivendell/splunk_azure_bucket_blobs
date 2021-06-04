@@ -40,7 +40,7 @@ class BlobService():
 		except Exception as ex:
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
-		self.log_file = log.LogFile('wazure.log', log_folder='../logs', remove_old_logs=True, log_level=3, log_retention_days=10)
+		self.log_file = log.LogFile('wazure.log', log_folder='../logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 	def isInList(self, string_to_test:str, list_to_check_against:list, equals_or_contains=True, string_in_list_or_items_in_list_in_string=True) -> bool:
 		'''
@@ -151,6 +151,10 @@ class BlobService():
 				else:
 					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing BLOB: " + str(blob['name']) + " -")
 					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Processing BLOB: " + str(blob['name']) ] )
+					if not len(str(blob['name']).rsplit('.', 1)) > 1:
+						print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Found no file, just path in BLOB: " + str(blob['name']) + " Skipping. -")
+						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Found no file, just path in BLOB: " + str(blob['name']) + " Skipping." ] )
+						continue
 					d_blob = dict(blob)
 					tmp_dict = {}
 					for k,v in d_blob.items():
