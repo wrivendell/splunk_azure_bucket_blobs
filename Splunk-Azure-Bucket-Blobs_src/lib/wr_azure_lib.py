@@ -145,7 +145,12 @@ class BlobService():
 			blob_list = container_client.list_blobs()
 #			tmp_blist = list(tmp_blist)
 #			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(tmp_blist)) + " -")
+			counter = 0
 			for blob in blob_list:
+				counter += 1
+				if counter >= 100:
+					print("breaking at 100 for testing")
+					break
 				if names_only:
 					tmp_blob_list.append( blob['name'] )
 				else:
