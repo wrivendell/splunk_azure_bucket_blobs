@@ -110,6 +110,7 @@ class BlobService():
 				if names_only:
 					tmp_container_list.append( container['name'] )
 				else:
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Found Container: " + container['name'] +" -")
 					# azure leaves datetime native objects in raw data converting them to date formats json can understand
 					d_container = dict(container)
 					tmp_dict = {}

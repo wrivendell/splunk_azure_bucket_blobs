@@ -116,8 +116,7 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 	'''
 	if bucket_detail_list[4]: # if standalone is true
 		try:
-			print("STANDALONE!!!!")
-			tmp_split = bucket_detail_list[0].split(str('_' + bucket_detail_list[5])) # split original path at the _bucketID
+			tmp_split = bucket_detail_list[0].split('_' + str(bucket_detail_list[5])) # split original path at the _bucketID
 			new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[5]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name +"-")
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name])
