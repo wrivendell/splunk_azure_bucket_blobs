@@ -8,6 +8,10 @@
 import datetime, time, sys, os
 
 from . import wr_common as wrc
+from . import wr_logging as log
+
+### LOGGING CLASS ###########################################
+log_file = log.LogFile('wrsops.log', log_folder='../logs', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 ### FUNCTIONS ###########################################
 
@@ -31,9 +35,11 @@ def findClusterMasterByFile(splunk_home:str) -> tuple:
 			cluster_master = wrc.findLineInFile(['master_uri', 'manager_uri'], server_conf)
 			if cluster_master[0]:
 				cluster_master = cluster_master[1].split('=')[1].strip()
-				print("- WRSOPS(" + str(sys._getframe().f_lineno) +"):Found IDX Clustermaster: " + cluster_master + " -")
+				print("- WRSOPS(" + str(sys._getframe().f_lineno) +"): Found IDX Clustermaster: " + cluster_master + " -")
+				log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Found IDX Clustermaster: " + cluster_master] )
 				return(True, cluster_master)
-	print("\n- WRSOPS(" + str(sys._getframe().f_lineno) +"):Could not find Cluster Master -\n")
+	print("\n- WRSOPS(" + str(sys._getframe().f_lineno) +"): Could not find Cluster Master -\n")
+	log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Could not find Cluster Master"] )
 	return(False, "")
 
 # find the guid
@@ -54,7 +60,9 @@ def findGUIDByFile(splunk_home:str) -> tuple:
 			my_guid = wrc.findLineInFile(['guid'], found_file, header='[general]')
 			if my_guid[0]:
 				my_guid = my_guid[1].split('=')[1].strip()
-				print("- WRSOPS(" + str(sys._getframe().f_lineno) +"):Found GUID: " + my_guid + " -")
+				print("- WRSOPS(" + str(sys._getframe().f_lineno) +"): Found MY GUID: " + my_guid + " -\n")
+				log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Found MY GUID: " + my_guid] )
 				return(True, my_guid)
-	print("\n- WRSOPS(" + str(sys._getframe().f_lineno) +"):Could not find my_guid -\n")
+	print("\n- WRSOPS(" + str(sys._getframe().f_lineno) +"): Could not find my_guid -\n")
+	log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Could not find my_guid"] )
 	return(False, "")

@@ -10,6 +10,8 @@
 ### IMPORTS ###########################################
 import os, datetime, sys, re
 
+from . import wr_logging as log
+
 from pathlib import Path
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, __version__
 
@@ -38,6 +40,7 @@ class BlobService():
 		except Exception as ex:
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
+		self.log_file = log.LogFile('wazure.log', log_folder='../logs', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 	def isInList(self, string_to_test:str, list_to_check_against:list, equals_or_contains=True, string_in_list_or_items_in_list_in_string=True) -> bool:
 		'''
@@ -140,14 +143,14 @@ class BlobService():
 			tmp_blob_list = []
 			container_client = blob_service_client.get_container_client( (container_name) )
 			blob_list = container_client.list_blobs()
-			tmp_blist = container_client.list_blobs()
-			tmp_blist = list(tmp_blist)
-			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(tmp_blist)) + " -")
+#			tmp_blist = list(tmp_blist)
+#			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(tmp_blist)) + " -")
 			for blob in blob_list:
 				if names_only:
 					tmp_blob_list.append( blob['name'] )
 				else:
 					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Processing BLOB: " + str(blob['name']) + " -")
+					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Processing BLOB: " + str(blob['name']) ] )
 					d_blob = dict(blob)
 					tmp_dict = {}
 					for k,v in d_blob.items():
@@ -169,6 +172,7 @@ class BlobService():
 			return(tmp_blob_list)
 		except Exception as ex:
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: " + str(blob['name'] + " -"))
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Exception: " + str(blob['name']) ] ) 
 			print(ex)
 
 	def getAllBlobsByContainers(self, container_name_list=[]) -> list:
@@ -192,10 +196,12 @@ class BlobService():
 							found = True
 							break
 				if not found:
-					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Not in list, skipping. -")
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + str(container['name']) + " Not in list, skipping. -")
+					self.log_file.writeLinesToFile( ["(" + str(sys._getframe().f_lineno) + ") " + str(container['name']) + " Not in list, skipping."] )
 					continue
 				else:
-					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + container['name'] + " Added -")
+					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + str(container['name']) + " Added -")
+					self.log_file.writeLinesToFile( ["(" + str(sys._getframe().f_lineno) + ") " + str(container['name']) + " Added." ] )
 				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'])
 				tmp_container_dict = container
 				tmp_container_dict['blobs'] = (tmp_blobs_dict_list)
@@ -243,6 +249,7 @@ class BlobService():
 			os.makedirs(os.path.dirname(file_path), exist_ok=True)
 		except Exception as ex:
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: Error making/accessing download dir -")
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Exception: Error making/accessing download dir." ])
 			print(ex)
 		blob = BlobClient.from_connection_string(conn_str=(self.connect_str), container_name=(container_name), blob_name=(blob_name))
 		with open( (filename_full), "wb") as my_blob:

@@ -10,6 +10,8 @@
 import os, re, time, sys, requests, json, urllib.parse, urllib3
 from collections import defaultdict
 
+from . import wr_logging as log
+
 from typing import List, Tuple, Dict
 
 ### Globals ###########################################
@@ -87,6 +89,7 @@ class SplunkService():
 		self.sp_port = sp_port
 		self.sp_uname = sp_uname
 		self.sp_pword = sp_pword
+		self.log_file = log.LogFile('wapi.log', log_folder='../logs', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 	# a "naive" but readable-friendly code way of checking if a string is in a list, exact or contains options
 	def isInList(self, string_to_test:str, list_to_check_against:list, equals_or_contains=True) -> bool:
@@ -511,6 +514,7 @@ class SplunkService():
 		response = self.apiCall('/services/cluster/master/peers')
 		if not response.status_code == 200:
 			print("- WAPI(" + str(sys._getframe().f_lineno) +"): Splunk API login failed, check credentials?! -")
+			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Splunk API login failed, check credentials?!"] )
 		j_data = json.loads(response.text)
 		if not guids_only:
 			return(j_data)

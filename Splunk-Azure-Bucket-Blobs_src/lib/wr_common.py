@@ -7,7 +7,10 @@
 ### Imports ###########################################
 import datetime, time, sys, os
 
+from . import wr_logging as log
 
+### LOGGING CLASS ###########################################
+log_file = log.LogFile('wrc.log', log_folder='../logs', remove_old_logs=True, log_level=3, log_retention_days=10)
 
 ### FUNCTIONS ###########################################
 
@@ -29,13 +32,15 @@ def findLineInFile(string_to_find:list, file_path:str, equals_or_contains=False,
 		for line in lines:
 			if use_header and not header_found:
 				if first_run:
-					print("\n- WRC: Looking for: " + header + ' in file. -')
+					print("\n- WRC: Looking for: " + header + " in file. -")
+					log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Looking for: " + header + " in file."] )
 					first_run = False
 				if header in line:
 					header_found = True
 				continue
 			for string in string_to_find:
-				found = "- WRC: Found: " + string + ' in file. -\n'
+				found = "- WRC: Found: " + string + " in file. -\n"
+				log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Found: " + string + " in file."] )
 				if equals_or_contains:
 					if string == line:
 						print(found)
@@ -62,6 +67,7 @@ def findFileByName(file_name:str, search_in: tuple) -> tuple:
 				if file == file_name:
 					found_paths_list.append( os.path.join(root, file) )
 					found_one = True
+					log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Found: " + file_name + " in file."] )
 					continue
 				else:
 					continue
