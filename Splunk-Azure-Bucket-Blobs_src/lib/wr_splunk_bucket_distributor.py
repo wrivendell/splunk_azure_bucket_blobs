@@ -332,8 +332,8 @@ class Bucketeer():
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list on GUID." )
-		bucket_info_tuples_list.sort(key=lambda x: x[0])
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list." )
+		bucket_info_tuples_list.sort()
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished parsing all bucket ids."])
 		return(bucket_info_tuples_list)
 
