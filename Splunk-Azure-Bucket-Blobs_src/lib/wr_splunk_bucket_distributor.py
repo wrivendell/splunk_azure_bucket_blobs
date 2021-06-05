@@ -248,12 +248,19 @@ class Bucketeer():
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):Attempting to extract bucket_id_origin (replicated or original bucket status).")
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-			if 'rb' in str(bucket_id_full.split('_')[0]):
-				bucket_id_origin = False
-			elif 'db' in str(bucket_id_full.split('_')[0]):
-				bucket_id_origin = True
-			else:
+			try:
+				if 'rb' in str(bucket_id_full.split('_')[0]):
+					bucket_id_origin = False
+				elif 'db' in str(bucket_id_full.split('_')[0]):
+					bucket_id_origin = True
+				else:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping." ])
+					continue
+			except Exception as ex:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print(ex)
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping." ])
 				continue
@@ -332,8 +339,8 @@ class Bucketeer():
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list." )
-		bucket_info_tuples_list.sort()
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list by GUID." )
+		bucket_info_tuples_list.sort(key=lambda x: x[3])
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished parsing all bucket ids."])
 		return(bucket_info_tuples_list)
 

@@ -18,6 +18,8 @@
     -bslt False \
     -sem 1.5 \
     -dm True 
+
+
 # SEE README FOR ARG DETAILS - THIS SH file is for running the compiled AIO(all in one) version
 # You should always try and use this version as it doesn't need any outside dependencies
 # \  = indicates cmd continues on next line in bash
