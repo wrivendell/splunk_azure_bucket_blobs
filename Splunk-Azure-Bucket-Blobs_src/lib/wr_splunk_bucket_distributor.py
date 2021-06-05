@@ -144,7 +144,6 @@ class Bucketeer():
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping blob with 0 byte size: " + str(bucket_path) + " -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Skipping blob with 0 byte size: " + str(bucket_path)] )
 				continue
-			
 			# get buckets ID  from bucket path tuple
 			bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE)  # db_ or rb_ ?
 			if not bucket_id_full:
@@ -167,7 +166,6 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_id_full: " + bucket_id_full + " Skipping -")
 					self.log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_id_full: " + bucket_id_full + " - Skipping."])
 					continue
-
 			# get full bucket PATH from from bucket path tuple
 			bucket_path_full = re.search('(.+)(db_)', bucket_path[0], re.IGNORECASE)
 			if not bucket_path_full:
@@ -190,7 +188,6 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_path_full: " + bucket_path_full + " Skipping-")
 					self.log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_path_full: " + bucket_path_full + " - Skipping."])
 					continue
-
 			# get bucket_db_path PATH from from bucket path tuple
 			try:
 				bucket_db_path = Path(bucket_path_full).parts[-1] # frozendb, colddb, db
@@ -202,7 +199,6 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_db_path. Failed on: " + str(bucket_path) + ". Skipping." ])
 				continue
-			
 			# get bucket_db_path PATH from from bucket path tuple
 			try:
 				bucket_index_path = Path(bucket_path_full).parts[-2]  # barracuda, mcafee etc
@@ -214,7 +210,6 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_index_path. Failed on: " + str(bucket_path) + ". Skipping." ])
 				continue
-			
 			# get bucket_state_path PATH from from bucket path tuple
 			try:
 				bucket_state_path = Path(bucket_path_full).parts[-3] # cold, warm, hot, or if frozen, custom folder
@@ -235,7 +230,6 @@ class Bucketeer():
 				if self.debug:
 					print("Finished Setting OS slash direction:", str(bucket_state_path))
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-
 			# get bucket_id_guid from from bucket path tuple
 			try:
 				bucket_id_guid = bucket_id_full.split('/')[0].split('\\')[0]
@@ -256,7 +250,6 @@ class Bucketeer():
 				bucket_id_guid = 'none'
 				bucket_id_standalone = True
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Bucket is standalone and not part of a cluster: " + str(bucket_path) ])
-
 			# get bucket_id_origin from from bucket path tuple
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):Attempting to extract bucket_id_origin (replicated or original bucket status).")
@@ -273,7 +266,6 @@ class Bucketeer():
 			if self.debug:
 				print(bucket_id_origin)
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-
 			# get bucket_id_earliest from from bucket path tuple
 			try:
 				bucket_id_earliest = bucket_id_full.split('_')[1]
@@ -283,7 +275,6 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_id_earliest, Skipping: " + str(bucket_path) ])
 				continue
-			
 			# get bucket_id_latest from from bucket path tuple
 			try:
 				bucket_id_latest = bucket_id_full.split('_')[2]
@@ -293,7 +284,6 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_id_latest, Skipping: " + str(bucket_path) ])
 				continue
-
 			# get bucket_id_id from from bucket path tuple
 			if not bucket_id_standalone:
 				try:
@@ -318,7 +308,6 @@ class Bucketeer():
 				print(" -" + str( (bucket_id_earliest) ) )
 				print(" -" + str( (bucket_id_latest) ) )
 				print(" -" + str( (bucket_id_id) ) )
-
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
@@ -328,7 +317,6 @@ class Bucketeer():
 							bucket_id_guid, bucket_id_standalone, bucket_id_origin, bucket_path[1], bucket_path[0],
 							str(bucket_state_path), str(bucket_index_path), str(bucket_db_path)
 							]
-
 			# add additional items not used back to the list
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
@@ -347,10 +335,11 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding this bucket final tuple details back to master list." + str(bucket_path) ])
 			# add to master list
 			bucket_info_tuples_list.append(bucket_tuple)
-			bucket_info_tuples_list.sort(key=lambda x: x[1])
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list on GUID." )
+		bucket_info_tuples_list.sort(key=lambda x: x[3])
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished parsing all bucket ids."])
 		return(bucket_info_tuples_list)
 
