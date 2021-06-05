@@ -506,11 +506,11 @@ class Bucketeer():
 			return(bucket_info_tuples_list_by_state_path_then_index_path_then_db_path)
 
 	# do all three of the above in one go
-	if self.debug:
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Starting all three sorts." )
-	self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Starting all three sorts."])
 	def organizeMasterListByStateIndexDB(self, bucket_info_tuples_list:list):
+		if self.debug:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Starting all three sorts." )
+		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Starting all three sorts."])
 		try:
 			tmp_list1 = self.organizeBucketTuplesByStatePath(bucket_info_tuples_list)
 		except Exception as ex:
