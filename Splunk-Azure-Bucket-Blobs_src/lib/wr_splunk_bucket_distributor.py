@@ -212,9 +212,9 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 			except Exception as ex:
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Might be internal_db. Adding it: " + str(bucket_path))
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path))
 				print(ex)
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_state_path. Might be internal_db. Adding it: " + str(bucket_path) ])
+				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path) ])
 				if '/' in bucket_path_full:
 					bucket_state_path = "/"
 				elif '\\' in bucket_path_full:
