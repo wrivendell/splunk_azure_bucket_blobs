@@ -139,7 +139,6 @@ class Bucketeer():
 			# break out the bucket details
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-				print("Split Begins On:", bucket_path_full)
 			if bucket_path[1] <= 0:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping blob with 0 byte size: " + str(bucket_path) + " -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Skipping blob with 0 byte size: " + str(bucket_path)] )
@@ -153,7 +152,6 @@ class Bucketeer():
 				bucket_id_full = re.search('(rb_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE)
 			if not bucket_id_full:
 				if self.debug:
-					print("Failed On:", str(bucket_path))
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_id_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_id_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
@@ -175,7 +173,6 @@ class Bucketeer():
 				bucket_path_full = re.search('(.+)(rb_)', bucket_path[0], re.IGNORECASE)
 			if not bucket_path_full:
 				if self.debug:
-					print("Failed On:", str(bucket_path))
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_path_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_path_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
@@ -192,7 +189,6 @@ class Bucketeer():
 			try:
 				bucket_db_path = Path(bucket_path_full).parts[-1] # frozendb, colddb, db
 				if self.debug:
-					print("Failed On bucket_db_path:", str(bucket_path))
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 			except Exception as ex:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_db_path. " + str(bucket_path) + ". Skipping- ")
@@ -203,7 +199,6 @@ class Bucketeer():
 			try:
 				bucket_index_path = Path(bucket_path_full).parts[-2]  # barracuda, mcafee etc
 				if self.debug:
-					print("Failed On bucket_index_path: ", str(bucket_path))
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 			except Exception as ex:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_index_path. " + str(bucket_path) + ". Skipping- ")
@@ -214,7 +209,6 @@ class Bucketeer():
 			try:
 				bucket_state_path = Path(bucket_path_full).parts[-3] # cold, warm, hot, or if frozen, custom folder
 				if self.debug:
-					print("Failed On bucket_state_path:", str(bucket_path))
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 			except Exception as ex:
 				if self.debug:
@@ -529,8 +523,8 @@ class Bucketeer():
 		'''
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount: " + split_by )
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "  Splitting list up by this amount: " + split_by])
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount: " + str(split_by) )
+		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "  Splitting list up by this amount: " + str(split_by)])
 		master_list_of_sublists = [] # if theres 5 chunks, there will be 5 lists in here
 		total_list_item_count = len(list_to_split)
 		for x in range(split_by):
