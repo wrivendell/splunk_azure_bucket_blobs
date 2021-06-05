@@ -30,7 +30,7 @@ azure_buckets = buckets.Bucketeer()
 
 class Bucketeer():
 	# this is the startup script, init?
-	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, debug=False, size_error_margin=2.0):
+	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, size_error_margin=2.0, debug=False):
 		'''
 		Optionally, Provide Splunk IDX Cluster Master and API port e.g.  splunk_idx_cluster_master_uri="https://cm1.mysplunk.go_me.com" 
 			Port is set to default, port=8089 

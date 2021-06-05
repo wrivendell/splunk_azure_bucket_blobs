@@ -58,7 +58,7 @@ def Arguments():
 	parser.add_argument('-bigl', '--blob_ignore_list', nargs='*', default=[], required=False, help="Values of blobs to ignore AFTER search in has finished, separated by commas, i.e: 'frozendata3,frozendata9' ")
 	parser.add_argument("-biglt", "--blob_ignore_list_type", type=str2bool, nargs='?', const=True, default=False,  required=False, help="True for each item in blob_ignore_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'frozenda' means '*frozenda*' ")
 	parser.add_argument("-sem", "--size_error_margin", type=float, nargs='?', const=True, default=1.5,  required=False, help="Custom margin of error (%) when balancing download jobs among peers. Will balance by total size of all blobs added up. Smaller margin is more balanced. If any errors during this stage, raise this a bit higher.")
-
+	parser.add_argument("-dm", "--debug_modules", type=str2bool, nargs='?', const=True, default=False,  required=False, help="Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.")
 ############## RUNTIME
 Arguments()
 args = parser.parse_args()

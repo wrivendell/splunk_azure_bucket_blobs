@@ -26,8 +26,8 @@ clearConsole()
 main_log = 'azure_blob_bucket_download.log'
 main_report_csv = 'azure_blob_status_report.csv'
 # create log handlers
-log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.log_level, log_retention_days=0)
-log_csv = log.CSVFile(main_report_csv, remove_old_logs=False, log_retention_days=20)
+log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.log_level, log_retention_days=0, debug=arguments.args.debug_modules)
+log_csv = log.CSVFile(main_report_csv, remove_old_logs=False, log_retention_days=20, debug=arguments.args.debug_modules)
 
 # Print Console Info
 print("\n")
@@ -49,7 +49,8 @@ if not arguments.args.standalone:
 											 sp_pword=arguments.args.splunk_password, 
 											 sp_idx_cluster_master_uri=arguments.args.cluster_master, 
 											 port=arguments.args.cluster_master_port,
-											 size_error_margin=arguments.args.size_error_margin)
+											 size_error_margin=arguments.args.size_error_margin,
+											 debug=arguments.args.debug_modules)
 # Print Console Info
 if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Blob interactive service class created: blob_service" + " -")
@@ -57,9 +58,9 @@ if arguments.args.detailed_output:
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket Sorter class created: idx_bucket_sorter"])
 
 # create queues
-wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=False) # downloads blobs from Azure
-wrq_logging = wrq.Queue('parent_logging', 1, debug=False) # queues log writes to avoid "file already open" type errors
-wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=False) # queues csv writes to master status report
+wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=arguments.args.debug_modules) # downloads blobs from Azure
+wrq_logging = wrq.Queue('parent_logging', 1, debug=arguments.args.debug_modules) # queues log writes to avoid "file already open" type errors
+wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
 list_index = 0 # starting point for checking finished job queue when updating CSV
 
 # Print Console Info
