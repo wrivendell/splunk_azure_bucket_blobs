@@ -138,7 +138,8 @@ class LogFile():
 				retry = 0
 
 class CSVFile():
-	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7):
+	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7, debug=False):
+		self.debug = debug
 		self.name = name # log file name - day will automatically be prefixed
 		self.log_folder = log_folder # folder to write the log to
 		self.log_retention_days = log_retention_days
