@@ -66,10 +66,10 @@ log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket 
 # create queues
 if not arguments.args.write_out_full_list_only:
 	wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=arguments.args.debug_modules) # downloads blobs from Azure
-	wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
 else:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  No DOWNLOAD queue created as Writing out Download List only (WOFLO) is on: -")
 wrq_logging = wrq.Queue('parent_logging', 1, debug=arguments.args.debug_modules) # queues log writes to avoid "file already open" type errors
+wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
 
 list_index = 0 # starting point for checking finished job queue when updating CSV
 
@@ -578,18 +578,18 @@ if __name__ == "__main__":
 	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_logging_parent"])
 	thread_logging_parent.start()
 
+	# thread_csv_report_parent
+	print("Starting: thread_csv_report_parent")
+	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_csv_report_parent"])
+	# create csv file and headers
+	thread_csv_report_parent.start()
+
 	if not arguments.args.write_out_full_list_only:
 		#thread_blob_download_parent
 		print("\n")
 		print("Starting: thread_blob_download_parent")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_blob_download_parent"])
 		thread_blob_download_parent.start()
-
-		# thread_csv_report_parent
-		print("Starting: thread_csv_report_parent")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_csv_report_parent"])
-		# create csv file and headers
-		thread_csv_report_parent.start()
 
 		# thread_update_completed
 		print("Starting: thread_update_completed")
@@ -601,14 +601,20 @@ if __name__ == "__main__":
 	if not arguments.args.write_out_full_list_only:
 		timeAndCompletionChecker()
 	else:
-		print("\n\n\n#######################################################################################")
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): Starting: Write To CSV - Will Print out Periodic Updates so you know its still working.")
-		print("#######################################################################################\n\n\n")
+		print("\n\n\n###################################################################################################")
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): Starting: Write To CSV at: /logs/" + (main_report_csv) )
+		print("#########################################################################################################\n\n\n")
 		time.sleep(10)
 		periodic_check = 200
 		length_of_list = len(master_bucket_download_list)
 		wrq_logging.stop()
+
+		rows_list = []
 		for idx, i in enumerate(master_bucket_download_list):
-			log_csv.writeLinesToCSV( [[ i[2], i[0], i[1] ], ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB']] )
 			if (idx % periodic_check):
-				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), str(idx + 1 / length_of_list) + "%" )
+				percent = (idx + 1) / length_of_list
+				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
+				wrq_csv_report.add(log_csv.writeLinesToCSV, [[(rows_list), ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB'] ]])
+				rows_list = []
+			else:
+				rows_list.append([ i[2], i[0], i[1] ])
