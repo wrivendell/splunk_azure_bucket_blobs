@@ -655,9 +655,10 @@ class Bucketeer():
 			for x in range(peer_num):  # create the empty placeholder list of sub lists
 				final_peer_download_tuple_list.append([])
 			for idx, dict_list in enumerate(final_peer_download_lists):
-				tmp_tuple_list = []
-				for i in dict_list['tuple_list']:
-					tmp_tuple_list.extend(i)
+				for d in dict_list:
+					tmp_tuple_list = []
+					for i in d['tuple_list']:
+						tmp_tuple_list.extend(i)
 				final_peer_download_tuple_list[idx] = tmp_tuple_list
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Final tuple extract of lists. -")
