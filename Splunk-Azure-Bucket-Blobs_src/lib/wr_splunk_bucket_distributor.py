@@ -217,8 +217,8 @@ class Bucketeer():
 						bucket_state_path = "\\"
 					else:
 						bucket_state_path = ""
-					if self.debug:
-						print("Finished Setting OS slash direction:", str(bucket_state_path))
+#					if self.debug:
+#						print("Finished Setting OS slash direction:", str(bucket_state_path))
 			except Exception as ex:
 				if self.debug:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path))
@@ -230,8 +230,8 @@ class Bucketeer():
 					bucket_state_path = "\\"
 				else:
 					bucket_state_path = ""
-				if self.debug:
-					print("Finished Setting OS slash direction:", str(bucket_state_path))
+#				if self.debug:
+#					print("Finished Setting OS slash direction:", str(bucket_state_path))
 
 			# get bucket_id_guid from from bucket path tuple
 			try:
@@ -253,8 +253,8 @@ class Bucketeer():
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Bucket is standalone and not part of a cluster: " + str(bucket_path) ])
 
 			# get bucket_id_origin from from bucket path tuple
-			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):Attempting to extract bucket_id_origin (replicated or original bucket status).")
+#			if self.debug:
+#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):Attempting to extract bucket_id_origin (replicated or original bucket status).")
 			try:
 				if 'rb' in str(bucket_id_full.split('_')[0]):
 					bucket_id_origin = False
@@ -329,11 +329,11 @@ class Bucketeer():
 			tmp_db_paths.append(str(bucket_db_path))
 
 			# add additional items not used back to the list
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding any additional items we received on list back into final base list for return." + str(bucket_path) )
+#			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding any additional items we received on list back into final base list for return." + str(bucket_path) )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding any additional items we received on list back into final base list for return." + str(bucket_path) ])
 			if len(bucket_path) > 2:
-				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding original additional items we received back to bucket details.")
+#				if self.debug:
+#					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding original additional items we received back to bucket details.")
 				for idx, item in enumerate(bucket_path):
 					if idx > 1:
 						tmp_bucket_list.append(item)
@@ -377,6 +377,7 @@ class Bucketeer():
 			if uid_idx % periodic_check == 0:
 				# periodic updates to console
 				percent = (uid_idx + 1) / length_of_uid_dict_list * 100
+				percent = int(percent)
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" )
 			for bt in bucket_info_tuples_list:
 				# check if this bucket belongs to this dictionary, add to list if so
@@ -563,8 +564,6 @@ class Bucketeer():
 		return(master_list_of_lists)
 
 	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, bucket_dicts_master_list:list):
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Dividing bucket list amongst peers."])
 		peer_num = len(peer_list)
@@ -574,8 +573,6 @@ class Bucketeer():
 		try:
 			tmp_bucket_dicts_master_list = bucket_dicts_master_list
 			tmp_split_lists_by_uid = []
-			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			# make a list of lists of like UIDs
 			for x in range(len(bucket_dicts_master_list)):
 				tmp_split_lists_by_uid.append([]) # empty placeholder lists
@@ -589,7 +586,7 @@ class Bucketeer():
 			tmp_counter = 0
 			for lst in tmp_split_lists_by_uid:
 				tmp_counter += len(lst)
-			print("Total items in list is now: ", tmp_counter)
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Total items in list is now: ", tmp_counter)
 			time.sleep(5)
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
