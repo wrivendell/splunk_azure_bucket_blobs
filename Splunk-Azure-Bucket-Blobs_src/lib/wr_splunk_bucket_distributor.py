@@ -207,9 +207,22 @@ class Bucketeer():
 				continue
 			# get bucket_state_path PATH from from bucket path tuple
 			try:
-				bucket_state_path = Path(bucket_path_full).parts[-3] # cold, warm, hot, or if frozen, custom folder
-				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				bucket_state_path = Path(bucket_path_full).parts
+				if len(bucket_state_path) > 3:
+					bucket_state_path = Path(bucket_path_full).parts[-3] # cold, warm, hot, or if frozen, custom folder
+				else:
+					if self.debug:
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path) ])
+					if '/' in bucket_path_full:
+						bucket_state_path = "/"
+					elif '\\' in bucket_path_full:
+						bucket_state_path = "\\"
+					else:
+						bucket_state_path = ""
+					if self.debug:
+						print("Finished Setting OS slash direction:", str(bucket_state_path))
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 			except Exception as ex:
 				if self.debug:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path))
