@@ -5,7 +5,7 @@
 ##############################################################################################################
 
 ### Imports ###########################################
-import datetime, time, sys, os, re
+import time, sys, re, operator
 
 from pathlib import Path
 from . import wr_logging as log
@@ -379,8 +379,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Converting uid dictionary into unique list." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Converting uid dictionary into unique list."])
-		tmp_dict_set = set(tmp_dict_list) # get uniques only
-		uid_dict_list = list(tmp_dict_set) # convert back to a list
+		uid_dict_list = list({v['uid']:v for v in tmp_dict_list}.values()) # get unique entries only
 		tmp_state_set = set(tmp_state_paths)
 		self.unique_state_paths = list(tmp_state_set)
 		tmp_index_set = set(tmp_index_paths)
@@ -392,12 +391,12 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Generating Master Bucket Dictionary List. This could take some time." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Generating Master Bucket Dictionary List."])
+		bucket_info_tuples_list.sort(key=lambda x: x[3])
 		bucket_dicts_master_list = self.orgnaizeFullListIntoBucketDicts(bucket_info_tuples_list, uid_dict_list)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list by GUID." )
-		bucket_info_tuples_list.sort(key=lambda x: x[3])
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished parsing all bucket ids."])
 		return(bucket_dicts_master_list)
 
@@ -415,7 +414,7 @@ class Bucketeer():
 				# periodic updates to console
 				percent = (uid_idx + 1) / length_of_uid_dict_list * 100
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" )
-			for bid_idx, bt in bucket_info_tuples_list:
+			for bid_idx, bt in enumurate(bucket_info_tuples_list):
 				# periodic updates to console
 				if bid_idx % periodic_check == 0:
 					percent = (bid_idx + 1) / length_of_tuple_list * 100
@@ -441,9 +440,6 @@ class Bucketeer():
 		Split a list into sublists based on split factor specified
 		Remainder will be tacked onto the last list if needed
 		'''
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount: " + str(split_by) )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "  Splitting list up by this amount: " + str(split_by)])
 		master_list_of_sublists = [] # if theres 5 chunks, there will be 5 lists in here
 		total_list_item_count = len(list_to_split)
@@ -483,7 +479,7 @@ class Bucketeer():
 			if not list_item:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Master List of lists was empty, cannot continue -")
 				sys.exit()
-		master_list_of_lists.sort()
+#		master_list_of_lists.sort(key=operator.itemgetter('uid'))
 		lowest = 999999999999999999999
 		highest = 0
 		len_balanced = False
@@ -499,7 +495,7 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing job length stopped after 5 mins and moved on as is. -")
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing job length stopped after 5 mins and moved on as is."])
 					break
-				for idx, lst in enumerate(master_list_of_lists): # get lowest and highest lists in the master list
+				for lst in master_list_of_lists: # get lowest and highest lists in the master list
 					if len(lst) < lowest:
 						lowest = len(lst)
 						lowest_lst = lst
@@ -524,7 +520,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by size of files in list. -")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by size of files in list."])
-		master_list_of_lists.sort()
+#		master_list_of_lists.sort(key=operator.itemgetter('uid'))
 		size_balanced = False
 		total_size = 0
 		try:
@@ -624,20 +620,22 @@ class Bucketeer():
 			for x in range(len(bucket_dicts_master_list)):
 				tmp_split_lists_by_uid.append([]) # empty placeholder lists
 			while len(tmp_bucket_dicts_master_list) > 0: 
-				for idx, empty_list in enumerate(tmp_split_lists_by_uid):
+				for empty_list in tmp_split_lists_by_uid:
 					for bd in tmp_bucket_dicts_master_list: # get an item in main list
-						for bd2 in tmp_bucket_dicts_master_list: # compare it to all other items in same list
-							if bd == bd2:
-								continue # dont check self
-							else:
-								if bd['uid'] == bd2['uid']:
-									empty_list.append(bd2)
-									tmp_bucket_dicts_master_list.remove(bd2)
-					empty_list.append(bd)
-					tmp_bucket_dicts_master_list.remove(bd)
+						matches = [d for d in tmp_bucket_dicts_master_list if d['state_path'] == bd['state_path'] and d['index_path'] == bd['index_path'] and d['db_path'] == bd['db_path']]
+						empty_list.extend(matches)
+						for m in matches:
+							tmp_bucket_dicts_master_list.remove(m)
+			tmp_counter = 0
+			for lst in tmp_split_lists_by_uid:
+				tmp_counter += len(lst)
+			print("Total items in list is now: ", tmp_counter)
+			time.sleep(5)
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			# split each list of like UIDs among the peers
+			if self.debug:
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount: " + str(peer_num) )
 			for uid_lst in tmp_split_lists_by_uid:
 				tmp_master_list_of_lists = self.splitList(uid_lst, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
 				for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
@@ -651,7 +649,7 @@ class Bucketeer():
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			final_peer_download_lists = self.balanceListOfLists(final_peer_download_lists) # this function will run balance checks and return the final list
-			final_peer_download_lists.sort()
+#			final_peer_download_lists.sort()
 			# finally extract just the tuples from each list of dicts for the final download list
 			final_peer_download_tuple_list = [] # if theres 5 peers, there  will be 5 lists in here
 			for x in range(peer_num):  # create the empty placeholder list of sub lists
@@ -664,6 +662,7 @@ class Bucketeer():
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Final tuple extract of lists. -")
 			print(ex)
+			sys.exit()
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED Dividing bucket list amongst peers.")
