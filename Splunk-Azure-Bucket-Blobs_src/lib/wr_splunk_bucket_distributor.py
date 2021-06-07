@@ -378,7 +378,7 @@ class Bucketeer():
 				# periodic updates to console
 				percent = (uid_idx + 1) / length_of_uid_dict_list * 100
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" )
-			for bid_idx, bt in enumurate(bucket_info_tuples_list):
+			for bid_idx, bt in enumerate(bucket_info_tuples_list):
 				# periodic updates to console
 				if bid_idx % periodic_check == 0:
 					percent = (bid_idx + 1) / length_of_tuple_list * 100
