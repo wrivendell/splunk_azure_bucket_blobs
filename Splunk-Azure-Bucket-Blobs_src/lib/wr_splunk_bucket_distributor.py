@@ -350,7 +350,7 @@ class Bucketeer():
 							bucket_id_guid, bucket_id_standalone, bucket_id_origin, bucket_path[1], bucket_path[0],
 							str(bucket_state_path), str(bucket_index_path), str(bucket_db_path)
 							]
-			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_earliest) + "_" + str(bucket_id_latest) + "_" + str(bucket_id_id]) + "_" + str(bucket_id_guid)
+			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_earliest) + "_" + str(bucket_id_latest) + "_" + str(bucket_id_id) + "_" + str(bucket_id_guid)
 			tmp_dict_list.append( {'uid' : uid, 'state_path' : str(bucket_index_path), 'index_path' : str(bucket_index_path), 'db_path' : str(bucket_db_path), 'total_size_mb' : 0, 'tuple_list' : []} )
 			tmp_state_paths.append(str(bucket_state_path))
 			tmp_index_paths.append(str(bucket_index_path))
@@ -414,7 +414,7 @@ class Bucketeer():
 			if uid_idx % periodic_check == 0:
 				# periodic updates to console
 				percent = (uid_idx + 1) / length_of_uid_dict_list * 100
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" ) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" )
 			for bid_idx, bt in bucket_info_tuples_list:
 				# periodic updates to console
 				if bid_idx % periodic_check == 0:
