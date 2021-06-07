@@ -654,7 +654,7 @@ class Bucketeer():
 			final_peer_download_tuple_list = [] # if theres 5 peers, there  will be 5 lists in here
 			for x in range(peer_num):  # create the empty placeholder list of sub lists
 				final_peer_download_tuple_list.append([])
-			for idx, dict_list in final_peer_download_lists:
+			for idx, dict_list in enumerate(final_peer_download_lists):
 				tmp_tuple_list = []
 				for i in dict_list['tuple_list']:
 					tmp_tuple_list.extend(i)
