@@ -547,13 +547,14 @@ if __name__ == "__main__":
 	thread_logging_parent = threading.Thread(target=wrq_logging.start, name='logging_parent', args=())
 	thread_logging_parent.daemon = True
 
+	# thread_csv_report_parent
+	if arguments.args.detailed_output:
+		print("Creating csv reporter thread (writes lines to csv report in queue) called: thread_csv_report_parent")
+	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating logging thread parent called: thread_csv_report_parent"])
+	thread_csv_report_parent = threading.Thread(target=wrq_csv_report.start, name='csv_report_parent', args=())
+	thread_csv_report_parent.daemon = True
+
 	if not arguments.args.write_out_full_list_only:
-		# thread_csv_report_parent
-		if arguments.args.detailed_output:
-			print("Creating csv reporter thread (writes lines to csv report in queue) called: thread_csv_report_parent")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating logging thread parent called: thread_csv_report_parent"])
-		thread_csv_report_parent = threading.Thread(target=wrq_csv_report.start, name='csv_report_parent', args=())
-		thread_csv_report_parent.daemon = True
 		run_me = True # used for the while loop in this thread and main thread!
 	
 		# thread_update_completed

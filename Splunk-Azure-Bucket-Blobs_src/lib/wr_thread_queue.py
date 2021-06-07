@@ -406,7 +406,7 @@ class Queue():
 					self.stop()
 				self.inactive_timeout_counter -= 1
 				if self.debug:
-					print("- WRQ(" + str(sys._getframe().f_lineno) +"): Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds -")
+					print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds -")
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds"] )
 		else:
 			print("- WRQ(" + str(sys._getframe().f_lineno) +"): " + self.name + " is exiting due to no new jobs added. -")
