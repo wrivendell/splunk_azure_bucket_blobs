@@ -604,7 +604,7 @@ if __name__ == "__main__":
 	else:
 		print("\n\n\n#######################################################################################")
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Starting: Write To CSV at: /logs/" + (main_report_csv) )
-		print("#######################################################################################")\n\n\n")
+		print("#######################################################################################\n\n\n")
 		time.sleep(10)
 		periodic_check = 200
 		length_of_list = len(master_bucket_download_list)

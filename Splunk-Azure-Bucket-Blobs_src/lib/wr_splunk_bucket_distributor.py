@@ -138,7 +138,7 @@ class Bucketeer():
 		for bucket_path in self.list_of_bucket_list_details:
 			# break out the bucket details
 			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			if bucket_path[1] <= 0:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping file with 0 byte size: " + str(bucket_path) + " -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Skipping file with 0 byte size: " + str(bucket_path)] )
@@ -148,11 +148,11 @@ class Bucketeer():
 			if not bucket_id_full:
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " GET ID: Not a DB bucket, trying RB: " + str(bucket_path)] )
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				bucket_id_full = re.search('(rb_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE)
 			if not bucket_id_full:
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_id_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_id_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
 				continue
@@ -169,11 +169,11 @@ class Bucketeer():
 			if not bucket_path_full:
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " GET FULL PATH: Not a DB bucket, trying RB: " + str(bucket_path)] )
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				bucket_path_full = re.search('(.+)(rb_)', bucket_path[0], re.IGNORECASE)
 			if not bucket_path_full:
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_path_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping- ")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_path_full. You sure your feeding your list in as expected? Failed on: " + str(bucket_path) + ". Skipping." ])
 				continue
@@ -189,7 +189,7 @@ class Bucketeer():
 			try:
 				bucket_db_path = Path(bucket_path_full).parts[-1] # frozendb, colddb, db
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			except Exception as ex:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_db_path. " + str(bucket_path) + ". Skipping- ")
 				print(ex)
@@ -199,7 +199,7 @@ class Bucketeer():
 			try:
 				bucket_index_path = Path(bucket_path_full).parts[-2]  # barracuda, mcafee etc
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			except Exception as ex:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't parse bucket_index_path. " + str(bucket_path) + ". Skipping- ")
 				print(ex)
@@ -212,7 +212,7 @@ class Bucketeer():
 					bucket_state_path = Path(bucket_path_full).parts[-3] # cold, warm, hot, or if frozen, custom folder
 				else:
 					if self.debug:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path) ])
 					if '/' in bucket_path_full:
 						bucket_state_path = "/"
@@ -222,7 +222,7 @@ class Bucketeer():
 						bucket_state_path = ""
 					if self.debug:
 						print("Finished Setting OS slash direction:", str(bucket_state_path))
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			except Exception as ex:
 				if self.debug:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path))
@@ -236,14 +236,14 @@ class Bucketeer():
 					bucket_state_path = ""
 				if self.debug:
 					print("Finished Setting OS slash direction:", str(bucket_state_path))
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			# get bucket_id_guid from from bucket path tuple
 			try:
 				bucket_id_guid = bucket_id_full.split('/')[0].split('\\')[0]
 			except Exception as ex:
 				if self.debug:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_id_guid. Skipping." + str(bucket_id_guid))
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_id_guid. Skipping. " + str(bucket_id_guid) ])
 				continue
@@ -253,33 +253,33 @@ class Bucketeer():
 			except:
 				if self.debug:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Appears to not be a clustered bucket setting as standalone" + str(bucket_id_guid))
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				bucket_id_guid = 'none'
 				bucket_id_standalone = True
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Bucket is standalone and not part of a cluster: " + str(bucket_path) ])
 			# get bucket_id_origin from from bucket path tuple
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):Attempting to extract bucket_id_origin (replicated or original bucket status).")
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			try:
 				if 'rb' in str(bucket_id_full.split('_')[0]):
 					bucket_id_origin = False
 				elif 'db' in str(bucket_id_full.split('_')[0]):
 					bucket_id_origin = True
 				else:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping -")
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping." ])
 					continue
 			except Exception as ex:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print(ex)
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping." ])
 				continue
 			if self.debug:
 				print(bucket_id_origin)
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			# get bucket_id_earliest from from bucket path tuple
 			try:
 				bucket_id_earliest = bucket_id_full.split('_')[1]
@@ -318,13 +318,13 @@ class Bucketeer():
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_id_id, Skipping: " + str(bucket_path) ])
 					continue
 			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print(" -" + str( (bucket_id_earliest) ) )
 				print(" -" + str( (bucket_id_latest) ) )
 				print(" -" + str( (bucket_id_id) ) )
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
 			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Making final base list for return." + str(bucket_path) )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Making final base list for return." + str(bucket_path) ])
 			tmp_bucket_list = [bucket_id_earliest, bucket_id_latest, bucket_id_id,
@@ -333,7 +333,7 @@ class Bucketeer():
 							]
 			# add additional items not used back to the list
 			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding any additional items we received on list back into final base list for return." + str(bucket_path) )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding any additional items we received on list back into final base list for return." + str(bucket_path) ])
 			if len(bucket_path) > 2:
@@ -344,13 +344,13 @@ class Bucketeer():
 						tmp_bucket_list.append(item)
 			bucket_tuple = tuple(tmp_bucket_list)
 			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print("final_details: ", bucket_tuple)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding this bucket final tuple details back to master list." + str(bucket_path) ])
 			# add to master list
 			bucket_info_tuples_list.append(bucket_tuple)
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list by GUID." )
 		bucket_info_tuples_list.sort(key=lambda x: x[3])
@@ -378,7 +378,7 @@ class Bucketeer():
 		'''
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by state path."])
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to sort buckets by state path." )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by state path."])
 		bucket_info_tuples_list_by_state_path = []
@@ -393,7 +393,7 @@ class Bucketeer():
 					tmp_list.append(b)
 			bucket_info_tuples_list_by_state_path.append(tmp_list)
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): State path sort: Finished." )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " State path sort: Finished."])
 		return(bucket_info_tuples_list_by_state_path)
@@ -428,7 +428,7 @@ class Bucketeer():
 		
 		'''
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to sort buckets by index path." )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by index path."])
 		bucket_info_tuples_list_by_state_path_then_index_path = []
@@ -446,7 +446,7 @@ class Bucketeer():
 				state_list_by_index_tmp.append(tmp_list)
 			bucket_info_tuples_list_by_state_path_then_index_path.append(state_list_by_index_tmp)
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sort buckets by index path finished." )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Sort buckets by index path finished."])
 		return(bucket_info_tuples_list_by_state_path_then_index_path)
@@ -482,7 +482,7 @@ class Bucketeer():
 								b3 tuple
 			'''
 			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to sort buckets by db path." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by db path."])
 			bucket_info_tuples_list_by_state_path_then_index_path_then_db_path = []
@@ -503,7 +503,7 @@ class Bucketeer():
 					state_index_list_by_db_tmp.append(tmp_index_list)
 				bucket_info_tuples_list_by_state_path_then_index_path_then_db_path.append(state_index_list_by_db_tmp)
 			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): DB path sort: Finished." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " DB path sort: Finished."])
 			return(bucket_info_tuples_list_by_state_path_then_index_path_then_db_path)
@@ -511,7 +511,7 @@ class Bucketeer():
 	# do all three of the above in one go
 	def organizeMasterListByStateIndexDB(self, bucket_info_tuples_list:list):
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Starting all three sorts." )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Starting all three sorts."])
 		try:
@@ -530,7 +530,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Organizing By DB Path. -")
 			print(ex)
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished all three sorts." )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished all three sorts."])
 		return(separated_master_bucket_tuple_list)
@@ -542,7 +542,7 @@ class Bucketeer():
 		Remainder will be tacked onto the last list if needed
 		'''
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount: " + str(split_by) )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "  Splitting list up by this amount: " + str(split_by)])
 		master_list_of_sublists = [] # if theres 5 chunks, there will be 5 lists in here
@@ -577,7 +577,7 @@ class Bucketeer():
 		3. Ensure all files for buckets are on the same list
 		'''
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by amount of jobs per peer. -")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by amount of jobs per peer."])
 		for list_item in master_list_of_lists:
@@ -622,7 +622,7 @@ class Bucketeer():
 		
 		# check list byte sizes (MB)
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by size of files in list. -")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by size of files in list."])
 		master_list_of_lists.sort()
@@ -706,16 +706,18 @@ class Bucketeer():
 
 		# ensure bucket files didnt get moved away from their friends
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to rebalance like buckets to same lists in case files from one bucket were sorted to a different peer earlier.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to rebalance like buckets to same lists in case files from one bucket were sorted to a different peer."])
 		try:
 			master_list_of_lists.sort()
 			for idx, lst in enumerate(master_list_of_lists):
 				for cur_list_b in lst:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " Is now looking in other Peers lists to ensure it has all buckets that beloing to its unique ids" )
 					for other_idx, other_lst in enumerate(master_list_of_lists):
 						if idx == other_idx: # dont check self since in the same master list as other sub lists
 							continue
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " is now looking in List #" + str(other_idx + 1)
 						for other_list_b in other_lst: # compare item to items in other lists for matching buckets
 							if cur_list_b[0] == other_list_b[0] and cur_list_b[1] == other_list_b[1]: #check earliest and latest first
 								if cur_list_b[2] == other_list_b[2]: #check ID
@@ -736,14 +738,14 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs rebalance by like buckets: FAILED."])
 			print(ex)
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED rebalance of like buckets to same lists in case files from one bucket were sorted to a different peer earlier.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " FINISHED rebalance of like buckets to same lists in case files from one bucket were sorted to a different peer earlier."])
 		return(master_list_of_lists)
 
 	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, separated_master_bucket_tuple_list:list):
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Dividing bucket list amongst peers."])
 		peer_num = len(peer_list)
@@ -768,7 +770,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Balancing lists. -")
 			print(ex)
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " FINISHED Dividing bucket list amongst peers."])
 		return(final_peer_download_lists)
