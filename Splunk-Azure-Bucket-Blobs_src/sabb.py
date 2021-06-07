@@ -514,7 +514,10 @@ if __name__ == "__main__":
 		wrq_download.add(blob_service.downloadBlobByName, master_bucket_download_list, start_after_add=False)
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Adding download job list to download queue: wrq_download -")
 	else:
+		print("\n\n\n#######################################################################################")
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Writing download job list to CSV - NO ACTUAL DOWNLOADS WILL HAPPEN -")
+		print("#######################################################################################\n\n\n")
+		time.sleep(10)
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) +" is number of items in the list -")
 	log_file.writeLinesToFile( [str(len(master_bucket_download_list)) + " is number of items in the list to download"] )
 	if not arguments.args.write_out_full_list_only:
@@ -598,11 +601,14 @@ if __name__ == "__main__":
 	if not arguments.args.write_out_full_list_only:
 		timeAndCompletionChecker()
 	else:
-		print("Starting: Write To CSV - Will Print out Periodic Updates so you know its still working.")
+		print("\n\n\n#######################################################################################")
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): Starting: Write To CSV - Will Print out Periodic Updates so you know its still working.")
+		print("#######################################################################################\n\n\n")
 		time.sleep(10)
 		periodic_check = 200
 		length_of_list = len(master_bucket_download_list)
+		wrq_logging.stop()
 		for idx, i in enumerate(master_bucket_download_list):
-			log_csv.write(log_csv.writeLinesToCSV, [[ i[2], i[0], i[1] ], ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB']])
+			log_csv.writeLinesToCSV( [[ i[2], i[0], i[1] ], ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB']] )
 			if (idx % periodic_check):
 				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), str(idx + 1 / length_of_list) + "%" )
