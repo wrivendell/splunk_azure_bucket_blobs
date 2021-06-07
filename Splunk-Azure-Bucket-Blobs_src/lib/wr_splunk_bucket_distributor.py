@@ -378,11 +378,7 @@ class Bucketeer():
 				# periodic updates to console
 				percent = (uid_idx + 1) / length_of_uid_dict_list * 100
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" )
-			for bid_idx, bt in enumerate(bucket_info_tuples_list):
-				# periodic updates to console
-				if bid_idx % 600 == 0:
-					percent = (bid_idx + 1) / length_of_tuple_list * 100
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): UID Dictionary: " + str(uid_idx) + " | Processing file: " + str(bid_idx + 1) + " / " + str(length_of_tuple_list), " | ", str(percent) + "%" )
+			for bt in bucket_info_tuples_list:
 				# check if this bucket belongs to this dictionary, add to list if so
 				uid = str(bt[8]) + "_" + str(bt[9]) + "_" + str(bt[10]) + "_" + str(bt[0]) + "_" + str(bt[1]) + "_" + str(bt[2]) + "_" + str(bt[3])
 				if uid == d['uid']:
