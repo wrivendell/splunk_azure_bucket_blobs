@@ -68,8 +68,9 @@ if not arguments.args.write_out_full_list_only:
 	wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=arguments.args.debug_modules) # downloads blobs from Azure
 else:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  No DOWNLOAD queue created as Writing out Download List only (WOFLO) is on: -")
+	wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
 wrq_logging = wrq.Queue('parent_logging', 1, debug=arguments.args.debug_modules) # queues log writes to avoid "file already open" type errors
-wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
+
 list_index = 0 # starting point for checking finished job queue when updating CSV
 
 # Print Console Info
@@ -602,6 +603,6 @@ if __name__ == "__main__":
 		periodic_check = 200
 		length_of_list = len(master_bucket_download_list)
 		for idx, i in enumerate(master_bucket_download_list):
-			log_csv.write(log_csv.writeLinesToCSV, [(i), ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB']])
+			log_csv.write(log_csv.writeLinesToCSV, [[ i[2], i[0], i[1] ], ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB']])
 			if (idx % periodic_check):
 				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), str(idx + 1 / length_of_list) + "%" )
