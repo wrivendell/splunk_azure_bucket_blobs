@@ -311,15 +311,11 @@ class Bucketeer():
 					print(ex)
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_id_id, Skipping: " + str(bucket_path) ])
 					continue
-#			if self.debug:
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print(" -" + str( (bucket_id_earliest) ) )
 				print(" -" + str( (bucket_id_latest) ) )
 				print(" -" + str( (bucket_id_id) ) )
 
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
-#			if self.debug:
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Making final base list for return." + str(bucket_path) )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Making final base list for return." + str(bucket_path) ])
 			tmp_bucket_list = [bucket_id_earliest, bucket_id_latest, bucket_id_id,
@@ -333,9 +329,7 @@ class Bucketeer():
 			tmp_db_paths.append(str(bucket_db_path))
 
 			# add additional items not used back to the list
-#			if self.debug:
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding any additional items we received on list back into final base list for return." + str(bucket_path) )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding any additional items we received on list back into final base list for return." + str(bucket_path) )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding any additional items we received on list back into final base list for return." + str(bucket_path) ])
 			if len(bucket_path) > 2:
 				if self.debug:
@@ -344,15 +338,10 @@ class Bucketeer():
 					if idx > 1:
 						tmp_bucket_list.append(item)
 			bucket_tuple = tuple(tmp_bucket_list)
-#			if self.debug:
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-				print("final_details: ", bucket_tuple)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding this bucket final tuple details back to master list." + str(bucket_path) ])
 			# add to master list
 			bucket_info_tuples_list.append(bucket_tuple)
-
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Converting uid dictionary into unique list." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Converting uid dictionary into unique list."])
 		uid_dict_list = list({v['uid']:v for v in tmp_dict_list}.values()) # get unique entries only
@@ -364,7 +353,6 @@ class Bucketeer():
 		self.unique_db_paths = list(tmp_db_set)
 
 		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Generating Master Bucket Dictionary List. This could take some time." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Generating Master Bucket Dictionary List."])
 		bucket_info_tuples_list.sort(key=lambda x: x[3])
