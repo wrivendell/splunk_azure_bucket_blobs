@@ -66,9 +66,9 @@ log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket 
 # create queues
 if not arguments.args.write_out_full_list_only:
 	wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=arguments.args.debug_modules) # downloads blobs from Azure
+	wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
 else:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  No DOWNLOAD queue created as Writing out Download List only (WOFLO) is on: -")
-	wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
 wrq_logging = wrq.Queue('parent_logging', 1, debug=arguments.args.debug_modules) # queues log writes to avoid "file already open" type errors
 
 list_index = 0 # starting point for checking finished job queue when updating CSV
