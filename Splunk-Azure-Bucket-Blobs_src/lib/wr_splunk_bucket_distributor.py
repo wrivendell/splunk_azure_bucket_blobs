@@ -708,12 +708,12 @@ class Bucketeer():
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to rebalance like buckets to same lists in case files from one bucket were sorted to a different peer earlier.")
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to rebalance like buckets to same lists in case files from one bucket were sorted to a different peer."])
+		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to rebalance like buckets to same lists in case files from one bucket were sorted to a different peer. (this will take a long time) "])
 		try:
 			master_list_of_lists.sort()
 			for idx, lst in enumerate(master_list_of_lists):
 				for cur_list_b in lst:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " Is now looking in other Peers lists to ensure it has all buckets that beloing to its unique ids" )
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " Is now looking in other Peers lists to ensure it has all buckets that belong to its unique ids" )
 					for other_idx, other_lst in enumerate(master_list_of_lists):
 						if idx == other_idx: # dont check self since in the same master list as other sub lists
 							continue
