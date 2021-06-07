@@ -17,7 +17,8 @@
     -bsl "frozendb"\
     -bslt False \
     -sem 1.5 \
-    -dm True 
+    -dm True \
+    -woflo False
 
 
 # SEE README FOR ARG DETAILS - THIS SH file is for running the compiled AIO(all in one) version

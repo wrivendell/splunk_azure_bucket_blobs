@@ -23,8 +23,14 @@ def clearConsole():
 ### Globals ###########################################
 # log files
 clearConsole()
-main_log = 'azure_blob_bucket_download.log'
-main_report_csv = 'azure_blob_status_report.csv'
+if arguments.args.write_out_full_list_only:
+	main_log = 'azure_blob_bucket_download_WOFLO.log'
+	main_report_csv = 'azure_blob_status_report_WOFLO.csv'
+
+else:
+	main_log = 'azure_blob_bucket_download.log'
+	main_report_csv = 'azure_blob_status_report.csv'
+
 # create log handlers
 log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.log_level, log_retention_days=0, debug=arguments.args.debug_modules)
 log_csv = log.CSVFile(main_report_csv, remove_old_logs=False, log_retention_days=20, debug=arguments.args.debug_modules)
@@ -58,7 +64,10 @@ if arguments.args.detailed_output:
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket Sorter class created: idx_bucket_sorter"])
 
 # create queues
-wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=arguments.args.debug_modules) # downloads blobs from Azure
+if not arguments.args.write_out_full_list_only:
+	wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=arguments.args.debug_modules) # downloads blobs from Azure
+else:
+	print("- SABB(" + str(sys._getframe().f_lineno) +"):  No DOWNLOAD queue created as Writing out Download List only (WOFLO) is on: -")
 wrq_logging = wrq.Queue('parent_logging', 1, debug=arguments.args.debug_modules) # queues log writes to avoid "file already open" type errors
 wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
 list_index = 0 # starting point for checking finished job queue when updating CSV
@@ -66,11 +75,13 @@ list_index = 0 # starting point for checking finished job queue when updating CS
 # Print Console Info
 if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Processing Queue Created: -")
-	print("   Queue class: wrq_download")
+	if not arguments.args.write_out_full_list_only:
+		print("   Queue class: wrq_download")
 	print("   Queue name: blob_downloader")
 	print("\n")
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Processing Queue Created:"])
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue class: wrq_download"])
+if not arguments.args.write_out_full_list_only:
+	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue class: wrq_download"])
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue name: blob_downloader"])
 if arguments.args.detailed_output:
 	print("\n")
@@ -261,19 +272,20 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				# master_bucket_download_list_orig = master_bucket_download_list # uncomment if ever wanting to keep the master list for whatever reason
 				master_bucket_download_list = []
 				tmp_master_list_log_lines =[]
-				for i in azure_bucket_sorter.this_peer_download_list:
-					if checkAlreadyDownloaded(str(i[7])):
-						tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(i[7]) )
-						if arguments.args.list_create_output:
-							print("\n- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -\n")
-						continue
-					else:
-						# check and see if the bucket came from a standalone and needs a GUID appeneded
-						standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[11], i[12], i[4], i[2] ])
-						if standalone_rename_check[0]:
-							master_bucket_download_list.append(standalone_rename_check[1])
+				if not arguments.args.write_out_full_list_only:
+					for i in azure_bucket_sorter.this_peer_download_list:
+						if checkAlreadyDownloaded(str(i[7])):
+							tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(i[7]) )
+							if arguments.args.list_create_output:
+								print("\n- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -\n")
+							continue
 						else:
-							master_bucket_download_list.append( [ i[7], i[6], i[11], i[12] ] )
+							# check and see if the bucket came from a standalone and needs a GUID appeneded
+							standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[11], i[12], i[4], i[2] ])
+							if standalone_rename_check[0]:
+								master_bucket_download_list.append(standalone_rename_check[1])
+							else:
+								master_bucket_download_list.append( [ i[7], i[6], i[11], i[12] ] )
 		if tmp_master_list_log_lines:
 			wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
 	except Exception as ex:
@@ -497,16 +509,19 @@ if __name__ == "__main__":
 	start_length_of_download_list = len(master_bucket_download_list)
 #	print("exiting so not to download any real data outside of UK")
 #	sys.exit()
-	wrq_download.add(blob_service.downloadBlobByName, master_bucket_download_list, start_after_add=False)
-
-	print("- SABB(" + str(sys._getframe().f_lineno) +"): Adding download job list to download queue: wrq_download -")
+	if not arguments.args.write_out_full_list_only:
+		wrq_download.add(blob_service.downloadBlobByName, master_bucket_download_list, start_after_add=False)
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): Adding download job list to download queue: wrq_download -")
+	else:
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): Writing download job list to CSV - NO ACTUAL DOWNLOADS WILL HAPPEN -")
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) +" is number of items in the list -")
 	log_file.writeLinesToFile( [str(len(master_bucket_download_list)) + " is number of items in the list to download"] )
-	if not arguments.args.standalone:
-		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
-	for i in master_bucket_download_list:
-		log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
+	if not arguments.args.write_out_full_list_only:
+		if not arguments.args.standalone:
+			print("- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -")
+			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
+		for i in master_bucket_download_list:
+			log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
 
 	## Thread prep
 	''' 
@@ -528,27 +543,28 @@ if __name__ == "__main__":
 	thread_logging_parent = threading.Thread(target=wrq_logging.start, name='logging_parent', args=())
 	thread_logging_parent.daemon = True
 
-	# thread_csv_report_parent
-	if arguments.args.detailed_output:
-		print("Creating csv reporter thread (writes lines to csv report in queue) called: thread_csv_report_parent")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating logging thread parent called: thread_csv_report_parent"])
-	thread_csv_report_parent = threading.Thread(target=wrq_csv_report.start, name='csv_report_parent', args=())
-	thread_csv_report_parent.daemon = True
-	run_me = True # used for the while loop in this thread and main thread!
-
-	# thread_update_completed
-	if arguments.args.detailed_output:
-		print("Creating csv updater thread parent called: thread_update_completed")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating csv updater thread parent called: thread_update_completed"])
-	thread_update_completed = threading.Thread(target=updateCompletedWRQDownloadJobs, name='thread_update_completed', args=())
-	thread_update_completed.daemon = True
-
-	# thread_blob_download_parent
-	if arguments.args.detailed_output:
-		print("Creating download thread parent called: thread_blob_download_parent")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating download thread parent called: thread_blob_download_parent"])
-	thread_blob_download_parent = threading.Thread(target=wrq_download.start, name='blob_download_parent', args=())
-	thread_blob_download_parent.daemon = True
+	if not arguments.args.write_out_full_list_only:
+		# thread_csv_report_parent
+		if arguments.args.detailed_output:
+			print("Creating csv reporter thread (writes lines to csv report in queue) called: thread_csv_report_parent")
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating logging thread parent called: thread_csv_report_parent"])
+		thread_csv_report_parent = threading.Thread(target=wrq_csv_report.start, name='csv_report_parent', args=())
+		thread_csv_report_parent.daemon = True
+		run_me = True # used for the while loop in this thread and main thread!
+	
+		# thread_update_completed
+		if arguments.args.detailed_output:
+			print("Creating csv updater thread parent called: thread_update_completed")
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating csv updater thread parent called: thread_update_completed"])
+		thread_update_completed = threading.Thread(target=updateCompletedWRQDownloadJobs, name='thread_update_completed', args=())
+		thread_update_completed.daemon = True
+	
+		# thread_blob_download_parent
+		if arguments.args.detailed_output:
+			print("Creating download thread parent called: thread_blob_download_parent")
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating download thread parent called: thread_blob_download_parent"])
+		thread_blob_download_parent = threading.Thread(target=wrq_download.start, name='blob_download_parent', args=())
+		thread_blob_download_parent.daemon = True
 
 ## Here we go
 # START parent threads
@@ -558,22 +574,34 @@ if __name__ == "__main__":
 	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_logging_parent"])
 	thread_logging_parent.start()
 
-	#thread_blob_download_parent
-	print("\n")
-	print("Starting: thread_blob_download_parent")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_blob_download_parent"])
-	thread_blob_download_parent.start()
+	if not arguments.args.write_out_full_list_only:
+		#thread_blob_download_parent
+		print("\n")
+		print("Starting: thread_blob_download_parent")
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_blob_download_parent"])
+		thread_blob_download_parent.start()
 
-	# thread_csv_report_parent
-	print("Starting: thread_csv_report_parent")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_csv_report_parent"])
-	# create csv file and headers
-	thread_csv_report_parent.start()
+		# thread_csv_report_parent
+		print("Starting: thread_csv_report_parent")
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_csv_report_parent"])
+		# create csv file and headers
+		thread_csv_report_parent.start()
 
-	# thread_update_completed
-	print("Starting: thread_update_completed")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_update_completed"])
-	thread_update_completed.start()
+		# thread_update_completed
+		print("Starting: thread_update_completed")
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_update_completed"])
+		thread_update_completed.start()
+
 
 	time.sleep(5)
-	timeAndCompletionChecker()
+	if not arguments.args.write_out_full_list_only:
+		timeAndCompletionChecker()
+	else:
+		print("Starting: Write To CSV - Will Print out Periodic Updates so you know its still working.")
+		time.sleep(10)
+		periodic_check = 200
+		length_of_list = len(master_bucket_download_list)
+		for idx, i in enumerate(master_bucket_download_list):
+			log_csv.write(log_csv.writeLinesToCSV, [(i), ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB']])
+			if (idx % periodic_check):
+				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), str(idx + 1 / length_of_list) + "%" )

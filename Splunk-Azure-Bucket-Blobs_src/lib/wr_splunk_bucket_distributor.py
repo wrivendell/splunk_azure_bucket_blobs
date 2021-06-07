@@ -140,8 +140,8 @@ class Bucketeer():
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
 			if bucket_path[1] <= 0:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping blob with 0 byte size: " + str(bucket_path) + " -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Skipping blob with 0 byte size: " + str(bucket_path)] )
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping file with 0 byte size: " + str(bucket_path) + " -")
+				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Skipping file with 0 byte size: " + str(bucket_path)] )
 				continue
 			# get buckets ID  from bucket path tuple
 			bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE)  # db_ or rb_ ?
@@ -623,8 +623,8 @@ class Bucketeer():
 		# check list byte sizes (MB)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by size of blobs in list. -")
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by size of blobs in list."])
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by size of files in list. -")
+		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by size of files in list."])
 		master_list_of_lists.sort()
 		size_balanced = False
 		total_size = 0
