@@ -89,6 +89,11 @@ class Bucketeer():
 		self.port = port
 		self.size_error_margin = size_error_margin / 100
 
+		# used for bucket sorting
+		self.unique_state_paths = []
+		self.unique_index_paths =[]
+		self.unique_db_paths = []
+
 		# see if cluster master URI is available
 		if not self.sp_idx_cluster_master_uri:
 			self.sp_idx_cluster_master_uri = wrsops.findClusterMasterByFile(self.sp_home)
@@ -135,6 +140,10 @@ class Bucketeer():
 		Add tuples to new list and sort by GUID
 		'''
 		bucket_info_tuples_list = []
+		tmp_dict_list = [] # generate UID list for dicts later
+		tmp_state_paths = []
+		tmp_index_paths = []
+		tmp_db_paths = []
 		for bucket_path in self.list_of_bucket_list_details:
 			# break out the bucket details
 			if self.debug:
@@ -164,6 +173,7 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_id_full: " + bucket_id_full + " Skipping -")
 					self.log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_id_full: " + bucket_id_full + " - Skipping."])
 					continue
+
 			# get full bucket PATH from from bucket path tuple
 			bucket_path_full = re.search('(.+)(db_)', bucket_path[0], re.IGNORECASE)
 			if not bucket_path_full:
@@ -185,6 +195,7 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_path_full: " + bucket_path_full + " Skipping-")
 					self.log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): FAILED Rgex extract on bucket_path_full: " + bucket_path_full + " - Skipping."])
 					continue
+
 			# get bucket_db_path PATH from from bucket path tuple
 			try:
 				bucket_db_path = Path(bucket_path_full).parts[-1] # frozendb, colddb, db
@@ -195,6 +206,7 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_db_path. Failed on: " + str(bucket_path) + ". Skipping." ])
 				continue
+
 			# get bucket_db_path PATH from from bucket path tuple
 			try:
 				bucket_index_path = Path(bucket_path_full).parts[-2]  # barracuda, mcafee etc
@@ -205,6 +217,7 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't parse bucket_index_path. Failed on: " + str(bucket_path) + ". Skipping." ])
 				continue
+
 			# get bucket_state_path PATH from from bucket path tuple
 			try:
 				bucket_state_path = Path(bucket_path_full).parts
@@ -237,6 +250,7 @@ class Bucketeer():
 				if self.debug:
 					print("Finished Setting OS slash direction:", str(bucket_state_path))
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
+
 			# get bucket_id_guid from from bucket path tuple
 			try:
 				bucket_id_guid = bucket_id_full.split('/')[0].split('\\')[0]
@@ -257,6 +271,7 @@ class Bucketeer():
 				bucket_id_guid = 'none'
 				bucket_id_standalone = True
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Bucket is standalone and not part of a cluster: " + str(bucket_path) ])
+
 			# get bucket_id_origin from from bucket path tuple
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):Attempting to extract bucket_id_origin (replicated or original bucket status).")
@@ -280,6 +295,7 @@ class Bucketeer():
 			if self.debug:
 				print(bucket_id_origin)
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
+
 			# get bucket_id_earliest from from bucket path tuple
 			try:
 				bucket_id_earliest = bucket_id_full.split('_')[1]
@@ -289,6 +305,7 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_id_earliest, Skipping: " + str(bucket_path) ])
 				continue
+
 			# get bucket_id_latest from from bucket path tuple
 			try:
 				bucket_id_latest = bucket_id_full.split('_')[2]
@@ -298,6 +315,7 @@ class Bucketeer():
 				print(ex)
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Can't find bucket_id_latest, Skipping: " + str(bucket_path) ])
 				continue
+
 			# get bucket_id_id from from bucket path tuple
 			if not bucket_id_standalone:
 				try:
@@ -322,6 +340,7 @@ class Bucketeer():
 				print(" -" + str( (bucket_id_earliest) ) )
 				print(" -" + str( (bucket_id_latest) ) )
 				print(" -" + str( (bucket_id_id) ) )
+
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
@@ -331,6 +350,12 @@ class Bucketeer():
 							bucket_id_guid, bucket_id_standalone, bucket_id_origin, bucket_path[1], bucket_path[0],
 							str(bucket_state_path), str(bucket_index_path), str(bucket_db_path)
 							]
+			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_earliest) + "_" + str(bucket_id_latest) + "_" + str(bucket_id_id]) + "_" + str(bucket_id_guid)
+			tmp_dict_list.append( {'uid' : uid, 'state_path' : str(bucket_index_path), 'index_path' : str(bucket_index_path), 'db_path' : str(bucket_db_path), 'total_size_mb' : 0, 'tuple_list' : []} )
+			tmp_state_paths.append(str(bucket_state_path))
+			tmp_index_paths.append(str(bucket_index_path))
+			tmp_db_paths.append(str(bucket_db_path))
+
 			# add additional items not used back to the list
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
@@ -349,191 +374,66 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding this bucket final tuple details back to master list." + str(bucket_path) ])
 			# add to master list
 			bucket_info_tuples_list.append(bucket_tuple)
+
+		if self.debug:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Converting uid dictionary into unique list." )
+			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Converting uid dictionary into unique list."])
+		tmp_dict_set = set(tmp_dict_list) # get uniques only
+		uid_dict_list = list(tmp_dict_set) # convert back to a list
+		tmp_state_set = set(tmp_state_paths)
+		self.unique_state_paths = list(tmp_state_set)
+		tmp_index_set = set(tmp_index_paths)
+		self.unique_index_paths = list(tmp_index_set)
+		tmp_db_set = set(tmp_db_paths)
+		self.unique_db_paths = list(tmp_db_set)
+
+		if self.debug:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Generating Master Bucket Dictionary List. This could take some time." )
+			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Generating Master Bucket Dictionary List."])
+		bucket_dicts_master_list = self.orgnaizeFullListIntoBucketDicts(bucket_info_tuples_list, uid_dict_list)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list by GUID." )
 		bucket_info_tuples_list.sort(key=lambda x: x[3])
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished parsing all bucket ids."])
-		return(bucket_info_tuples_list)
+		return(bucket_dicts_master_list)
 
-	# organize the master list into lists by state path (cold, warm, or custom folder for frozen)
-	def organizeBucketTuplesByStatePath(self, bucket_info_tuples_list:list):
-		'''
-		Finds all bucket entries in the main tuple list that have the same state path
-		Returns: List of lists, each embedded list contains the tuples that have the same state path as each other
-
-		eg.
-
-		[ main list ]            # main list of bucket tuples
-			  [ frozendata ]     # sub list by state path
-				b1 tuple
-				b2 tuple
-				b3 tuple
-			  [ warm ]
-				b1 tuple
-				b2 tuple
-				b3 tuple
-
-		'''
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by state path."])
+	def orgnaizeFullListIntoBucketDicts(self, bucket_info_tuples_list:list, uid_dict_list:list):
+		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Sorting bucket files into dictionaries for fast iteration."])
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to sort buckets by state path." )
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by state path."])
-		bucket_info_tuples_list_by_state_path = []
-		unique_state_paths = []
-		for i in bucket_info_tuples_list:
-			if i[8] not in unique_state_paths: # get unique state paths to a list
-				unique_state_paths.append(i[8])
-		for state in unique_state_paths:
-			tmp_list = []
-			for b in bucket_info_tuples_list:
-				if state == b[8]:
-					tmp_list.append(b)
-			bucket_info_tuples_list_by_state_path.append(tmp_list)
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting bucket files into dictionaries for fast iteration." )
+		periodic_check = 200
+		length_of_tuple_list = len(bucket_info_tuples_list)
+		length_of_uid_dict_list = len(uid_dict_list)
+
+		for uid_idx, d in enumerate(uid_dict_list):
+			if uid_idx % periodic_check == 0:
+				# periodic updates to console
+				percent = (uid_idx + 1) / length_of_uid_dict_list * 100
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" ) )
+			for bid_idx, bt in bucket_info_tuples_list:
+				# periodic updates to console
+				if bid_idx % periodic_check == 0:
+					percent = (bid_idx + 1) / length_of_tuple_list * 100
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): UID Dictionary: " + str(uid_idx) + "Processing file: " + str(bid_idx + 1) + " / " + str(length_of_tuple_list), " | ", str(percent) + "%" )
+				# check if this bucket belongs to this dictionary, add to list if so
+				uid = str(bt[8]) + "_" + str(bt[9]) + "_" + str(bt[10]) + "_" + str(bt[0]) + "_" + str(bt[1]) + "_" + str(bt[2]) + "_" + str(bt[3])
+				if uid == d['uid']:
+					d['tuple_list'].append(bt)
+					d['total_size_mb'] += (bt[6]/1024.0**2)
+					d['state_path'] = str(bt[8])
+					d['index_path'] = str(bt[9])
+					d['db_path'] = str(bt[10])
+		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " All UID Dictionaries processed. Total items in list: " + str(len(uid_dict_list))])
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): State path sort: Finished." )
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " State path sort: Finished."])
-		return(bucket_info_tuples_list_by_state_path)
-	
-	def organizeBucketTuplesByIndexPathFromStatePath(self, bucket_info_tuples_list_by_state_path):
-		'''
-		Using the orgnized by state path above, we further sort into smaller lists by index inside
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): All UID Dictionaries processed. Total items in list: " + str(len(uid_dict_list)) )
+		return(uid_dict_list)
 
-		e.g.
-
-		[ main list ]           # main list of bucket tuples
-			  [ frozendata ]     # sub list by state path
-				[ barracuda ]	  # sub list index path
-					b1 tuple
-					b2 tuple
-					b3 tuple
-				[ mcafee ]	   
-					b1 tuple
-					b2 tuple
-					b3 tuple
-
-			  [ warm ]	 
-				[ barracuda]	 	 
-					b1 tuple
-					b2 tuple
-					b3 tuple
-
-				[ mcafee ]
-					b1 tuple
-					b2 tuple
-					b3 tuple
-		
-		'''
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to sort buckets by index path." )
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by index path."])
-		bucket_info_tuples_list_by_state_path_then_index_path = []
-		for state_list in bucket_info_tuples_list_by_state_path: # main list contains sub lists by state_path
-			unique_index_paths = []
-			state_list_by_index_tmp = [] # each index will have a tmp list per iteration that will add back to the master list bucket_info_tuples_list_by_state_path_then_index_path
-			for i in state_list:
-				if i[9] not in unique_index_paths: # get unique index paths to a list
-					unique_index_paths.append(i[9])
-			for index in unique_index_paths: # find all buckets in the state list that match this index and add to tmp list
-				tmp_list = []
-				for b in state_list: # get the actual bucket tuples in side this state_path list
-					if index == b[9]:
-						tmp_list.append(b)
-				state_list_by_index_tmp.append(tmp_list)
-			bucket_info_tuples_list_by_state_path_then_index_path.append(state_list_by_index_tmp)
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sort buckets by index path finished." )
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Sort buckets by index path finished."])
-		return(bucket_info_tuples_list_by_state_path_then_index_path)
-
-	def organizeBucketTuplesByDBPathFromIndexPathList(self, bucket_info_tuples_list_by_state_path_then_index_path):
-			'''
-			Using the orgnized by index path above, we further sort into smaller lists by db inside
-
-			e.g. return
-
-			[ main list ]           	# main list of bucket tuples 
-				  [ frozendata ]     	 # sub list by state path     (state)
-						[ barracuda ]	  # sub list index path     (index)
-							[frozendb]     # sub list db path        (db)
-								b1 tuple
-								b2 tuple
-								b3 tuple
-						[ mcafee ]	   
-							[frozendb]   
-								b1 tuple
-								b2 tuple
-								b3 tuple
-				  [ warm ]	 
-						[ barracuda]	 
-							[db]	 
-								b1 tuple
-								b2 tuple
-								b3 tuple
-						[ mcafee 
-							[db]	 
-								b1 tuple
-								b2 tuple
-								b3 tuple
-			'''
-			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to sort buckets by db path." )
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to sort buckets by db path."])
-			bucket_info_tuples_list_by_state_path_then_index_path_then_db_path = []
-			for state_list in bucket_info_tuples_list_by_state_path_then_index_path: # main list contains sub lists by state_path, then index_path -> get down to the tuples
-				state_index_list_by_db_tmp = [] # each unique db will have a tmp list per iteration that will add back to the master list bucket_info_tuples_list_by_state_path_then_index_path_then_db_path
-				for index_list in state_list:
-					unique_db_paths = []
-					for i in index_list: # get unique db list
-						if i[10] not in unique_db_paths:
-							unique_db_paths.append(i[10])
-					tmp_index_list = []
-					for db in unique_db_paths:
-						tmp_db_list = []
-						for b in index_list:
-							if db == b[10]:
-								tmp_db_list.append(b)
-						tmp_index_list.append(tmp_db_list)
-					state_index_list_by_db_tmp.append(tmp_index_list)
-				bucket_info_tuples_list_by_state_path_then_index_path_then_db_path.append(state_index_list_by_db_tmp)
-			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): DB path sort: Finished." )
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " DB path sort: Finished."])
-			return(bucket_info_tuples_list_by_state_path_then_index_path_then_db_path)
-
-	# do all three of the above in one go
-	def organizeMasterListByStateIndexDB(self, bucket_info_tuples_list:list):
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Starting all three sorts." )
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Starting all three sorts."])
-		try:
-			tmp_list1 = self.organizeBucketTuplesByStatePath(bucket_info_tuples_list)
-		except Exception as ex:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Organizing By State Path. -")
-			print(ex)
-		try:
-			tmp_list2 = self.organizeBucketTuplesByIndexPathFromStatePath(tmp_list1)
-		except Exception as ex:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Organizing By Index Path. -")
-			print(ex)
-		try:
-			separated_master_bucket_tuple_list = self.organizeBucketTuplesByDBPathFromIndexPathList(tmp_list2)
-		except Exception as ex:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Organizing By DB Path. -")
-			print(ex)
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished all three sorts." )
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished all three sorts."])
-		return(separated_master_bucket_tuple_list)
 
 	# split a large list into smaller lists
 	def splitList(self, list_to_split:list, split_by:int) -> list:
@@ -574,7 +474,6 @@ class Bucketeer():
 		This will do the following:
 		1. Ensure the lists sizes in terms of sheer number of items is as even as can be among them
 		2. Check byte sizes of downloads sum and redisctribute when needed / possible
-		3. Ensure all files for buckets are on the same list
 		'''
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
@@ -634,7 +533,7 @@ class Bucketeer():
 			for lst in master_list_of_lists:
 				tmp_size_total = 0
 				for b in lst:
-					tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
+					tmp_size_total = tmp_size_total + b['total_size_mb']
 				total_size = total_size + tmp_size_total
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
@@ -653,7 +552,7 @@ class Bucketeer():
 				for lst in master_list_of_lists:
 					tmp_size_total = 0
 					for b in lst:
-						tmp_size_total = tmp_size_total + (b[6]/1024.0**2) # convert to mb so we're using smaller nums
+						tmp_size_total = tmp_size_total + b['total_size_mb']
 					tmp_diff_from_avg = tmp_size_total - average_size_per
 					if abs(tmp_diff_from_avg) > margin:
 						if tmp_diff_from_avg < 0:
@@ -678,8 +577,8 @@ class Bucketeer():
 								for b in lst2[0]: # for each item in list 2
 									if donor_size_total >= lst2[1]:
 										break
-									donor_size_total = donor_size_total + b[6]/1024.0**2
-									lst1[1] = lst1[1] + b[6]/1024.0**2
+									donor_size_total = donor_size_total + b['total_size_mb']
+									lst1[1] = lst1[1] + b['total_size_mb']
 									lst1[0].append(b)
 									lst2[0].remove(b)
 						else:
@@ -687,16 +586,16 @@ class Bucketeer():
 								for b in lst2[0]: # for each item in list 2
 									if donor_size_total >= receiver_original_ask:
 										break
-									donor_size_total = donor_size_total + b[6]/1024.0**2
-									lst1[1] = lst1[1] + b[6]/1024.0**2
+									donor_size_total = donor_size_total + b['total_size_mb']
+									lst1[1] = lst1[1] + b['total_size_mb']
 									lst1[0].append(b)
 									lst2[0].remove(b)
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a error margin of: " + str(self.size_error_margin*100) + "%"])
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a error margin of: " + str(self.size_error_margin*100) + "%")
+			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
 				tmp_size_total = 0
 				for b in lst:
-					tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
+					tmp_size_total = tmp_size_total + (b['total_size_mb'])
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + ": List Total Size (mb): " + str(tmp_size_total) ])
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): List Total Size (mb): " + str(tmp_size_total))
 		except Exception as ex:
@@ -704,46 +603,10 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per list size: FAILED."])
 			print(ex)
 
-		# ensure bucket files didnt get moved away from their friends
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to rebalance like buckets to same lists in case files from one bucket were sorted to a different peer earlier.")
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to rebalance like buckets to same lists in case files from one bucket were sorted to a different peer. (this will take a long time) "])
-		try:
-			master_list_of_lists.sort()
-			for idx, lst in enumerate(master_list_of_lists):
-				for cur_list_b in lst:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " Is now looking in other Peers lists to ensure it has all buckets that belong to its unique ids" )
-					for other_idx, other_lst in enumerate(master_list_of_lists):
-						if idx == other_idx: # dont check self since in the same master list as other sub lists
-							continue
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " is now looking in List #" + str(other_idx + 1) )
-						for other_list_b in other_lst: # compare item to items in other lists for matching buckets
-							if cur_list_b[0] == other_list_b[0] and cur_list_b[1] == other_list_b[1]: #check earliest and latest first
-								if cur_list_b[2] == other_list_b[2]: #check ID
-									if cur_list_b[5] == other_list_b[5]: #check Replicated status
-										if cur_list_b[8] == other_list_b[8] and cur_list_b[9] == other_list_b[9] and cur_list_b[10] == other_list_b[10]: #paths match = same bucket file in other list
-											lst.append(other_list_b)
-											other_lst.remove(other_list_b)
-											continue
-									else:
-										continue
-								else:
-									continue
-							else:
-								continue
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs rebalance by like buckets: Finished."])
-		except Exception as ex:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by like bucket files -")
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs rebalance by like buckets: FAILED."])
-			print(ex)
-		if self.debug:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED rebalance of like buckets to same lists in case files from one bucket were sorted to a different peer earlier.")
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " FINISHED rebalance of like buckets to same lists in case files from one bucket were sorted to a different peer earlier."])
+		# finish
 		return(master_list_of_lists)
 
-	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, separated_master_bucket_tuple_list:list):
+	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, bucket_dicts_master_list:list):
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dividing bucket list amongst peers.")
@@ -753,27 +616,59 @@ class Bucketeer():
 		for x in range(peer_num):  # create the empty placeholder list of sub lists
 			final_peer_download_lists.append([])
 		try:
-			for state_list in separated_master_bucket_tuple_list:
-				for index_list in state_list:
-					for db_list in index_list: # update ongoing list
-						tmp_master_list_of_lists = self.splitList(db_list, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
-						for idx, lst in enumerate(tmp_master_list_of_lists):
-							final_peer_download_lists[idx].extend(lst)
+			tmp_bucket_dicts_master_list = bucket_dicts_master_list
+			tmp_split_lists_by_uid = []
+			if self.debug:
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
+			# make a list of lists of like UIDs
+			for x in range(len(bucket_dicts_master_list)):
+				tmp_split_lists_by_uid.append([]) # empty placeholder lists
+			while len(tmp_bucket_dicts_master_list) > 0: 
+				for idx, empty_list in enumerate(tmp_split_lists_by_uid):
+					for bd in tmp_bucket_dicts_master_list: # get an item in main list
+						for bd2 in tmp_bucket_dicts_master_list: # compare it to all other items in same list
+							if bd == bd2:
+								continue # dont check self
+							else:
+								if bd['uid'] == bd2['uid']:
+									empty_list.append(bd2)
+									tmp_bucket_dicts_master_list.remove(bd2)
+					empty_list.append(bd)
+					tmp_bucket_dicts_master_list.remove(bd)
+			if self.debug:
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
+			# split each list of like UIDs among the peers
+			for uid_lst in tmp_split_lists_by_uid:
+				tmp_master_list_of_lists = self.splitList(uid_lst, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
+				for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
+					final_peer_download_lists[idx].extend(tmp_lst)
+
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Splitting list after peer divide had an issue. -")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Splitting list after peer divide had an issue."])
 			print(ex)
 		try:
+			if self.debug:
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			final_peer_download_lists = self.balanceListOfLists(final_peer_download_lists) # this function will run balance checks and return the final list
 			final_peer_download_lists.sort()
+			# finally extract just the tuples from each list of dicts for the final download list
+			final_peer_download_tuple_list = [] # if theres 5 peers, there  will be 5 lists in here
+			for x in range(peer_num):  # create the empty placeholder list of sub lists
+				final_peer_download_tuple_list.append([])
+			for idx, dict_list in final_peer_download_lists:
+				tmp_tuple_list = []
+				for i in dict_list['tuple_list']:
+					tmp_tuple_list.extend(i)
+				final_peer_download_tuple_list[idx] = tmp_tuple_list
 		except Exception as ex:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Balancing lists. -")
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Final tuple extract of lists. -")
 			print(ex)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " FINISHED Dividing bucket list amongst peers."])
-		return(final_peer_download_lists)
+		return(final_peer_download_tuple_list)
 
 	def verifyBucketList(self, bucket_list:list) -> bool:
 		'''
@@ -804,10 +699,9 @@ class Bucketeer():
 				self.list_of_bucket_list_details.extend(bucket_list)
 			if self.verifyBucketList(self.list_of_bucket_list_details):
 				idx_cluster_peers = self.getPeerGUIDS()
-				bucket_info_tuples_list = self.splitBucketDetails()
-				if bucket_info_tuples_list:
-						separated_master_bucket_tuple_list = self.organizeMasterListByStateIndexDB(bucket_info_tuples_list)
-						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, separated_master_bucket_tuple_list)
+				bucket_dicts_master_list = self.splitBucketDetails() # return final master dict list of buckets
+				if bucket_dicts_master_list:
+						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, bucket_dicts_master_list)
 						for idx, p in enumerate(idx_cluster_peers):
 							if p == self.my_guid:
 								self.this_peer_download_list = self.final_peer_download_lists[idx]
@@ -816,13 +710,3 @@ class Bucketeer():
 						return(True)
 			else:
 				return(False)
-
-### RUNTIME ###########################################
-if __name__ == "__main__":
-	azure_buckets = Bucketeer('idx_bucket_sorter', '/opt/splunk/', sp_uname='admin', sp_pword='5up3rn0va', list_of_bucket_list_details=[["cold/barracuda/frozendb/db_1625059460_1632148318_93_6CE6A7CF-AD0F-423B-90DD-D05AF9A3C87C/rawdata/journal.gz", 352252352], ["cold/barracuda/frozendb/db_1625059460_1632148318_93_6CE6A7CF-AD0F-423B-90DD-D05AF9A3C87C/rawdata/journal.gz", 353536], ["cold/barracuda/frozendb/db_1625059460_1632148318_93_6CE6A7CF-AD0F-423B-90DD-D05AF9A3C87C/rawdata/journal.gz", 333566663636], ["cold/mcafee/frozendb/db_1625059460_1632148318_93_6CE6A7CF-AD0F-423B-90DD-D05AF9A3C87C/rawdata/journal.gz", 333566663636], ["cold/mcafee/frozendb/db_1625059460_1632148318_93_6CE6A7CF-AD0F-423B-90DD-D05AF9A3C87C/rawdata/journal.gz", 353536] ])
-	if not azure_buckets.standalone:
-		idx_cluster_peers = azure_buckets.getPeerGUIDS()
-	bucket_info_tuples_list = azure_buckets.splitBucketDetails()
-	if bucket_info_tuples_list:
-		separated_master_bucket_tuple_list = azure_buckets.organizeMasterListByStateIndexDB(bucket_info_tuples_list)
-		final_peer_download_lists = azure_buckets.divideMasterBucketListAmongstPeers(idx_cluster_peers, separated_master_bucket_tuple_list)
