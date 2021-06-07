@@ -46,4 +46,4 @@
 # biglt = blob_ignore_list_type - same as ciglt but for the blob_ignore_list above
 # sem = size_error_margin - Custom margin of error (%) when balancing download jobs among peers. Will balance by total size of all blobs added up. Smaller margin is more balanced. If any errors during this stage, raise this a bit higher
 # dm = debug_modules - Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint
-# woflo = write_out_full_list_only - True will write out the entire list for all peers to a single CSV and do nothing else.
+# woflo = write_out_full_list_only - True will write out the entire list for all peers to a single CSV and do nothing else. Should set -dm to False when using this unless you have errors
