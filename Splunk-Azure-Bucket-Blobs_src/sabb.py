@@ -609,10 +609,10 @@ if __name__ == "__main__":
 		periodic_check = 200
 		length_of_list = len(master_bucket_download_list)
 		wrq_logging.stop()
+		tmp_rows = []
 		for idx, i in enumerate(master_bucket_download_list):
-			log_csv.writeLinesToCSV( [ [i[2], i[0], i[1]/1024.0**2] ], ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB'])
-			if idx + 1 == length_of_list:
-				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", "100%" )
-			elif idx % periodic_check == 0:
+			tmp_rows.append( [ i[2], i[0], i[1]/1024.0**2 ] )
+			if idx % periodic_check == 0:
 				percent = (idx + 1) / length_of_list * 100
 				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
+				wrq_csv_report.add(log_csv.writeLinesToCSV, [[(rows_list), ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB']]])
