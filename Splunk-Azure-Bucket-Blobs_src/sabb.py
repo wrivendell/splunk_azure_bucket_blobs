@@ -612,8 +612,8 @@ if __name__ == "__main__":
 
 		rows_list = []
 		for idx, i in enumerate(master_bucket_download_list):
-			if (idx % periodic_check):
-				percent = (idx + 1) / length_of_list
+			if idx % periodic_check == 0:
+				percent = (idx + 1) / length_of_list * 100
 				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
 				wrq_csv_report.add(log_csv.writeLinesToCSV, [[(rows_list), ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB'] ]])
 				rows_list = []
