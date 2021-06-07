@@ -717,7 +717,7 @@ class Bucketeer():
 					for other_idx, other_lst in enumerate(master_list_of_lists):
 						if idx == other_idx: # dont check self since in the same master list as other sub lists
 							continue
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " is now looking in List #" + str(other_idx + 1)
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" + "List #" + str(idx + 1) + " is now looking in List #" + str(other_idx + 1) )
 						for other_list_b in other_lst: # compare item to items in other lists for matching buckets
 							if cur_list_b[0] == other_list_b[0] and cur_list_b[1] == other_list_b[1]: #check earliest and latest first
 								if cur_list_b[2] == other_list_b[2]: #check ID
