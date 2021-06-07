@@ -269,8 +269,6 @@ class Bucketeer():
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Can't determine if replicated or non bucket: " + str(bucket_path) + " Skipping." ])
 				continue
-			if self.debug:
-				print(bucket_id_origin)
 
 			# get bucket_id_earliest from from bucket path tuple
 			try:
