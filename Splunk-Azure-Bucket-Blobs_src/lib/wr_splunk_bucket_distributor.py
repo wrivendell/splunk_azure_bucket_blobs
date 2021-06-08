@@ -316,50 +316,28 @@ class Bucketeer():
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Making base list for return." + str(bucket_path) )
-			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_earliest) + "_" + str(bucket_id_latest) + "_" + str(bucket_id_id) + "_" + str(bucket_id_guid)
+			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_origin)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Making base list for return." + str(bucket_path) ])
 			tmp_bucket_list = [bucket_id_earliest, bucket_id_latest, bucket_id_id,
 							bucket_id_guid, bucket_id_standalone, bucket_id_origin, bucket_path[1], bucket_path[0],
 							str(bucket_state_path), str(bucket_index_path), str(bucket_db_path), str(uid)
 							]
-#			tmp_state_paths.append(str(bucket_state_path))
-#			tmp_index_paths.append(str(bucket_index_path))
-#			tmp_db_paths.append(str(bucket_db_path))
 
 			# add additional items not used back to the list
 #			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding any additional items we received on list back into final base list for return." + str(bucket_path) )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding any additional items we received on list back into final base list for return." + str(bucket_path) ])
 			if len(bucket_path) > 2:
-#				if self.debug:
-#					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding original additional items we received back to bucket details.")
 				for idx, item in enumerate(bucket_path):
 					if idx > 1:
 						tmp_bucket_list.append(item)
 			bucket_tuple = tuple(tmp_bucket_list)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding this bucket final tuple details back to master list." + str(bucket_path) ])
 			# add to master list
-
-#			# check if uid is already in dict list and update or add
-#			for td in tmp_dict_list:
-#				if uid == td['uid']:
-#					td['tuple_list'].append(bucket_tuple)
-#					td['total_size_mb'] += (bucket_tuple[6]/1024.0**2)
-#					td['state_path'] = str(bucket_tuple[8])
-#					td['index_path'] = str(bucket_tuple[9])
-#					td['db_path'] = str(bucket_tuple[10])
-#			tmp_dict_list.append( {'uid' : uid, 'state_path' : str(bucket_index_path), 'index_path' : str(bucket_index_path), 'db_path' : str(bucket_db_path), 'total_size_mb' : 0, 'tuple_list' : []} )
 			bucket_info_tuples_list.append(bucket_tuple)
 
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Converting uid dictionary into unique list." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Converting uid dictionary into unique list."])
-#		uid_dict_list = list({v['uid']:v for v in tmp_dict_list}.values()) # get unique entries only
-#		tmp_state_set = set(tmp_state_paths)
-#		self.unique_state_paths = list(tmp_state_set)
-#		tmp_index_set = set(tmp_index_paths)
-#		self.unique_index_paths = list(tmp_index_set)
-#		tmp_db_set = set(tmp_db_paths)
-#		self.unique_db_paths = list(tmp_db_set)
 
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Generating Master Bucket Dictionary List. This could take some time." )
@@ -367,7 +345,6 @@ class Bucketeer():
 		bucket_info_tuples_list.sort(key=lambda x: x[3])
 		bucket_dicts_master_list = self.orgnaizeFullListIntoBucketDicts(bucket_info_tuples_list)
 		print(bucket_dicts_master_list)
-		sys.exit()
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
@@ -380,33 +357,21 @@ class Bucketeer():
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting bucket files into dictionaries for fast iteration." )
-#		periodic_check = 200
-#		length_of_tuple_list = len(bucket_info_tuples_list)
-#		length_of_uid_dict_list = len(uid_dict_list)
 		result = {}
 		for bt in bucket_info_tuples_list:
-			result.setdefault(s[11], []).append(bt)
-#		for uid_idx, d in enumerate(uid_dict_list):
-#			if uid_idx % periodic_check == 0:
-#				# periodic updates to console
-#				percent = (uid_idx + 1) / length_of_uid_dict_list * 100
-#				percent = int(percent)
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Processing UID Dictionary: " + str(uid_idx + 1) + " / " + str(length_of_uid_dict_list), " | ", str(percent) + "%" )
-#			for bt in bucket_info_tuples_list:
-#				# check if this bucket belongs to this dictionary, add to list if so
-#				uid = str(bt[8]) + "_" + str(bt[9]) + "_" + str(bt[10]) + "_" + str(bt[0]) + "_" + str(bt[1]) + "_" + str(bt[2]) + "_" + str(bt[3])
-#				if uid == d['uid']:
-#					d['tuple_list'].append(bt)
-#					d['total_size_mb'] += (bt[6]/1024.0**2)
-#					d['state_path'] = str(bt[8])
-#					d['index_path'] = str(bt[9])
-#					d['db_path'] = str(bt[10])
-		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " All UID Dictionaries processed. Total items in list: " + str(len(uid_dict_list))])
+			result.setdefault(bt[11], []).append(bt)
+		for r in result.items():
+			total_size_mb = 0
+			for bucket_tuple in r[0]:
+				total_size_mb += (bucket_tuple[6]/1024.0**2)
+			r['total_size_mb']=total_size_mb
+			
+
+		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " All UID Dictionaries processed. Total items in list: " + str(len(result))])
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): All UID Dictionaries processed. Total items in list: " + str(len(uid_dict_list)) )
+		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): All UID Dictionaries processed. Total items in list: " + str(len(result)) )
 		return(result)
-
 
 	# split a large list into smaller lists
 	def splitList(self, list_to_split:list, split_by:int) -> list:
