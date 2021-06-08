@@ -390,7 +390,7 @@ class Bucketeer():
 			while total_list_item_count > 0:
 				for idx, item in enumerate(result.items()):
 					if idx % 500 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(idx + 1) + " / " + str(total_list_item_count) )
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -399,23 +399,16 @@ class Bucketeer():
 			first_index = 0 - per_chunk_count # minus the total for a negative so first iteration starts at 0
 			last_index = 0
 			counter = -1
-			cur_list = 0
 			while total_list_item_count > 0:
-				cur_list += 1
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on list: " + str(cur_list))
-				for s_idx, m_sub_list in enumerate(master_list_of_sublists):
-					counter += 1
+				counter += 1
+				for m_sub_list in master_list_of_sublists:
 					if counter % 500 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... " + str(counter + 1) + " / " + str(total_list_item_count) )
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
 					tmp_list = list(result.items())[first_index:last_index]
 					m_sub_list.extend(tmp_list)
 					total_list_item_count -= 1
-					if cur_list == s_idx:
-						cur_list = 0
-					else:
-						cur_list = s_idx
 			return(master_list_of_sublists)
 
 	# balance list of lists by length and "size" in bytes
@@ -518,6 +511,7 @@ class Bucketeer():
 				if not below_margin:
 					size_balanced = True
 				for lst1 in below_margin:
+					tmp_to_remove = []
 					receiver_original_ask = lst1[1]
 					for lst2 in above_margin:
 						donor_size_total = 0
@@ -530,7 +524,7 @@ class Bucketeer():
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
 										lst1[0].append(d)
-										lst2[0].remove(d[0], d[1])
+										tmp_to_remove.append(lst2.index(d))
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for d in lst2[0]: # for each item in list 2
@@ -540,7 +534,10 @@ class Bucketeer():
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
 										lst1[0].append(d)
-										lst2[0].remove(d[0], d[1])
+										tmp_to_remove.append(lst2.index(d))
+					for idx in tmp_to_remove:
+						del lst2[idx]
+					
 			print("test 3")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
