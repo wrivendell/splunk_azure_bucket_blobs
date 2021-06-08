@@ -8,6 +8,7 @@
 import time, sys, re, operator
 
 from pathlib import Path
+from collections import OrderedDict
 from . import wr_logging as log
 from . import wr_splunk_ops as wrsops
 from . import wr_splunk_wapi as wapi
@@ -317,10 +318,11 @@ class Bucketeer():
 #			if self.debug:
 #				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Making base list for return." + str(bucket_path) )
 			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_origin)
+			bid = str(bucket_id_earliest) + "_" + str(bucket_id_latest) + "_" + str(bucket_id_id) + "_" + str(bucket_id_guid)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Making base list for return." + str(bucket_path) ])
 			tmp_bucket_list = [bucket_id_earliest, bucket_id_latest, bucket_id_id,
 							bucket_id_guid, bucket_id_standalone, bucket_id_origin, bucket_path[1], bucket_path[0],
-							str(bucket_state_path), str(bucket_index_path), str(bucket_db_path), str(uid)
+							str(bucket_state_path), str(bucket_index_path), str(bucket_db_path), str(uid), str(bid)
 							]
 
 			# add additional items not used back to the list
@@ -343,7 +345,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Generating Master Bucket Dictionary List. This could take some time." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Generating Master Bucket Dictionary List."])
 		bucket_info_tuples_list.sort(key=lambda x: x[3])
-		bucket_dicts_master_list, result_sizes = self.orgnaizeFullListIntoBucketDicts(bucket_info_tuples_list)
+		bucket_dicts_master_list = self.orgnaizeFullListIntoBucketDicts(bucket_info_tuples_list)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
@@ -356,25 +358,14 @@ class Bucketeer():
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting bucket files into dictionaries for fast iteration." )
-		result = {}
-		result_sizes = {}
+		result = OrderedDict({})
 		for bt in bucket_info_tuples_list:
 			result.setdefault(bt[11], []).append(bt)
-		for r in result.items():
-			r[1].sort()
-			total_size_mb = 0
-			# add a 3rd dict item with total mb size for all items in the tuple
-			for bucket_tuple in r[1]:
-				total_size_mb += (bucket_tuple[6]/1024.0**2)
-			result_sizes[r[0]] = total_size_mb
-		for k,v in result_sizes.items():
-			print(k, v)
-
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " All UID Dictionaries processed. Total items in list: " + str(len(result))])
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): All UID Dictionaries processed. Total items in list: " + str(len(result)) )
-		return(result, result_sizes)
+		return(result)
 
 	# split a large list into smaller lists
 	def splitList(self, list_to_split:list, split_by:int) -> list:
@@ -384,12 +375,20 @@ class Bucketeer():
 		'''
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "  Splitting list up by this amount: " + str(split_by)])
 		master_list_of_sublists = [] # if theres 5 chunks, there will be 5 lists in here
-		total_list_item_count = len(list_to_split)
+		result = OrderedDict({})
+		# split list now into peers then create new dict so they stay with self
+		for bt in list_to_split: # convert to dict to maintain smaller tuple list already sorted after size balance
+			result.setdefault(bt[12], []).append(bt)
+
+		total_list_item_count = len(result.items())
+		# create the empty sublists for each peer to hold
 		for x in range(split_by):
 			master_list_of_sublists.append([])
+		
+		# start splitting list and adding to empty master list of sublists
 		if total_list_item_count <= split_by:
 			while total_list_item_count > 0:
-				for idx, item in enumerate(list_to_split):
+				for idx, item in enumerate(result.items()):
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -401,13 +400,13 @@ class Bucketeer():
 				for m_sub_list in master_list_of_sublists:
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
-					tmp_list = list_to_split[first_index:last_index]
+					tmp_list = list(result.items())[first_index:last_index]
 					m_sub_list.extend(tmp_list)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
 
 	# balance list of lists by length and "size" in bytes
-	def balanceListOfLists(self, master_list_of_lists) -> list:
+	def balanceListOfLists(self, master_list_of_lists:list) -> list:
 		'''
 		This will do the following:
 		1. Ensure the lists sizes in terms of sheer number of items is as even as can be among them
@@ -544,7 +543,7 @@ class Bucketeer():
 		# finish
 		return(master_list_of_lists)
 
-	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, bucket_dicts_master_list:list):
+	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, bucket_dicts_master:dict, bucket_dicts_master_sizes:dict):
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Dividing bucket list amongst peers."])
 		peer_num = len(peer_list)
@@ -552,32 +551,21 @@ class Bucketeer():
 		for x in range(peer_num):  # create the empty placeholder list of sub lists
 			final_peer_download_lists.append([])
 		try:
-			tmp_bucket_dicts_master_list = bucket_dicts_master_list
-			tmp_split_lists_by_uid = []
-			# make a list of lists of like UIDs
-			for x in range(len(bucket_dicts_master_list)):
-				tmp_split_lists_by_uid.append([]) # empty placeholder lists
-			while len(tmp_bucket_dicts_master_list) > 0: 
-				for empty_list in tmp_split_lists_by_uid:
-					for bd in tmp_bucket_dicts_master_list: # get an item in main list
-						matches = [d for d in tmp_bucket_dicts_master_list if d['state_path'] == bd['state_path'] and d['index_path'] == bd['index_path'] and d['db_path'] == bd['db_path']]
-						empty_list.extend(matches)
-						for m in matches:
-							tmp_bucket_dicts_master_list.remove(m)
-			tmp_counter = 0
-			for lst in tmp_split_lists_by_uid:
-				tmp_counter += len(lst)
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Total items in list is now: ", tmp_counter)
 			time.sleep(5)
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			# split each list of like UIDs among the peers
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount: " + str(peer_num) )
-			for uid_lst in tmp_split_lists_by_uid:
-				tmp_master_list_of_lists = self.splitList(uid_lst, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
-				for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
-					final_peer_download_lists[idx].extend(tmp_lst)
+			for uid_dict in bucket_dicts_master.items():
+				for bucket_tuple_list in uid_dict[1]:
+					tmp_master_list_of_lists = self.splitList(bucket_tuple_list, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
+					for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
+						print("\n")
+						for l in tmp_lst:
+							print(l)
+						final_peer_download_lists[idx].extend(tmp_lst)
+			sys.exit()
 
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Splitting list after peer divide had an issue. -")
@@ -587,7 +575,6 @@ class Bucketeer():
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 			final_peer_download_lists = self.balanceListOfLists(final_peer_download_lists) # this function will run balance checks and return the final list
-#			final_peer_download_lists.sort()
 			# finally extract just the tuples from each list of dicts for the final download list
 			final_peer_download_tuple_list = [] # if theres 5 peers, there  will be 5 lists in here
 			for x in range(peer_num):  # create the empty placeholder list of sub lists
@@ -636,9 +623,9 @@ class Bucketeer():
 				self.list_of_bucket_list_details.extend(bucket_list)
 			if self.verifyBucketList(self.list_of_bucket_list_details):
 				idx_cluster_peers = self.getPeerGUIDS()
-				bucket_dicts_master_list = self.splitBucketDetails() # return final master dict list of buckets
-				if bucket_dicts_master_list:
-						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, bucket_dicts_master_list)
+				bucket_dicts_master = self.splitBucketDetails() # return final master dict list of buckets
+				if bucket_dicts_master:
+						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, bucket_dicts_master)
 						for idx, p in enumerate(idx_cluster_peers):
 							if p == self.my_guid:
 								self.this_peer_download_list = self.final_peer_download_lists[idx]
