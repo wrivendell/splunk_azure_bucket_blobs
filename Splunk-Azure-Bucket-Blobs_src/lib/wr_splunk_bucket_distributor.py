@@ -399,8 +399,13 @@ class Bucketeer():
 			per_chunk_count = int(total_list_item_count / split_by)
 			first_index = 0 - per_chunk_count # minus the total for a negative so first iteration starts at 0
 			last_index = 0
+			counter = -1
 			while total_list_item_count > 0:
+				counter += 1
 				for m_sub_list in master_list_of_sublists:
+					if counter % 500 == 0:
+						percent = int((counter + 1) / total_list_item_count * 100)
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count), " | ", str(percent) + "%" )
 					print("working")
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
@@ -472,7 +477,7 @@ class Bucketeer():
 			print("test 1")
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
-				for d in lst.items(): # get each dict containing list of buckets by bucket id
+				for d in lst: # get each dict containing list of buckets by bucket id
 					for bid in d[1]: # get bucket tuples in bid dict
 						print("bid", bid)
 						for b in bid:  # actual tuples
