@@ -314,8 +314,8 @@ class Bucketeer():
 				print(" -" + str( (bucket_id_id) ) )
 
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
-			if self.debug:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Making base list for return." + str(bucket_path) )
+#			if self.debug:
+#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Making base list for return." + str(bucket_path) )
 			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_origin)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Making base list for return." + str(bucket_path) ])
 			tmp_bucket_list = [bucket_id_earliest, bucket_id_latest, bucket_id_id,
@@ -343,8 +343,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + "): Generating Master Bucket Dictionary List. This could take some time." )
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Generating Master Bucket Dictionary List."])
 		bucket_info_tuples_list.sort(key=lambda x: x[3])
-		bucket_dicts_master_list = self.orgnaizeFullListIntoBucketDicts(bucket_info_tuples_list)
-		print(bucket_dicts_master_list)
+		bucket_dicts_master_list, result_sizes = self.orgnaizeFullListIntoBucketDicts(bucket_info_tuples_list)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
@@ -358,20 +357,24 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting bucket files into dictionaries for fast iteration." )
 		result = {}
+		result_sizes = {}
 		for bt in bucket_info_tuples_list:
 			result.setdefault(bt[11], []).append(bt)
 		for r in result.items():
+			r[1].sort()
 			total_size_mb = 0
-			for bucket_tuple in r[0]:
+			# add a 3rd dict item with total mb size for all items in the tuple
+			for bucket_tuple in r[1]:
 				total_size_mb += (bucket_tuple[6]/1024.0**2)
-			r['total_size_mb']=total_size_mb
-			
+			result.setdefault(r[0], []).append(total_size_mb)
+		for k,v in result_sizes.items():
+			print(k, v)
 
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " All UID Dictionaries processed. Total items in list: " + str(len(result))])
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): All UID Dictionaries processed. Total items in list: " + str(len(result)) )
-		return(result)
+		return(result, result_sizes)
 
 	# split a large list into smaller lists
 	def splitList(self, list_to_split:list, split_by:int) -> list:
