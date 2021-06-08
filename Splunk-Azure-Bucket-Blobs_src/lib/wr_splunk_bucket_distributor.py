@@ -390,8 +390,7 @@ class Bucketeer():
 			while total_list_item_count > 0:
 				for idx, item in enumerate(result.items()):
 					if idx % 500 == 0:
-						percent = int((idx + 1) / total_list_item_count * 100)
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(idx + 1) + " / " + str(total_list_item_count), " | ", str(percent) + "%" )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count) )
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -405,8 +404,7 @@ class Bucketeer():
 				for m_sub_list in master_list_of_sublists:
 					counter += 1
 					if counter % 500 == 0:
-						percent = int((counter + 1) / total_list_item_count * 100)
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count), " | ", str(percent) + "%" )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count) )
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
 					tmp_list = list(result.items())[first_index:last_index]
@@ -478,7 +476,6 @@ class Bucketeer():
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
 				for d in lst: # get each dict containing list of buckets by bucket id
-					print(type(d))
 					for b in d[1]: # get bucket tuples in bid dict
 						total_size = total_size + b[6]
 			print(total_size)
@@ -529,8 +526,8 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d)
-										lst2[0].remove(d)
+										lst1[0].append(d[0, d[1]])
+										lst2[0].remove(d[0, d[1]])
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for d in lst2[0]: # for each item in list 2
@@ -539,8 +536,8 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d)
-										lst2[0].remove(d)
+										lst1[0].append(d[0, d[1]])
+										lst2[0].remove(d[0, d[1]])
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
