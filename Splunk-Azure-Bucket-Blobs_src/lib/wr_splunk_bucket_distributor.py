@@ -386,11 +386,12 @@ class Bucketeer():
 			master_list_of_sublists.append([])
 		
 		# start splitting list and adding to empty master list of sublists
+		original_count = total_list_item_count
 		if total_list_item_count <= split_by:
 			while total_list_item_count > 0:
 				for idx, item in enumerate(result.items()):
 					if idx % 500 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(idx + 1) + " / " + str(total_list_item_count) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(idx + 1) + " / " + str(original_count) )
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -403,7 +404,7 @@ class Bucketeer():
 				counter += 1
 				for m_sub_list in master_list_of_sublists:
 					if counter % 500 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... " + str(counter + 1) + " / " + str(total_list_item_count) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... " + str(counter + 1) + " / " + str(original_count) )
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
 					tmp_list = list(result.items())[first_index:last_index]
@@ -535,9 +536,9 @@ class Bucketeer():
 										lst1[1] = lst1[1] + b[6]
 										lst1[0].append(d)
 										tmp_to_remove.append(lst2.index(d))
-					for idx in tmp_to_remove:
-						del lst2[idx]
-					
+						print("test 2")
+						for idx in tmp_to_remove:
+							del lst2[idx]
 			print("test 3")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
@@ -620,13 +621,13 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Master List of lists was empty, cannot continue."])
 			return(False)
 
-	def createMasterTupleListFromDicts(master_list_of_dicts):
+	def createMasterTupleListFromDicts(master_list_of_lists):
 		final_master_download_list_of_lists = []
-		for x in range(len(master_list_of_dicts)):
+		for x in range(len(master_list_of_lists)):
 			final_master_download_list_of_lists.append([])
-		for idx, lst in enumerate(master_list_of_dicts):
+		for idx, lst in enumerate(master_list_of_lists):
 			for d in lst:
-				for b in d.items():
+				for b in d[1]:
 					final_master_download_list_of_lists[idx].append(b)
 
 	def start(self, bucket_list=[], replace = True):
