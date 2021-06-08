@@ -401,6 +401,7 @@ class Bucketeer():
 			last_index = 0
 			while total_list_item_count > 0:
 				for m_sub_list in master_list_of_sublists:
+					print("working")
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
 					tmp_list = list(result.items())[first_index:last_index]
@@ -471,11 +472,10 @@ class Bucketeer():
 			print("test 1")
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
-				for d in lst: # get each dict containing list of buckets by bucket id
-					print(d)
-					for bid in d.items(): # get bucket tuples in bid dict
+				for d in lst.items(): # get each dict containing list of buckets by bucket id
+					for bid in d[1]: # get bucket tuples in bid dict
 						print("bid", bid)
-						for b in bid[1]:  # actual tuples
+						for b in bid:  # actual tuples
 							total_size = total_size + b[6]
 			print("test 2")
 			# get average MB per list
@@ -494,9 +494,9 @@ class Bucketeer():
 				within_margin = []
 				for lst in master_list_of_lists:
 					tmp_size_total = 0
-					for d in lst:
-						for bid in d.items():
-							for b in bid[1]: # actual tuples
+					for d in lst.items():
+						for bid in d[1]:
+							for b in bid: # actual tuples
 								tmp_size_total = tmp_size_total + b[6]
 							tmp_diff_from_avg = tmp_size_total - average_size_per
 							if abs(tmp_diff_from_avg) > margin:
@@ -519,9 +519,9 @@ class Bucketeer():
 						donor_size_total = 0
 						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
 							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								for d in lst2[0]: # for each item in list 2
-									for bid in d.items():
-										for b in bid[1]:
+								for d in lst2[0].items(): # for each item in list 2
+									for bid in d[1]:
+										for b in bid:
 											if donor_size_total >= lst2[1]:
 												break
 											donor_size_total = donor_size_total + b[6]
@@ -530,9 +530,9 @@ class Bucketeer():
 											lst2[0].remove(bid)
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								for d in lst2[0]: # for each item in list 2
-									for bid in d.items():
-										for b in bid[1]:
+								for d in lst2[0].items(): # for each item in list 2
+									for bid in d[1]:
+										for b in bid:
 											if donor_size_total >= receiver_original_ask:
 												break
 											donor_size_total = donor_size_total + b[6]
