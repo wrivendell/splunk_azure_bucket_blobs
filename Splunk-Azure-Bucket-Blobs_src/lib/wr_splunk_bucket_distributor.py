@@ -143,7 +143,7 @@ class Bucketeer():
 		bucket_info_tuples_list = []
 		for bucket_path in self.list_of_bucket_list_details:
 			# break out the bucket details
-			if bucket_path[1] <= 0:
+			if bucket_path[1] <= 0 and not str(bucket_path[0]).endswith(".csv"):
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping file with 0 byte size: " + str(bucket_path) + " -")
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Skipping file with 0 byte size: " + str(bucket_path)] )
 				continue
