@@ -521,7 +521,7 @@ class Bucketeer():
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
 										lst1[0].append(d)
-										tmp_to_remove.append((d))
+										tmp_to_remove.append(lst2[0].index(d))
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for d in lst2[0]: # for each item in list 2
@@ -531,12 +531,11 @@ class Bucketeer():
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
 										lst1[0].append(d)
-										tmp_to_remove.append((d))
+										tmp_to_remove.append(lst2[0].index(d))
 						print("test 2")
-						for d in lst2[0]:
-							for i in tmp_to_remove:
-								if d == i:
-									lst2[0].remove(d)
+						new_list = [lst2[0][i] for i, e in enumerate(lst2[0]) if i not in tmp_to_remove]
+						lst2[0] = []
+						lst2[0] = new_list
 			print("test 3")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
