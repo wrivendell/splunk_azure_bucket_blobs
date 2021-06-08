@@ -468,12 +468,16 @@ class Bucketeer():
 		size_balanced = False
 		total_size = 0
 		try:
+			print("test 1")
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
 				for d in lst: # get each dict containing list of buckets by bucket id
+					print(d)
 					for bid in d.items(): # get bucket tuples in bid dict
+						print("bid", bid)
 						for b in bid[1]:  # actual tuples
 							total_size = total_size + b[6]
+			print("test 2")
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
 			margin = average_size_per * self.size_error_margin # % margin
@@ -618,7 +622,7 @@ class Bucketeer():
 
 	def createMasterTupleListFromDicts(master_list_of_dicts):
 		final_master_download_list_of_lists = []
-		for x in range len(master_list_of_dicts):
+		for x in range(len(master_list_of_dicts)):
 			final_master_download_list_of_lists.append([])
 		for idx, lst in enumerate(master_list_of_dicts):
 			for d in lst:
