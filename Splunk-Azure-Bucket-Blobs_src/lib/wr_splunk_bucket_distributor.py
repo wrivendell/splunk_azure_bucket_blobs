@@ -366,7 +366,7 @@ class Bucketeer():
 			# add a 3rd dict item with total mb size for all items in the tuple
 			for bucket_tuple in r[1]:
 				total_size_mb += (bucket_tuple[6]/1024.0**2)
-			result.setdefault(r[0], []).append(total_size_mb)
+			result_sizes[r[0]] = total_size_mb
 		for k,v in result_sizes.items():
 			print(k, v)
 
