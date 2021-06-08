@@ -141,10 +141,6 @@ class Bucketeer():
 		Add tuples to new list and sort by GUID
 		'''
 		bucket_info_tuples_list = []
-		tmp_dict_list = [] # generate UID list for dicts later
-#		tmp_state_paths = []
-#		tmp_index_paths = []
-#		tmp_db_paths = []
 		for bucket_path in self.list_of_bucket_list_details:
 			# break out the bucket details
 			if bucket_path[1] <= 0:
@@ -537,8 +533,10 @@ class Bucketeer():
 										lst1[0].append(d)
 										tmp_to_remove.append((d))
 						print("test 2")
-						for i in tmp_to_remove:
-							lst2[0].remove(d)
+						for d in lst2[0]:
+							for i in tmp_to_remove:
+								if d == i:
+									lst2[0].remove(d)
 			print("test 3")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
