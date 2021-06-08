@@ -526,8 +526,8 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d[0, d[1]])
-										lst2[0].remove(d[0, d[1]])
+										lst1[0].append(d[0], d[1])
+										lst2[0].remove(d[0], d[1])
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for d in lst2[0]: # for each item in list 2
@@ -536,8 +536,9 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d[0, d[1]])
-										lst2[0].remove(d[0, d[1]])
+										lst1[0].append(d[0], d[1])
+										lst2[0].remove(d[0], d[1])
+			print("test 3")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
