@@ -387,7 +387,7 @@ class Bucketeer():
 			while total_list_item_count > 0:
 				for idx, item in enumerate(result.items()):
 					if idx % 500 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(idx + 1) + " / " + str(original_count) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... iterations -> " + str(idx) )
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -400,7 +400,7 @@ class Bucketeer():
 				counter += 1
 				for m_sub_list in master_list_of_sublists:
 					if counter % 100 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... " + str(counter + 1) + " / " + str(original_count) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... iteration -> " + str(counter))
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
 					tmp_list = list(result.items())[first_index:last_index]
@@ -470,9 +470,12 @@ class Bucketeer():
 		try:
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
+				tmp_size = 0
 				for d in lst: # get each tuble containing list of buckets by bucket id
 					for b in d[1]: # get bucket tuples in bid dict
-						total_size = total_size + b[6]
+						total_size = total_size + (b[6]/1024.0**2)
+						tmp_size = tmp_size + (b[6]/1024.0**2)
+				#print("List: ", tmp_size)
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
 			margin = average_size_per * self.size_error_margin # % margin
@@ -491,22 +494,23 @@ class Bucketeer():
 					tmp_size_total = 0
 					for d in lst:
 						for b in d[1]:
-							tmp_size_total = tmp_size_total + b[6]
-						tmp_diff_from_avg = tmp_size_total - average_size_per
-						if abs(tmp_diff_from_avg) > margin:
-							if tmp_diff_from_avg < 0:
-								tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
-								below_margin.append([lst, abs(tmp_diff_from_margin)])
-							else:
-								tmp_diff_from_margin = tmp_diff_from_avg - margin
-								above_margin.append([lst, abs(tmp_diff_from_margin)])
+							tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
+					tmp_diff_from_avg = tmp_size_total - average_size_per
+					if abs(tmp_diff_from_avg) > margin:
+						if tmp_diff_from_avg < 0:
+							tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
+							below_margin.append([lst, abs(tmp_diff_from_margin)])
 						else:
-							within_margin.append([lst, abs(tmp_diff_from_avg)])
+							tmp_diff_from_margin = tmp_diff_from_avg - margin
+							above_margin.append([lst, abs(tmp_diff_from_margin)])
+					else:
+						within_margin.append([lst, abs(tmp_diff_from_avg)])
 				for i in within_margin:
 					above_margin.append(i)
-					within_margin.remove(i)
+					within_margin = []
 				if not below_margin:
 					size_balanced = True
+					break
 				for lst1 in below_margin:
 					receiver_original_ask = lst1[1]
 					for lst2 in above_margin:
@@ -514,12 +518,13 @@ class Bucketeer():
 						tmp_to_remove = []
 						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
 							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
+								print(donor_size_total, lst2[1], len(lst2[0]))
 								for d in lst2[0]: # for each item in list 2
 									for b in d[1]:
 										if donor_size_total >= lst2[1]:
 											break
-										donor_size_total = donor_size_total + b[6]
-										lst1[1] = lst1[1] + b[6]
+										donor_size_total = donor_size_total + (b[6]/1024.0**2)
+										lst1[1] = lst1[1] + (b[6]/1024.0**2)
 										lst1[0].append(d)
 										tmp_to_remove.append(lst2[0].index(d))
 						else:
@@ -528,28 +533,29 @@ class Bucketeer():
 									for b in d[1]:
 										if donor_size_total >= receiver_original_ask:
 											break
-										donor_size_total = donor_size_total + b[6]
-										lst1[1] = lst1[1] + b[6]
+										donor_size_total = donor_size_total + (b[6]/1024.0**2)
+										lst1[1] = lst1[1] + (b[6]/1024.0**2)
 										lst1[0].append(d)
 										tmp_to_remove.append(lst2[0].index(d))
-						print("test 2")
-						new_list = [lst2[0][i] for i, e in enumerate(lst2[0]) if i not in tmp_to_remove]
-						lst2[0] = []
-						lst2[0] = new_list
-			print("test 3")
+						for i in sorted(tmp_to_remove, reverse=True):
+							try:
+								del lst2[0][i]
+							except Exception as ex:
+								continue
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
-				tmp_size_total = 0
-				for b in lst:
-					tmp_size_total = tmp_size_total + (b[6])
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + ": List Total Size (mb): " + str(tmp_size_total) ])
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): List Total Size (mb): " + str(tmp_size_total))
+				tmp_size = 0
+				for d in lst: # get each tuble containing list of buckets by bucket id
+					for b in d[1]: # get bucket tuples in bid dict
+						tmp_size = tmp_size + (b[6]/1024.0**2)
+				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + ": List Total Size (mb) " + str(master_list_of_lists.index(lst)) + ": " + str(tmp_size)])
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): List Total Size (mb) " + str(master_list_of_lists.index(lst)) + ": " + str(tmp_size) )
+			time.sleep(10)
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length by combined file size. -")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs per list size: FAILED."])
 			print(ex)
-
 		# finish
 		return(master_list_of_lists)
 
@@ -557,9 +563,9 @@ class Bucketeer():
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Dividing bucket list amongst peers."])
 		peer_num = len(peer_list)
-		final_peer_download_lists = [] # if theres 5 peers, there  will be 5 lists in here
+		tmp_peer_download_lists = [] # if theres 5 peers, there  will be 5 lists in here
 		for x in range(peer_num):  # create the empty placeholder list of sub lists
-			final_peer_download_lists.append([])
+			tmp_peer_download_lists.append([])
 		try:
 			time.sleep(5)
 			if self.debug:
@@ -573,7 +579,9 @@ class Bucketeer():
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Working on UID: " + str(uid_idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
 				tmp_master_list_of_lists = self.splitList(uid_dict[1], peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
 				for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
-					final_peer_download_lists[idx].extend(tmp_lst)
+					tmp_peer_download_lists[idx].extend(tmp_lst)
+				if uid_idx >= length_of_list:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Working on UID: " + str(length_of_list) + " / " + str(length_of_list), " | ", str(100) + "%" )
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Splitting list after peer divide had an issue. -")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Exception: Splitting list after peer divide had an issue."])
@@ -581,17 +589,7 @@ class Bucketeer():
 		try:
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-			final_peer_download_lists = self.balanceListOfLists(final_peer_download_lists) # this function will run balance checks and return the final list
-
-			# finally extract just the tuples from each list of dicts for the final download list
-			final_peer_download_tuple_list = [] # if theres 5 peers, there  will be 5 lists in here
-			for x in range(peer_num):  # create the empty placeholder list of sub lists
-				final_peer_download_tuple_list.append([])
-			for d_idx, dict_list in enumerate(final_peer_download_lists):
-				tmp_tuple_list = []
-				for d in dict_list:
-					tmp_tuple_list.extend(d['tuple_list'])
-				final_peer_download_tuple_list[d_idx] = tmp_tuple_list
+			final_peer_download_dicts = self.balanceListOfLists(tmp_peer_download_lists) # this function will run balance checks and return the final list
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Final tuple extract of lists. -")
 			print(ex)
@@ -600,7 +598,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " FINISHED Dividing bucket list amongst peers."])
-		return(final_peer_download_tuple_list)
+		return(final_peer_download_dicts)
 
 	def verifyBucketList(self, bucket_list:list) -> bool:
 		'''
@@ -618,14 +616,16 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Master List of lists was empty, cannot continue."])
 			return(False)
 
-	def createMasterTupleListFromDicts(master_list_of_lists):
+	def createMasterTupleListFromDicts(self, final_peer_download_dicts):
 		final_master_download_list_of_lists = []
-		for x in range(len(master_list_of_lists)):
+		for x in range(len(final_peer_download_dicts)):
 			final_master_download_list_of_lists.append([])
-		for idx, lst in enumerate(master_list_of_lists):
+		for idx, lst in enumerate(final_peer_download_dicts):
 			for d in lst:
 				for b in d[1]:
 					final_master_download_list_of_lists[idx].append(b)
+		print("Amount of peer lists: ", len(final_master_download_list_of_lists))
+		return(final_master_download_list_of_lists)
 
 	def start(self, bucket_list=[], replace = True):
 		'''
@@ -642,12 +642,14 @@ class Bucketeer():
 				idx_cluster_peers = self.getPeerGUIDS()
 				bucket_dicts_master = self.splitBucketDetails() # return final master dict list of buckets
 				if bucket_dicts_master:
-						self.final_peer_download_lists = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, bucket_dicts_master)
+						final_peer_download_dicts = self.divideMasterBucketListAmongstPeers(idx_cluster_peers, bucket_dicts_master)
+						self.final_peer_download_lists = self.createMasterTupleListFromDicts(final_peer_download_dicts)
 						for idx, p in enumerate(idx_cluster_peers):
 							if p == self.my_guid:
 								self.this_peer_download_list = self.final_peer_download_lists[idx]
 								self.this_peer_index = idx
 								break
+						print(len(self.this_peer_download_list))
 						return(True)
 			else:
 				return(False)

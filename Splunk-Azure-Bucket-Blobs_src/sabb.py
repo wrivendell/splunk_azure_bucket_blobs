@@ -282,11 +282,11 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 							continue
 						else:
 							# check and see if the bucket came from a standalone and needs a GUID appeneded
-							standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[12], i[13], i[4], i[2] ])
+							standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[13], i[14], i[4], i[2] ])
 							if standalone_rename_check[0]:
 								master_bucket_download_list.append(standalone_rename_check[1])
 							else:
-								master_bucket_download_list.append( [ i[7], i[6], i[12], i[13] ] )
+								master_bucket_download_list.append( [ i[7], i[6], i[13], i[14] ] )
 		if tmp_master_list_log_lines:
 			wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
 	except Exception as ex:
