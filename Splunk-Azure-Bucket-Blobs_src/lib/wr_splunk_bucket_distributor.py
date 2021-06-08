@@ -389,6 +389,9 @@ class Bucketeer():
 		if total_list_item_count <= split_by:
 			while total_list_item_count > 0:
 				for idx, item in enumerate(result.items()):
+					if idx % 500 == 0:
+						percent = int((idx + 1) / total_list_item_count * 100)
+						print("Working on UID: " + str(idx + 1) + " / " + str(total_list_item_count), " | ", str(percent) + "%" )
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -516,8 +519,8 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(b)
-										lst2[0].remove(b)
+										lst1[0].append(d)
+										lst2[0].remove(d)
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for d in lst2[0]: # for each item in list 2
@@ -526,8 +529,8 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(b)
-										lst2[0].remove(b)
+										lst1[0].append(d)
+										lst2[0].remove(d)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
@@ -559,8 +562,8 @@ class Bucketeer():
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount (this may take some time): " + str(peer_num) )
 			length_of_list = len(bucket_dicts_master.items())
-			for uid_idx, uid_dict in enumerate(bucket_dicts_master.items()):
-				if uid_idx % 500 == 0:
+			for uid_idx, uid_dict in bucket_dicts_master.items():
+				if uid_idx % 5 == 0:
 					percent = int((uid_idx + 1) / length_of_list * 100)
 					print("Working on UID: " + str(uid_idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
 				tmp_master_list_of_lists = self.splitList(uid_dict[1], peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing

@@ -612,7 +612,7 @@ if __name__ == "__main__":
 		for idx, i in enumerate(master_bucket_download_list):
 			log_csv.writeLinesToCSV( [ [i[2], i[0], i[1]/1024.0**2] ], ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB'])
 			if idx + 1 == length_of_list:
-				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", "100%" )
+				print("- SABB(" + str(sys._getframe().f_lineno) +"): Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", "100%" )
 			elif idx % periodic_check == 0:
 				percent = (idx + 1) / length_of_list * 100
-				print("Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
+				print("- SABB(" + str(sys._getframe().f_lineno) +"): Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
