@@ -398,10 +398,12 @@ class Bucketeer():
 			per_chunk_count = int(total_list_item_count / split_by)
 			first_index = 0 - per_chunk_count # minus the total for a negative so first iteration starts at 0
 			last_index = 0
+			counter = -1
+			cur_list = 0
 			while total_list_item_count > 0:
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working next list.")
-				counter = -1
-				for m_sub_list in master_list_of_sublists:
+				cur_list += 1
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on list: " + str(cur_list))
+				for s_idx, m_sub_list in enumerate(master_list_of_sublists):
 					counter += 1
 					if counter % 500 == 0:
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count) )
@@ -410,6 +412,10 @@ class Bucketeer():
 					tmp_list = list(result.items())[first_index:last_index]
 					m_sub_list.extend(tmp_list)
 					total_list_item_count -= 1
+					if cur_list == s_idx:
+						cur_list = 0
+					else:
+						cur_list = s_idx
 			return(master_list_of_sublists)
 
 	# balance list of lists by length and "size" in bytes
@@ -472,14 +478,11 @@ class Bucketeer():
 		size_balanced = False
 		total_size = 0
 		try:
-			print("test 1")
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
-				for d in lst: # get each dict containing list of buckets by bucket id
+				for d in lst: # get each tuble containing list of buckets by bucket id
 					for b in d[1]: # get bucket tuples in bid dict
 						total_size = total_size + b[6]
-			print(total_size)
-			print("test 2")
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
 			margin = average_size_per * self.size_error_margin # % margin
@@ -526,7 +529,7 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d[0], d[1])
+										lst1[0].append(d)
 										lst2[0].remove(d[0], d[1])
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
@@ -536,7 +539,7 @@ class Bucketeer():
 											break
 										donor_size_total = donor_size_total + b[6]
 										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d[0], d[1])
+										lst1[0].append(d)
 										lst2[0].remove(d[0], d[1])
 			print("test 3")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
