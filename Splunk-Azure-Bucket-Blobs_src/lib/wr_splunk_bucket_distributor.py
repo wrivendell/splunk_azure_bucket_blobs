@@ -543,7 +543,7 @@ class Bucketeer():
 		# finish
 		return(master_list_of_lists)
 
-	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, bucket_dicts_master:dict, bucket_dicts_master_sizes:dict):
+	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, bucket_dicts_master:dict):
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Dividing bucket list amongst peers."])
 		peer_num = len(peer_list)
@@ -558,13 +558,12 @@ class Bucketeer():
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount: " + str(peer_num) )
 			for uid_dict in bucket_dicts_master.items():
-				for bucket_tuple_list in uid_dict[1]:
-					tmp_master_list_of_lists = self.splitList(bucket_tuple_list, peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
-					for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
-						print("\n")
-						for l in tmp_lst:
-							print(l)
-						final_peer_download_lists[idx].extend(tmp_lst)
+				tmp_master_list_of_lists = self.splitList(uid_dict[1], peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
+				for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
+					print("\n")
+					for l in tmp_lst:
+						print(l)
+					final_peer_download_lists[idx].extend(tmp_lst)
 			sys.exit()
 
 		except Exception as ex:
