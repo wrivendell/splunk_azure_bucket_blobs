@@ -406,7 +406,6 @@ class Bucketeer():
 					if counter % 500 == 0:
 						percent = int((counter + 1) / total_list_item_count * 100)
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(counter + 1) + " / " + str(total_list_item_count), " | ", str(percent) + "%" )
-					print("working")
 					first_index = first_index + per_chunk_count
 					last_index = last_index + per_chunk_count
 					tmp_list = list(result.items())[first_index:last_index]
@@ -479,7 +478,6 @@ class Bucketeer():
 			for lst in master_list_of_lists:
 				for d in lst: # get each dict containing list of buckets by bucket id
 					for bid in d[1]: # get bucket tuples in bid dict
-						print("bid", bid)
 						for b in bid:  # actual tuples
 							total_size = total_size + b[6]
 			print("test 2")
@@ -499,7 +497,7 @@ class Bucketeer():
 				within_margin = []
 				for lst in master_list_of_lists:
 					tmp_size_total = 0
-					for d in lst.items():
+					for d in lst:
 						for bid in d[1]:
 							for b in bid: # actual tuples
 								tmp_size_total = tmp_size_total + b[6]
@@ -524,26 +522,26 @@ class Bucketeer():
 						donor_size_total = 0
 						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
 							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								for d in lst2[0].items(): # for each item in list 2
+								for d in lst2[0]: # for each item in list 2
 									for bid in d[1]:
 										for b in bid:
 											if donor_size_total >= lst2[1]:
 												break
 											donor_size_total = donor_size_total + b[6]
 											lst1[1] = lst1[1] + b[6]
-											lst1[0].append(bid)
-											lst2[0].remove(bid)
+											lst1[0].append(d)
+											lst2[0].remove(d)
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								for d in lst2[0].items(): # for each item in list 2
+								for d in lst2[0]: # for each item in list 2
 									for bid in d[1]:
 										for b in bid:
 											if donor_size_total >= receiver_original_ask:
 												break
 											donor_size_total = donor_size_total + b[6]
 											lst1[1] = lst1[1] + b[6]
-											lst1[0].append(bid)
-											lst2[0].remove(bid)
+											lst1[0].append(d)
+											lst2[0].remove(d)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
