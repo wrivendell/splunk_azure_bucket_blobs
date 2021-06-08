@@ -391,7 +391,7 @@ class Bucketeer():
 				for idx, item in enumerate(result.items()):
 					if idx % 500 == 0:
 						percent = int((idx + 1) / total_list_item_count * 100)
-						print("Working on UID: " + str(idx + 1) + " / " + str(total_list_item_count), " | ", str(percent) + "%" )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Working on BID: " + str(idx + 1) + " / " + str(total_list_item_count), " | ", str(percent) + "%" )
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -470,9 +470,10 @@ class Bucketeer():
 		try:
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
-				for d in lst: # get each dict container list of buckets by bucket id
-					for b in d[1]: # get bucket tuples in bid dict
-						total_size = total_size + b[6]
+				for d in lst: # get each dict containing list of buckets by bucket id
+					for bid in d.items(): # get bucket tuples in bid dict
+						for b in bid[1]:  # actual tuples
+							total_size = total_size + b[6]
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
 			margin = average_size_per * self.size_error_margin # % margin
@@ -490,18 +491,19 @@ class Bucketeer():
 				for lst in master_list_of_lists:
 					tmp_size_total = 0
 					for d in lst:
-						for b in d[1]:
-							tmp_size_total = tmp_size_total + b[6]
-						tmp_diff_from_avg = tmp_size_total - average_size_per
-						if abs(tmp_diff_from_avg) > margin:
-							if tmp_diff_from_avg < 0:
-								tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
-								below_margin.append([lst, abs(tmp_diff_from_margin)])
+						for bid in d.items():
+							for b in bid[1]: # actual tuples
+								tmp_size_total = tmp_size_total + b[6]
+							tmp_diff_from_avg = tmp_size_total - average_size_per
+							if abs(tmp_diff_from_avg) > margin:
+								if tmp_diff_from_avg < 0:
+									tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
+									below_margin.append([lst, abs(tmp_diff_from_margin)])
+								else:
+									tmp_diff_from_margin = tmp_diff_from_avg - margin
+									above_margin.append([lst, abs(tmp_diff_from_margin)])
 							else:
-								tmp_diff_from_margin = tmp_diff_from_avg - margin
-								above_margin.append([lst, abs(tmp_diff_from_margin)])
-						else:
-							within_margin.append([lst, abs(tmp_diff_from_avg)])
+								within_margin.append([lst, abs(tmp_diff_from_avg)])
 				for i in within_margin:
 					above_margin.append(i)
 					within_margin.remove(i)
@@ -514,23 +516,25 @@ class Bucketeer():
 						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
 							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for d in lst2[0]: # for each item in list 2
-									for b in d[1]:
-										if donor_size_total >= lst2[1]:
-											break
-										donor_size_total = donor_size_total + b[6]
-										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d)
-										lst2[0].remove(d)
+									for bid in d.items():
+										for b in bid[1]:
+											if donor_size_total >= lst2[1]:
+												break
+											donor_size_total = donor_size_total + b[6]
+											lst1[1] = lst1[1] + b[6]
+											lst1[0].append(bid)
+											lst2[0].remove(bid)
 						else:
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
 								for d in lst2[0]: # for each item in list 2
-									for b in d[1]:
-										if donor_size_total >= receiver_original_ask:
-											break
-										donor_size_total = donor_size_total + b[6]
-										lst1[1] = lst1[1] + b[6]
-										lst1[0].append(d)
-										lst2[0].remove(d)
+									for bid in d.items():
+										for b in bid[1]:
+											if donor_size_total >= receiver_original_ask:
+												break
+											donor_size_total = donor_size_total + b[6]
+											lst1[1] = lst1[1] + b[6]
+											lst1[0].append(bid)
+											lst2[0].remove(bid)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
@@ -562,10 +566,9 @@ class Bucketeer():
 			if self.debug:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Splitting list up by this amount (this may take some time): " + str(peer_num) )
 			length_of_list = len(bucket_dicts_master.items())
-			for uid_idx, uid_dict in bucket_dicts_master.items():
-				if uid_idx % 5 == 0:
-					percent = int((uid_idx + 1) / length_of_list * 100)
-					print("Working on UID: " + str(uid_idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
+			for uid_idx, uid_dict in enumerate(bucket_dicts_master.items()):
+				percent = int((uid_idx + 1) / length_of_list * 100)
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Working on UID: " + str(uid_idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
 				tmp_master_list_of_lists = self.splitList(uid_dict[1], peer_num) # this function will take the sublist and divide it among the peers and return it to be added to master ongoing
 				for idx, tmp_lst in enumerate(tmp_master_list_of_lists):
 					final_peer_download_lists[idx].extend(tmp_lst)
@@ -612,6 +615,15 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Master List of lists was empty, cannot continue -")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Master List of lists was empty, cannot continue."])
 			return(False)
+
+	def createMasterTupleListFromDicts(master_list_of_dicts):
+		final_master_download_list_of_lists = []
+		for x in range len(master_list_of_dicts):
+			final_master_download_list_of_lists.append([])
+		for idx, lst in enumerate(master_list_of_dicts):
+			for d in lst:
+				for b in d.items():
+					final_master_download_list_of_lists[idx].append(b)
 
 	def start(self, bucket_list=[], replace = True):
 		'''
