@@ -332,6 +332,7 @@ def updateDownloadedCSVSuccess(blob_name):
 	'''
 	Returns True if updated, False if couldnt find cell to update
 	'''
+	print(blob_name)
 	update_cell = log_csv.updateCellByHeader('Blob_Path_Name', blob_name, 'Download_Complete', True)
 	if not update_cell:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): "+ blob_name +" appeared to finish, but couldn't find cell in CSV to update -")
@@ -368,7 +369,6 @@ def updateCompletedWRQDownloadJobs():
 					if arguments.args.detailed_output:
 						print("   - Adding newly completed download job to status report: " + str(j[0].name))
 					tmp_log_lines_jobs.append('Adding newly completed download job to status report: ' + str(j[0].name) )
-					tmp_row = []
 					command_args_list = j[1].replace("'","").replace('"',"").replace("[","").replace("]","").replace(" ","")
 					command_args_list = list(command_args_list.split(","))
 					file_verify = compareDownloadSize( command_args_list[1], str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
