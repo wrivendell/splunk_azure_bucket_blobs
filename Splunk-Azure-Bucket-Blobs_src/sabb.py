@@ -24,11 +24,11 @@ def clearConsole():
 # log files
 clearConsole()
 if arguments.args.write_out_full_list_only:
-	main_log = 'azure_blob_bucket_download_WOFLO'
+	main_log = 'sabb_WOFLO'
 	main_report_csv = 'azure_blob_status_report_WOFLO'
 
 else:
-	main_log = 'azure_blob_bucket_download'
+	main_log = 'sabb'
 	main_report_csv = 'azure_blob_status_report'
 
 # create log handler
@@ -366,8 +366,6 @@ def updateCompletedWRQDownloadJobs():
 					if arguments.args.detailed_output:
 						print("   - Found newly completed download job: " + str(jc[0].name))
 					tmp_log_lines.append('Found newly completed download job: ' + str(jc[0].name))
-
-				print("\n")
 				tmp_log_dl_list = []
 				for j in wrq_download.jobs_completed[list_index:last_index]:
 					if arguments.args.detailed_output:
@@ -412,7 +410,7 @@ def timeAndCompletionChecker():
 	counter = -1
 	global run_me
 	while run_me:
-			if len(wrq_download.jobs_active) <= 0 and len(wrq_logging.jobs_active) <= 0 and len(wrq_csv_report.jobs_active) > 0:
+			if len(wrq_download.jobs_active) <= 0 and len(wrq_logging.jobs_active) <= 0 and len(wrq_download.jobs_completed) > 0 and len(wrq_csv_report.jobs_active) > 0:
 				run_me = False # THIS STOPS THE LAST CSV REPORTER LOOP! DONT DELETE
 			if arguments.args.detailed_output:
 				time.sleep(3)
