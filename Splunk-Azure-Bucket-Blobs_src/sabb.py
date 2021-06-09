@@ -542,13 +542,14 @@ if __name__ == "__main__":
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
 		for i in master_bucket_download_list:
 			log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
-	print("\n\n\n#######################################################################################")
-	print("- SABB(" + str(sys._getframe().f_lineno) +"): Writing Standalone download job list to CSV -")
-	print("#######################################################################################\n\n\n")
-	tmp_list = []
-	for b in master_bucket_download_list:
-		tmp_list.append( [ bt[0], bt[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
-	log_csv.writeLinesToCSV( [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'] ]] )
+	if arguments.args.standalone:
+		print("\n\n\n#######################################################################################")
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): Writing Standalone download job list to CSV -")
+		print("#######################################################################################\n\n\n")
+		tmp_list = []
+		for b in master_bucket_download_list:
+			tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
+		log_csv.writeLinesToCSV( [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'] ]] )
 
 
 	## Thread prep
