@@ -736,8 +736,8 @@ class Bucketeer():
 						guid_csv = self.getPeerCSV(p)
 						tmp_list = []
 						for bt in self.final_peer_download_lists[idx]:
-							tmp_list.append( [ bt[7], bt[6], bt[13], bt[14], (bt[6]/1024.0**2), 0, False, bt[4], bt[2], bt[5], '', ''] )
-						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes', 'Container_Name', 'Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Thread_Name', 'Thread_ID']]])
+							tmp_list.append( [ bt[7], bt[6], bt[13], bt[14], (bt[6]/1024.0**2), '', '', bt[4], bt[2], bt[5]] )
+						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes', 'Container_Name', 'Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)']]])
 						if p == self.my_guid:
 							my_queue = guid_queue
 						write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=()))

@@ -117,7 +117,7 @@ def checkAlreadyDownloaded(blob_name) -> bool:
 	check_completed = log_csv.getValueByHeaders('Blob_Path_Name', blob_name, 'Download_Complete')
 	if check_completed[0]:
 		if check_completed[1]:
-			if check_completed[1][0] == True:
+			if check_completed[1][0] == "SUCCESS":
 				return(True)
 			else:
 				return(False)
@@ -132,13 +132,12 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 	Returns a  True, <replacement list with the new bucket download to name as the last element>
 	Otherwise a False, ""
 	'''
-	if bucket_detail_list[4]: # if standalone is true
+	if bucket_detail_list[4] == "True": # if standalone is true
 		try:
 			tmp_split = bucket_detail_list[0].split('_' + str(bucket_detail_list[5])) # split original path at the _bucketID
 			new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[5]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name +"-")
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name])
-			del bucket_detail_list[-1]
 			del bucket_detail_list[-1]
 			del bucket_detail_list[-1]
 			bucket_detail_list.append( new_bucket_name )
@@ -297,7 +296,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 							continue
 						else:
 							# check and see if the bucket came from a standalone and needs a GUID appeneded
-							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[2], i[3], i[7], i[8], i[9] ])
+							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[2], i[3], i[7], i[8] ])
 							if standalone_rename_check[0]:
 								master_bucket_download_list.append(standalone_rename_check[1])
 							else:
@@ -314,11 +313,12 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 # compare a byte size to a file byte size
 def compareDownloadSize(expected_size:int, full_path_to_file:str):
 	'''
-	Returns a set, (True/False, downloaded_size)
+	Returns a set, (True/False, downloaded_size mb)
 	'''
 	try:
 		downloaded_size = os.path.getsize((full_path_to_file))
 		if int(downloaded_size) == int(expected_size):
+			downloaded_size = downloaded_size/1024.0**2
 			return(True, downloaded_size)
 		else:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): File Download: FAILED - " + full_path_to_file + " -")
@@ -337,8 +337,7 @@ def updateDownloadedCSVSuccess(blob_name):
 	'''
 	Returns True if updated, False if couldnt find cell to update
 	'''
-	print(blob_name)
-	update_cell = log_csv.updateCellByHeader('Blob_Path_Name', blob_name, 'Download_Complete', True)
+	update_cell = log_csv.updateCellByHeader('Blob_Path_Name', blob_name, 'Download_Complete', "SUCCESS")
 	if not update_cell:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): "+ blob_name +" appeared to finish, but couldn't find cell in CSV to update -")
 
@@ -374,9 +373,10 @@ def updateCompletedWRQDownloadJobs():
 					tmp_log_lines_jobs.append('Adding newly completed download job to status report: ' + str(j[0].name) )
 					command_args_list = j[1].replace("'","").replace('"',"").replace("[","").replace("]","").replace(" ","")
 					command_args_list = list(command_args_list.split(","))
-					file_verify = compareDownloadSize( command_args_list[1], str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
+					file_verify = compareDownloadSize( int(command_args_list[1]), str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					if file_verify[0]:
-						wrq_csv_report.add(updateDownloadedCSVSuccess, command_args_list[0])
+						wrq_csv_report.add(log_csv.updateCellByHeader, [['Blob_Path_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"]])
+						wrq_csv_report.add(log_csv.updateCellByHeader, [['Blob_Path_Name', str(command_args_list[0]), 'Downloaded_Blob_Size_MB', str(file_verify[1])]])
 						tmp_log_dl_list.append('File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					else:
 						tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
