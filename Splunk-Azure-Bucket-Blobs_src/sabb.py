@@ -140,6 +140,7 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name])
 			del bucket_detail_list[-1]
 			del bucket_detail_list[-1]
+			del bucket_detail_list[-1]
 			bucket_detail_list.append( new_bucket_name )
 			return(True, bucket_detail_list)
 		except Exception as ex:
@@ -392,7 +393,6 @@ def updateCompletedWRQDownloadJobs():
 			print(ex)
 			print("- SABB(" + str(sys._getframe().f_lineno) +"):  FAILED while attempting to get jobs_completed info -")
 			wrq_logging.add(log_file.writeLinesToFile, [[["FAILED while attempting to get jobs_completed info."]]])
-			sys.exit(1)
 	else:
 		if arguments.args.detailed_output:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"):  updateCompletedWRQDownloadJobs is completed, thread should stop now. -")
