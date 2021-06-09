@@ -619,7 +619,7 @@ class Bucketeer():
 								del lst2[0][i]
 							except Exception as ex:
 								continue
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sill " + len(below_margin) + " lists below margin, still balancing List: " + idx + "-")
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sill " + len(below_margin) + " lists below margin, still balancing List: " + str(idx) + "-")
 			size_list_timeout.stop()
 			if timed_out:
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced as best as possible but couldn't hit the specified margin: " + str(self.size_error_margin*100) + "%"])
