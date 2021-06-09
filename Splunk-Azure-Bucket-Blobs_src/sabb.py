@@ -267,6 +267,10 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
 				if arguments.args.list_create_output:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
+				if arguments.args.standalone:
+					if log_csv.valueExistsInColumn('Blob_Path_Name', str(blob['name']))[0]:
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
+						continue
 				master_bucket_download_list.append(tmp_list)
 	except Exception as ex:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Exception: -")
@@ -516,15 +520,27 @@ if __name__ == "__main__":
 						container_names_ignore_list_equals_or_contains=arguments.args.container_ignore_list_type,
 						blob_names_to_ignore_list=arguments.args.blob_ignore_list,
 						blob_names_ignore_list_equals_or_contains=arguments.args.blob_ignore_list_type)
+
+	# add download jobs to download queue
+	start_length_of_download_list = len(master_bucket_download_list)
+	if arguments.args.standalone:
+		if master_bucket_download_list:
+			print("\n\n\n#######################################################################################")
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): Writing Standalone download job list to CSV -")
+			print("#######################################################################################\n\n\n")
+			tmp_list = []
+			for b in master_bucket_download_list:
+				tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
+			log_csv.writeLinesToCSV( (tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'])
+		master_bucket_download_list = []
+		master_bucket_download_list = log_csv.readAllRowsToList()
+
 	# exit if no blobs found to dl
 	if not master_bucket_download_list:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"):  No Blobs found for download, exiting. -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):No Blobs found for download, exiting."])
 		sys.exit()
-	# add download jobs to download queue
-	start_length_of_download_list = len(master_bucket_download_list)
-#	print("exiting so not to download any real data outside of UK")
-#	sys.exit()
+
 	if not arguments.args.write_out_full_list_only:
 		wrq_download.add(blob_service.downloadBlobByName, master_bucket_download_list, start_after_add=False)
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Adding download job list to download queue: wrq_download -")
@@ -535,21 +551,13 @@ if __name__ == "__main__":
 		time.sleep(10)
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) +" is number of items in the list -")
 	log_file.writeLinesToFile( [str(len(master_bucket_download_list)) + " is number of items in the list to download"] )
+
 	if not arguments.args.write_out_full_list_only:
 		if not arguments.args.standalone:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -")
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
 		for i in master_bucket_download_list:
 			log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
-	if arguments.args.standalone:
-		print("\n\n\n#######################################################################################")
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): Writing Standalone download job list to CSV -")
-		print("#######################################################################################\n\n\n")
-		tmp_list = []
-		for b in master_bucket_download_list:
-			tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
-		log_csv.writeLinesToCSV( (tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'])
-
 
 	## Thread prep
 	''' 
@@ -563,7 +571,8 @@ if __name__ == "__main__":
 	print("\n")
 	
 # CREATE parent threads
-
+#	print("exiting so not to download any real data outside of UK")
+#	sys.exit()
 	# thread_logging_parent
 	if arguments.args.detailed_output:
 		print("Creating logging thread parent called: thread_logging_parent")
