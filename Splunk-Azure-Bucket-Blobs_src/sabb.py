@@ -571,8 +571,7 @@ if __name__ == "__main__":
 	print("\n")
 	
 # CREATE parent threads
-#	print("exiting so not to download any real data outside of UK")
-#	sys.exit()
+
 	# thread_logging_parent
 	if arguments.args.detailed_output:
 		print("Creating logging thread parent called: thread_logging_parent")
@@ -616,6 +615,8 @@ if __name__ == "__main__":
 		#thread_blob_download_parent
 		print("\n")
 		print("Starting: thread_blob_download_parent")
+		#	print("exiting so not to download any real data outside of UK")
+		#	sys.exit()
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_blob_download_parent"])
 		thread_blob_download_parent.start()
 
