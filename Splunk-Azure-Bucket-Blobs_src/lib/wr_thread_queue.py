@@ -115,7 +115,7 @@ class Queue():
 		# ... see function __init__ comments for more details on job lists
 	'''
 	# this is the startup script, init?
-	def __init__(self, name: str, threads_at_once: int, debug=False):
+	def __init__(self, name: str, threads_at_once: int, inactive_queue_timeout_sec=60, debug=False):
 		self.debug = debug # enable debug printouts
 		self.name = name # unique thread name
 		self.threads_at_once = threads_at_once # how many max threads can run at one time
@@ -123,7 +123,7 @@ class Queue():
 		self.stopped = False # job processing is stopped or not
 		self.paused = False # job processing is paused or not
 		self.pause_timeout_sec = 3600 # how many seconds to wait before terminating whole queue if left paused
-		self.inactive_queue_timeout_sec = 60 # how many seconds to wait before terminating whole queue if no jobs are processed or added
+		self.inactive_queue_timeout_sec = inactive_queue_timeout_sec # how many seconds to wait before terminating whole queue if no jobs are processed or added
 		self.inactive_timeout_counter = 0 # the actual count down, not just the max
 		self.total_time_taken = 0 # sum of time taken for all jobs in minutes - accumulates
 		self.average_job_time = 0 # average time per job in minutes
