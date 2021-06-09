@@ -533,7 +533,7 @@ if __name__ == "__main__":
 		master_bucket_download_list = []
 		master_bucket_download_list_full = log_csv.readAllRowsToList()
 		for i in master_bucket_download_list_full:
-			master_bucket_download_list.append([ i[0], i[1], i[2], i[3]])
+			master_bucket_download_list.append([ i[0], i[1], i[2] ])
 
 	# exit if no blobs found to dl
 	if not master_bucket_download_list:
