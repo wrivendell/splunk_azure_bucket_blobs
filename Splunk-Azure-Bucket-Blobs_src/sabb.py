@@ -131,6 +131,7 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 	If needing a name change,
 	Returns a  True, <replacement list with the new bucket download to name as the last element>
 	Otherwise a False, ""
+	filename, size, container, dl loc <- IN + -> new filename >
 	'''
 	if bucket_detail_list[4] == "True": # if standalone is true
 		try:
@@ -296,7 +297,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 							continue
 						else:
 							# check and see if the bucket came from a standalone and needs a GUID appeneded
-							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[2], i[3], i[7], i[8] ])
+							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[2], i[3], i[5], i[6] ]) # filename, size, container, dl loc, standalone, bucket id <- IN + -> new filename >
 							if standalone_rename_check[0]:
 								master_bucket_download_list.append(standalone_rename_check[1])
 							else:
@@ -367,6 +368,7 @@ def updateCompletedWRQDownloadJobs():
 						print("   - Found newly completed download job: " + str(jc[0].name))
 					tmp_log_lines.append('Found newly completed download job: ' + str(jc[0].name))
 				tmp_log_dl_list = []
+				tmp_csv_dl_list = []
 				for j in wrq_download.jobs_completed[list_index:last_index]:
 					if arguments.args.detailed_output:
 						print("   - Adding newly completed download job to status report: " + str(j[0].name))
@@ -375,8 +377,10 @@ def updateCompletedWRQDownloadJobs():
 					command_args_list = list(command_args_list.split(","))
 					file_verify = compareDownloadSize( int(command_args_list[1]), str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					if file_verify[0]:
-						wrq_csv_report.add(log_csv.updateCellByHeader, [['Blob_Path_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"]])
-						wrq_csv_report.add(log_csv.updateCellByHeader, [['Blob_Path_Name', str(command_args_list[0]), 'Downloaded_Blob_Size_MB', str(file_verify[1])]])
+						tmp_csv_dl_list.append(['File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"])
+						tmp_csv_dl_list.append(['File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])])
+					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"]])
+					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])]])
 						tmp_log_dl_list.append('File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					else:
 						tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
@@ -384,6 +388,7 @@ def updateCompletedWRQDownloadJobs():
 #					tmp_row = [command_args_list[2], command_args_list[3], command_args_list[0], int(command_args_list[1]) / 1000000, file_verify[1], (status_string), currentDate(include_time=True), j[0].name, j[0].ident]
 #					rows_list.append(tmp_row)
 				if run_me:
+					wrq_csv_report.add(log_csv.updateCellsByHeader, [(tmp_csv_dl_list)])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs), 3]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list), 3]])

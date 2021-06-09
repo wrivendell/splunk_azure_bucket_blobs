@@ -208,16 +208,28 @@ class CSVFile():
 				else:
 					print("Could not write to log file, check permissions of " + (self.log_folder) )
 
-	def updateCellByHeader(self, header_to_search_under: str, value_to_search:str, header_to_update: str, value_to_write:str):
+	def updateCellsByHeader(self, parameter_list=[]):
 		'''
 		Search by header for a string to find the row.
 		Then update / add value under a header with the value in value_to_write
+		You can do batch updates (less open and close of file) by sending in a list of modificaions.
+		Single mods should be in list format as well. eg
+		['header_to_search_under', 'value_to_search', 'header_to_update', 'value_to_write']
 		'''
 		if os.path.exists(self.log_path):
 			try:
+				if not len(parameter_list) == 3:
+					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - updateCellsByHeader takes strictly 4 parameters more or less given. -")
+					retun(False)
 				df = pandas.read_csv(self.log_path)
-				i = df[ df[header_to_search_under]==value_to_search ].index.values[0] # get row index of the value we search for
-				df.loc[i,header_to_update]=value_to_write
+				for i in parameter_list:
+					header_to_search_under = str(i[0])
+					value_to_search = str(i[1])
+					header_to_update = str(i[2])
+					value_to_write = str(i[3])
+					i = df[ df[header_to_search_under]==value_to_search ].index.values[0] # get row index of the value we search for
+					df.loc[i,header_to_update]=value_to_write
+				df.to_csv(self.log_path, index=False)
 				#df.loc[df [ (header_to_search_under) ] == (value_to_search), (header_to_update)] = (value_to_write) #broken
 				return(True)
 			except:
@@ -235,7 +247,6 @@ class CSVFile():
 			try:
 				df = pandas.read_csv(self.log_path)
 				value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
-				df.to_csv(self.log_path, index=False)
 				return(True, value)
 				#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
 			except:

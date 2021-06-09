@@ -619,7 +619,7 @@ class Bucketeer():
 								del lst2[0][i]
 							except Exception as ex:
 								continue
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sill " + len(below_margin) + " lists below margin, still balancing List: " + str(idx) + "-")
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Still " + str(len(below_margin)) + " lists below margin, still balancing List: " + str(idx) + "-")
 			size_list_timeout.stop()
 			if timed_out:
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Jobs balanced as best as possible but couldn't hit the specified margin: " + str(self.size_error_margin*100) + "%"])
@@ -737,7 +737,7 @@ class Bucketeer():
 						tmp_list = []
 						for bt in self.final_peer_download_lists[idx]:
 							tmp_list.append( [ bt[7], bt[6], bt[13], bt[14], (bt[6]/1024.0**2), bt[4], bt[2], bt[5]] )
-						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes', 'Container_Name', 'Downloaded_To', 'Expected_Blob_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)','Downloaded_Blob_Size_MB', 'Download_Complete', ]]])
+						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), ['File_Name', 'Expected_File_Size_bytes', 'Container_Name', 'Downloaded_To', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB' ]]])
 						if p == self.my_guid:
 							my_queue = guid_queue
 						write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=()))
