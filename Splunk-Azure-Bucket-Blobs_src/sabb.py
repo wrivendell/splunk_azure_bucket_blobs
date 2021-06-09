@@ -54,7 +54,6 @@ if not arguments.args.standalone:
 											 sp_pword=arguments.args.splunk_password, 
 											 sp_idx_cluster_master_uri=arguments.args.cluster_master, 
 											 port=arguments.args.cluster_master_port,
-											 size_error_margin=arguments.args.size_error_margin,
 											 main_report_csv=main_report_csv,
 											 debug=arguments.args.debug_modules)
 	# create list handler
@@ -114,7 +113,7 @@ def checkAlreadyDownloaded(blob_name) -> bool:
 	The return from the csv list should only contain one value so access with <returned>[1][0]
 	If it contains more, there are dupes in your CSV. That return is a set with a bool, list
 	'''
-	check_completed = log_csv.getValueByHeaders('Blob_Path_Name', blob_name, 'Download_Complete')
+	check_completed = log_csv.getValueByHeaders('File_Name', blob_name, 'Download_Complete')
 	if check_completed[0]:
 		if check_completed[1]:
 			if check_completed[1][0] == "SUCCESS":
@@ -297,11 +296,11 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 							continue
 						else:
 							# check and see if the bucket came from a standalone and needs a GUID appeneded
-							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[9], i[8], i[3], i[4] ]) # filename, size, container, dl loc, standalone, bucket id <- IN + -> new filename >
+							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[8], i[9], i[3], i[4] ]) # filename, size, container, dl loc, standalone, bucket id <- IN + -> new filename >
 							if standalone_rename_check[0]:
 								master_bucket_download_list.append(standalone_rename_check[1])
 							else:
-								master_bucket_download_list.append( [ i[0], i[1], i[9], i[8] ] ) # filename, size, container, dl loc
+								master_bucket_download_list.append( [ i[0], i[1], i[8], i[9] ] ) # filename, size, container, dl loc
 		if tmp_master_list_log_lines:
 			wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
 	except Exception as ex:

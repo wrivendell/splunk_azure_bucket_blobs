@@ -33,7 +33,7 @@ azure_buckets = buckets.Bucketeer()
 
 class Bucketeer():
 	# this is the startup script, init?
-	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, size_error_margin=2.0, main_report_csv='', include_additioanl_list_items_in_csv=True, debug=False):
+	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, main_report_csv='', include_additioanl_list_items_in_csv=True, debug=False):
 		'''
 		Optionally, Provide Splunk IDX Cluster Master and API port e.g.  splunk_idx_cluster_master_uri="https://cm1.mysplunk.go_me.com" 
 			Port is set to default, port=8089 
@@ -543,6 +543,10 @@ class Bucketeer():
 				#print("List: ", tmp_size)
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
+			if len(master_list_of_lists)/2 >= 10:
+				self.size_error_margin = 10
+			else:
+				self.size_error_margin = len(master_list_of_lists)/2
 			margin = average_size_per * self.size_error_margin # % margin
 			size_list_timeout = wrc.timer('size_list_timeout', 1200) # timeout timer
 			threading.Thread(target=size_list_timeout.start, name='size_list_timeout', args=(), daemon=True).start()
@@ -746,7 +750,7 @@ class Bucketeer():
 									bt_list.extend(bt[13:])
 									add_diff = len(bt_list) - 6
 									for x in range(add_diff):
-										header_row.append("Additional_" + x)
+										header_row.append("Additional_" + str(x))
 							tmp_list.append(  bt_list )
 						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
 						if p == self.my_guid:
