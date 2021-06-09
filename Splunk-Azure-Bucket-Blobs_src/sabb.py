@@ -33,7 +33,6 @@ else:
 
 # create log handler
 log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.log_level, log_retention_days=0, debug=arguments.args.debug_modules)
-log_csv = log.CSVFile(main_report_csv, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
 
 # Print Console Info
 print("\n")
@@ -59,8 +58,9 @@ if not arguments.args.standalone:
 											 main_report_csv=main_report_csv,
 											 debug=arguments.args.debug_modules)
 	# create list handler
-	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid, remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
-
+	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
+else:
+	log_csv = log.CSVFile(main_report_csv, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
 # Print Console Info
 if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Blob interactive service class created: blob_service" + " -")
@@ -117,7 +117,7 @@ def checkAlreadyDownloaded(blob_name) -> bool:
 	check_completed = log_csv.getValueByHeaders('Blob_Path_Name', blob_name, 'Download_Complete')
 	if check_completed[0]:
 		if check_completed[1]:
-			if check_completed[1][0] == 'SUCCESS':
+			if check_completed[1][0] == True:
 				return(True)
 			else:
 				return(False)
@@ -268,6 +268,12 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				if arguments.args.list_create_output:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
 				master_bucket_download_list.append(tmp_list)
+	except Exception as ex:
+		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Exception: -")
+		print(ex)
+		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Failed pulling a blob name, trying to skip. -")
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Failed pulling a blob name, trying to skip."])
+	try:
 		if not arguments.args.standalone:
 			# send to bucket sorter for idx cluster distribution
 			if not azure_bucket_sorter.start(master_bucket_download_list):
@@ -279,18 +285,18 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				tmp_master_list_log_lines =[]
 				if not arguments.args.write_out_full_list_only:
 					for i in azure_bucket_sorter.this_peer_download_list:
-						if checkAlreadyDownloaded(str(i[7])):
-							tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(i[7]) )
+						if checkAlreadyDownloaded(str(i[0])):
+							tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(i[0]) )
 							if arguments.args.list_create_output:
-								print("\n- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[7]) + " -\n")
+								print("\n- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(i[0]) + " -\n")
 							continue
 						else:
 							# check and see if the bucket came from a standalone and needs a GUID appeneded
-							standalone_rename_check = appendGUIDCheck([ i[7], i[6], i[13], i[14], i[4], i[2] ])
+							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[2], i[3], i[7], i[8], i[9] ])
 							if standalone_rename_check[0]:
 								master_bucket_download_list.append(standalone_rename_check[1])
 							else:
-								master_bucket_download_list.append( [ i[7], i[6], i[13], i[14] ] )
+								master_bucket_download_list.append( [ i[0], i[1], i[2], i[3] ] )
 		if tmp_master_list_log_lines:
 			wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
 	except Exception as ex:
@@ -536,6 +542,14 @@ if __name__ == "__main__":
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
 		for i in master_bucket_download_list:
 			log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
+	print("\n\n\n#######################################################################################")
+	print("- SABB(" + str(sys._getframe().f_lineno) +"): Writing Standalone download job list to CSV -")
+	print("#######################################################################################\n\n\n")
+	tmp_list = []
+	for b in master_bucket_download_list:
+		tmp_list.append( [ bt[0], bt[1], str(arguments.args.dest_download_loc_root), (bt[1]/1024.0**2), 0, False, '', '' ] )
+	log_csv.writeLinesToCSV( [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'] ]] )
+
 
 	## Thread prep
 	''' 

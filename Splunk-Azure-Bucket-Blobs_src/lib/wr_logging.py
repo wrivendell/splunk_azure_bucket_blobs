@@ -9,6 +9,12 @@ from pathlib import Path
 
 ### FUNCTIONS ###########################################
 
+def verifyLogFileExist(log_file):
+	if os.path.exists(log_file):
+		return(True)
+	else:
+		return(False)
+
 # after 50mb create a new log file and append number at the end
 def checkFileSize(log_file: str, roll_size_bytes=50000000, max_files_to_keep=0, debug=False) -> bool:
 	'''
@@ -143,6 +149,9 @@ class LogFile():
 			else:
 				retry = 0
 
+	def doesLogFileExist(self):
+		return(verifyLogFileExist(self.log_path))
+
 class CSVFile():
 	# this is the startup script, init?
 	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7, prefix_date=True, debug=False):
@@ -156,12 +165,12 @@ class CSVFile():
 			if prefix_date:
 				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name)
 			else:
-				self.log_file = "_" + (self.name)
+				self.log_file = (self.name)
 		else:
 			if prefix_date:
 				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".csv"
 			else:
-				self.log_file = "_" + (self.name) + ".csv"
+				self.log_file = (self.name) + ".csv"
 		if remove_old_logs:
 			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		if not os.path.exists(self.log_folder):
@@ -213,12 +222,12 @@ class CSVFile():
 				df.loc[df [ (header_to_search_under) ] == (value_to_search), (header_to_update)] = (value_to_write)
 				return(True)
 			except:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
 				return(False)
 		else:
+			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
 			return(False)
 
-	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under='') -> list:
+	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search:str, second_header_to_search_under:str) -> list:
 		'''
 		Search by header for a string to find the row.
 		Return the (True, str(<value>)) if found.
@@ -226,14 +235,46 @@ class CSVFile():
 		if os.path.exists(self.log_path):
 			try:
 				df = pandas.read_csv(self.log_path)
-				if second_header_to_search_under:
-					value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
-				else:
-					value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search].tolist()
+				value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
 				return(True, value)
 				#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
 			except:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
 				return(False, "")
 		else:
-			return(False, "")
+			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Could not read csv specified. -")
+			return(False, False)
+
+	def valueExistsInColumn(self, first_header_to_search_under:str, value_under_first_header_to_search:str) -> list:
+		'''
+		If found, will return True, <list of rows found in>
+		'''
+		if os.path.exists(self.log_path):
+			try:
+				df = pandas.read_csv(self.log_path)
+				value = df[df[first_header_to_search_under].str.contains(value_under_first_header_to_search)]
+				return(True, value)
+			except:
+				return(False, [])
+		else:
+			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
+			return(False, False)
+
+	def readAllRowsToList(self) -> list:
+		'''
+		Reads all of the rows in the csv for this calss to a list 
+		'''
+		if os.path.exists(self.log_path):
+			try:
+				df = pandas.read_csv(self.log_path, header=None)
+				df = df.iloc[1:]
+				return(df.values.tolist())
+			except Exception as ex:
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Read from CSV failed -")
+				print(ex)
+				return([])
+		else:
+			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
+			return(False, False)
+	
+	def doesLogFileExist(self):
+		return(verifyLogFileExist(self.log_path))

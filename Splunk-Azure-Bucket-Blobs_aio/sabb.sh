@@ -16,7 +16,7 @@
     -cslt False \
     -bsl "frozendb"\
     -bslt False \
-    -sem 1.5 \
+    -sem 4 \
     -dm True \
     -woflo False
 

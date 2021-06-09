@@ -21,13 +21,15 @@ class timer:
 	<variable>.elapsed (for elapsed time)
 	'''
 	# this is the startup script, init?
-	def __init__(self, name: str, max_time_sec:int, start_time_sec = 0, start_immediately=False, print_outs=True):
+	def __init__(self, name: str, max_time_sec:int, start_time_sec = 0, start_immediately=False, print_outs=True, print_interval=10):
 		self.name = name # timer name
 		self.start_time_sec = start_time_sec
 		self.max_time_sec = max_time_sec
 		self.started = False
 		self.current_time_sec = 0
 		self.max_time_reached = False
+		self.print_outs = print_outs
+		self.print_interval = print_interval
 		if start_immediately:
 			self.start()
 
@@ -43,16 +45,18 @@ class timer:
 				self.current_time_sec += 1
 				cur_print = round(self.current_time_sec / 60, 2)
 				if not self.max_time_sec == 0:
-					print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " / " + str( round(self.max_time_sec / 60, 2) ) + "-" )
+					if self.print_outs:
+						if self.current_time_sec % self.print_interval == 0:
+							print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " / " + str( round(self.max_time_sec / 60, 2) ) + " -" )
 					if self.current_time_sec >= self.max_time_sec:
 						print("\n- WRC Timer: "+ self.name + " - Maxt time reached, stopping timer. -")
 						self.max_time_reached = True
 						self.stop()
 						break
 				else:
-					print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + "-")
-				
-					
+					if self.print_outs:
+						if self.current_time_sec % self.print_interval == 0:
+							print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " -")
 
 	def stop(self):
 		if not self.started:
