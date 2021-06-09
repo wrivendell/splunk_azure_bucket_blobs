@@ -208,7 +208,7 @@ class CSVFile():
 				else:
 					print("Could not write to log file, check permissions of " + (self.log_folder) )
 
-	def updateCellByHeader(self, header_to_search_under: str, value_to_search, header_to_update: str, value_to_write):
+	def updateCellByHeader(self, header_to_search_under: str, value_to_search:str, header_to_update: str, value_to_write:str):
 		'''
 		Search by header for a string to find the row.
 		Then update / add value under a header with the value in value_to_write
@@ -216,7 +216,9 @@ class CSVFile():
 		if os.path.exists(self.log_path):
 			try:
 				df = pandas.read_csv(self.log_path)
-				df.loc[df [ (header_to_search_under) ] == (value_to_search), (header_to_update)] = (value_to_write)
+				i = df[ df[header_to_search_under]==value_to_search ].index.values[0] # get row index of the value we search for
+				df.loc[i,header_to_update]=value_to_write
+				#df.loc[df [ (header_to_search_under) ] == (value_to_search), (header_to_update)] = (value_to_write) #broken
 				return(True)
 			except:
 				return(False)
@@ -233,6 +235,7 @@ class CSVFile():
 			try:
 				df = pandas.read_csv(self.log_path)
 				value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
+				df.to_csv(self.log_path, index=False)
 				return(True, value)
 				#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
 			except:
