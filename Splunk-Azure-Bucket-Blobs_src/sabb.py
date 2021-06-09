@@ -38,7 +38,7 @@ log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.
 print("\n")
 print("- SABB(" + str(sys._getframe().f_lineno) +"): --- Splunk Azure Blob Bucket Downloader ---- \n")
 print("- SABB(" + str(sys._getframe().f_lineno) +"):  Main Log Created at: ./logs/" + (main_log) + " -")
-print("- SABB(" + str(sys._getframe().f_lineno) +"):  Main CSV Status Report Created at: ./logs/" + (main_report_csv) + " -")
+print("- SABB(" + str(sys._getframe().f_lineno) +"):  Main CSV Status Report Created at: ./csv_lists/" + (main_report_csv) + " -")
 print("\n")
 
 # service class for Azure (wazure)
