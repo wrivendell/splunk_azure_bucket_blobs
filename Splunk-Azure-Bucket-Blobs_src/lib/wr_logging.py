@@ -40,9 +40,6 @@ def checkFileSize(log_file: str, roll_size_bytes=50000000, max_files_to_keep=0, 
 					for file in files:
 						oldest_file = min(log_dir + '/' + file, key=os.path.getctime)
 						os.remove(oldest_file)
-	else:
-		if debug:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +"): File {} does not appear to exist: Skipping rotation".format(str(log_file)))
 
 def isLogFileOld(file, log_retention_days):
 	""" Determines if a log file is dictated to be 'old' - (I.e. if the log file is older then the retention period)
