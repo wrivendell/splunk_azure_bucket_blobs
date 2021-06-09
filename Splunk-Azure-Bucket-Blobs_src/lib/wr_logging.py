@@ -84,7 +84,7 @@ def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retentio
 ### CLASSES ###########################################
 
 class LogFile():
-	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_level=1, log_retention_days=7, roll_size_bytes=50000000, max_files_to_keep=0, debug=False):
+	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_level=1, log_retention_days=7, roll_size_bytes=50000000, max_files_to_keep=0,  prefix_date=True, debug=False):
 		self.name = name # log file name - day will automatically be prefixed
 		self.log_folder = log_folder # folder to write the log to
 		self.log_level = log_level
@@ -95,9 +95,15 @@ class LogFile():
 		# if user specified own extension, dont add .log
 		root, ext = os.path.splitext(self.name)
 		if ext:
-			self.log_file = datetime.datetime.now().strftime("%Y_%m_%d")+"_" + (self.name)
+			if prefix_date:
+				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name)
+			else:
+				self.log_file = "_" + (self.name)
 		else:
-			self.log_file = datetime.datetime.now().strftime("%Y_%m_%d")+"_" + (self.name) + ".log"
+			if prefix_date:
+				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".log"
+			else:
+				self.log_file = "_" + (self.name) + ".log"
 		if not os.path.exists(self.log_folder):
 			try:
 				os.makedirs( (self.log_folder), exist_ok=True)
@@ -138,7 +144,7 @@ class LogFile():
 				retry = 0
 
 class CSVFile():
-	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7, debug=False):
+	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7, prefix_date=True, debug=False):
 		self.debug = debug
 		self.name = name # log file name - day will automatically be prefixed
 		self.log_folder = log_folder # folder to write the log to
@@ -146,9 +152,15 @@ class CSVFile():
 		# if user specified own extension, dont add .log
 		root, ext = os.path.splitext(self.name)
 		if ext:
-			self.log_file = datetime.datetime.now().strftime("%Y_%m_%d")+"_" + (self.name)
+			if prefix_date:
+				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name)
+			else:
+				self.log_file = "_" + (self.name)
 		else:
-			self.log_file = datetime.datetime.now().strftime("%Y_%m_%d")+"_" + (self.name) + ".csv"
+			if prefix_date:
+				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".csv"
+			else:
+				self.log_file = "_" + (self.name) + ".log"
 		if remove_old_logs:
 			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		if not os.path.exists(self.log_folder):
@@ -194,25 +206,16 @@ class CSVFile():
 		Search by header for a string to find the row.
 		Then update / add value under a header with the value in value_to_write
 		'''
-		try:
-			data = pandas.read_csv(self.log_path)
-			data.loc[data [ (header_to_search_under) ] == (value_to_search), (header_to_update)] = (value_to_write)
-		except:
-			print('- Could not read csv specified. -')
-		retry = 4
-		while retry > 0:
+		if os.path.exists(self.log_path):
 			try:
-				data.to_csv(self.log_path)
-				retry = 0
-			except Exception as ex:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Exception: -")
-				print(ex)
-				if retry > 0:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Retrying write: " + (retry) + " -")
-					time.sleep(0.1)
-					retry -= 1
-				else:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Could not write to log file, check permissions of " + (self.log_folder) + " -")
+				df = pandas.read_csv(self.log_path)
+				df.loc[df [ (header_to_search_under) ] == (value_to_search), (header_to_update)] = (value_to_write)
+				return(True)
+			except:
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
+				return(False)
+		else:
+			return(False)
 
 	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under: str) -> list:
 		'''
@@ -226,7 +229,7 @@ class CSVFile():
 				return(True, value)
 				#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
 			except:
-				print('- Could not read csv specified. -')
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
 				return(False, "")
 		else:
 			return(False, "")

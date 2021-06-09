@@ -31,9 +31,9 @@ else:
 	main_log = 'azure_blob_bucket_download.log'
 	main_report_csv = 'azure_blob_status_report.csv'
 
-# create log handlers
+# create log handler
 log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.log_level, log_retention_days=0, debug=arguments.args.debug_modules)
-log_csv = log.CSVFile(main_report_csv, remove_old_logs=False, log_retention_days=20, debug=arguments.args.debug_modules)
+log_csv = log.CSVFile(main_report_csv, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
 
 # Print Console Info
 print("\n")
@@ -57,6 +57,9 @@ if not arguments.args.standalone:
 											 port=arguments.args.cluster_master_port,
 											 size_error_margin=arguments.args.size_error_margin,
 											 debug=arguments.args.debug_modules)
+	# create list handler
+	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid, remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
+
 # Print Console Info
 if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Blob interactive service class created: blob_service" + " -")
@@ -318,6 +321,14 @@ def compareDownloadSize(expected_size:int, full_path_to_file:str):
 		wrq_logging.add(log_file.writeLinesToFile, (tmp_log_list))
 		return(False, 0)
 
+def updateDownloadedCSVSuccess(blob_name):
+	'''
+	Returns True if updated, False if couldnt find cell to update
+	'''
+	update_cell = log_csv.updateCellByHeader('Blob_Path_Name', blob_name, 'Download_Complete', True)
+	if not update_cell:
+		print("- SABB(" + str(sys._getframe().f_lineno) +"): "+ blob_name +" appeared to finish, but couldn't find cell in CSV to update -")
+
 def updateCompletedWRQDownloadJobs():
 	'''
 	Get a list of rows to be added to the master file
@@ -356,16 +367,14 @@ def updateCompletedWRQDownloadJobs():
 					command_args_list = list(command_args_list.split(","))
 					file_verify = compareDownloadSize( command_args_list[1], str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					if file_verify[0]:
-						status_string = 'SUCCESS'
+						wrq_csv_report.add(updateDownloadedCSVSuccess, command_args_list[0])
 						tmp_log_dl_list.append('File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					else:
-						status_string = 'FAILED'
 						tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					# 0 = blob name - 1 = bytes size - 2 = container - 3 = downloaded to path
-					tmp_row = [command_args_list[2], command_args_list[3], command_args_list[0], int(command_args_list[1]) / 1000000, file_verify[1], (status_string), currentDate(include_time=True), j[0].name, j[0].ident]
-					rows_list.append(tmp_row)
+#					tmp_row = [command_args_list[2], command_args_list[3], command_args_list[0], int(command_args_list[1]) / 1000000, file_verify[1], (status_string), currentDate(include_time=True), j[0].name, j[0].ident]
+#					rows_list.append(tmp_row)
 				if run_me:
-					wrq_csv_report.add(log_csv.writeLinesToCSV, [[(rows_list), ['Container_Name', 'Downloaded_To', 'Blob_Path_Name', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Download_Completed_Date', 'Thread_Name', 'Thread_ID']]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs), 3]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list), 3]])
