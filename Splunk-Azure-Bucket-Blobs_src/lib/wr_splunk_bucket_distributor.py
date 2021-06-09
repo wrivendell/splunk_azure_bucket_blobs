@@ -130,7 +130,9 @@ class Bucketeer():
 		self.csv_list = []
 		self.csv_queues = []
 		csv_write_job_dicts = {} # queues write jobs per guid
-		for g in self.idx_cluster_peers:
+		for idx, g in enumerate(self.idx_cluster_peers):
+			if g == self.my_guid:
+				self.this_peer_index = idx = idx
 			self.csv_list.append(log.CSVFile(main_report_csv + "_" + g + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=self.debug)) # PEER download lists csv writer -  used to resume downloads and check already completed
 			self.csv_queues.append(wrq.Queue('csv_writer' + "_" + g, 1, inactive_queue_timeout_sec=8, debug=False)) # queues csv writes to master status report
 			csv_write_job_dicts[g] = []

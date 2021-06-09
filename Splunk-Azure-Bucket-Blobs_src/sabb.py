@@ -547,7 +547,7 @@ if __name__ == "__main__":
 	print("#######################################################################################\n\n\n")
 	tmp_list = []
 	for b in master_bucket_download_list:
-		tmp_list.append( [ bt[0], bt[1], str(arguments.args.dest_download_loc_root), (bt[1]/1024.0**2), 0, False, '', '' ] )
+		tmp_list.append( [ bt[0], bt[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
 	log_csv.writeLinesToCSV( [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'] ]] )
 
 
