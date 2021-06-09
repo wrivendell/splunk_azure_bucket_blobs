@@ -727,6 +727,8 @@ class Bucketeer():
 					write_threads = []
 					self.final_peer_download_lists.sort()
 					for idx, p in enumerate(self.idx_cluster_peers):
+						if p == self.my_guid:
+							self.this_peer_index = idx = idx
 						# write lists to csvs
 						guid_queue = self.getPeerCSVQ(p)
 						guid_csv = self.getPeerCSV(p)
