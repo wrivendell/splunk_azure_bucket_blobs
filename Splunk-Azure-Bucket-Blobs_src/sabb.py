@@ -297,11 +297,11 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 							continue
 						else:
 							# check and see if the bucket came from a standalone and needs a GUID appeneded
-							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[2], i[3], i[5], i[6] ]) # filename, size, container, dl loc, standalone, bucket id <- IN + -> new filename >
+							standalone_rename_check = appendGUIDCheck([ i[0], i[1], i[9], i[8], i[3], i[4] ]) # filename, size, container, dl loc, standalone, bucket id <- IN + -> new filename >
 							if standalone_rename_check[0]:
 								master_bucket_download_list.append(standalone_rename_check[1])
 							else:
-								master_bucket_download_list.append( [ i[0], i[1], i[2], i[3] ] )
+								master_bucket_download_list.append( [ i[0], i[1], i[9], i[8] ] ) # filename, size, container, dl loc
 		if tmp_master_list_log_lines:
 			wrq_logging.add(log_file.writeLinesToFile, [[(tmp_master_list_log_lines), 3]])
 	except Exception as ex:
@@ -385,10 +385,8 @@ def updateCompletedWRQDownloadJobs():
 					else:
 						tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					# 0 = blob name - 1 = bytes size - 2 = container - 3 = downloaded to path
-#					tmp_row = [command_args_list[2], command_args_list[3], command_args_list[0], int(command_args_list[1]) / 1000000, file_verify[1], (status_string), currentDate(include_time=True), j[0].name, j[0].ident]
-#					rows_list.append(tmp_row)
 				if run_me:
-					wrq_csv_report.add(log_csv.updateCellsByHeader, [(tmp_csv_dl_list)])
+					wrq_csv_report.add(log_csv.updateCellsByHeader, [[(tmp_csv_dl_list)]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs), 3]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list), 3]])

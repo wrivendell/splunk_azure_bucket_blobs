@@ -33,7 +33,7 @@ azure_buckets = buckets.Bucketeer()
 
 class Bucketeer():
 	# this is the startup script, init?
-	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, size_error_margin=2.0, main_report_csv='', debug=False):
+	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, size_error_margin=2.0, main_report_csv='', include_additioanl_list_items_in_csv=True, debug=False):
 		'''
 		Optionally, Provide Splunk IDX Cluster Master and API port e.g.  splunk_idx_cluster_master_uri="https://cm1.mysplunk.go_me.com" 
 			Port is set to default, port=8089 
@@ -43,8 +43,10 @@ class Bucketeer():
 
 		The master list_of_bucket_list_details -> is a list containing lists. Each list item is a single download to be downloaded.
 			Each item in the list should START with this exact format:  [<full_path_to_a_bucket_file>, <file_size_bytes>]
-			You may add as many additional info items to the END and they will come back sorted with the list as <list>[11]+  etc
+			You may add as many additional info items to the END and they will come back sorted with the list as <list>[14]+  etc
 			But don't mess with the start!!
+
+			include_additioanl_list_items_in_csv = True - will add the additional csv items to the CSV list at the end in the same order
 
 		You may add the bucket list later when you run START, however if you don't add any buckets, nothing will happen. 
 		name is just whatever name you want to give this. 
@@ -91,6 +93,7 @@ class Bucketeer():
 		self.sp_idx_cluster_master_uri = sp_idx_cluster_master_uri
 		self.port = port
 		self.size_error_margin = size_error_margin / 100
+		self.include_additioanl_list_items_in_csv = include_additioanl_list_items_in_csv
 
 		# see if cluster master URI is available
 		if not self.sp_idx_cluster_master_uri:
@@ -736,8 +739,16 @@ class Bucketeer():
 						guid_csv = self.getPeerCSV(p)
 						tmp_list = []
 						for bt in self.final_peer_download_lists[idx]:
-							tmp_list.append( [ bt[7], bt[6], bt[13], bt[14], (bt[6]/1024.0**2), bt[4], bt[2], bt[5]] )
-						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), ['File_Name', 'Expected_File_Size_bytes', 'Container_Name', 'Downloaded_To', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB' ]]])
+							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5] ]
+							header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
+							if len(bt) > 13:
+								if self.include_additioanl_list_items_in_csv:
+									bt_list.extend(bt[13:])
+									add_diff = len(bt_list) - 6
+									for x in range(add_diff):
+										header_row.append("Additional_" + x)
+							tmp_list.append(  bt_list )
+						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
 						if p == self.my_guid:
 							my_queue = guid_queue
 						write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=()))

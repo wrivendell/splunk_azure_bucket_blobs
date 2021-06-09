@@ -208,7 +208,7 @@ class CSVFile():
 				else:
 					print("Could not write to log file, check permissions of " + (self.log_folder) )
 
-	def updateCellsByHeader(self, parameter_list=[]):
+	def updateCellsByHeader(self, parameter_list:list):
 		'''
 		Search by header for a string to find the row.
 		Then update / add value under a header with the value in value_to_write
@@ -218,7 +218,7 @@ class CSVFile():
 		'''
 		if os.path.exists(self.log_path):
 			try:
-				if not len(parameter_list) == 3:
+				if not len(parameter_list) == 4:
 					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - updateCellsByHeader takes strictly 4 parameters more or less given. -")
 					retun(False)
 				df = pandas.read_csv(self.log_path)
