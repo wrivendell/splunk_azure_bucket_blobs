@@ -362,7 +362,6 @@ def updateCompletedWRQDownloadJobs():
 						print("   - Found newly completed download job: " + str(jc[0].name))
 					tmp_log_lines.append('Found newly completed download job: ' + str(jc[0].name))
 
-				rows_list = []
 				print("\n")
 				tmp_log_dl_list = []
 				for j in wrq_download.jobs_completed[list_index:last_index]:
@@ -549,7 +548,7 @@ if __name__ == "__main__":
 		tmp_list = []
 		for b in master_bucket_download_list:
 			tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
-		log_csv.writeLinesToCSV( [[(tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'] ]] )
+		log_csv.writeLinesToCSV( (tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'])
 
 
 	## Thread prep
