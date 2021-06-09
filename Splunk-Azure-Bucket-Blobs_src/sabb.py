@@ -533,7 +533,9 @@ if __name__ == "__main__":
 				tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
 			log_csv.writeLinesToCSV( (tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'])
 		master_bucket_download_list = []
-		master_bucket_download_list = log_csv.readAllRowsToList()
+		master_bucket_download_list_full = log_csv.readAllRowsToList()
+		for i in master_bucket_download_list_full:
+			master_bucket_download_list.append([ i[0], i[1], i[2], i[3]])
 
 	# exit if no blobs found to dl
 	if not master_bucket_download_list:
