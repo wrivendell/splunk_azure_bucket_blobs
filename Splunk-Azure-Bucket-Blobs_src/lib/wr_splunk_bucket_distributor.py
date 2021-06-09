@@ -73,6 +73,7 @@ class Bucketeer():
 
 
 		'''
+		self.log_file = log.LogFile('bucketeer.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
 		if not sp_uname:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): No Splunk Username provided, yet Cluster is indicated. I'm not a mind reader! Cluster Master API call not possible. Exiting.")
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " No Splunk Username provided, yet Cluster is indicated. I'm not a mind reader! Cluster Master API call not possible. Exiting."] )
@@ -90,7 +91,6 @@ class Bucketeer():
 		self.sp_idx_cluster_master_uri = sp_idx_cluster_master_uri
 		self.port = port
 		self.size_error_margin = size_error_margin / 100
-		
 
 		# see if cluster master URI is available
 		if not self.sp_idx_cluster_master_uri:
@@ -116,12 +116,12 @@ class Bucketeer():
 		# get peer GUIDs
 		self.idx_cluster_peers = self.getPeerGUIDS()
 
-		# initialize local log and main CSV list (csv list will be used for resume) - same name should be used for marking download complete (see sabb.py for example)
+		# initialize main CSV list (csv list will be used for resume) - same name should be used for marking download complete (see sabb.py for example)
 		if not main_report_csv:
 			self.main_report_csv = 'bucket_sort_status_report.csv'
 		else:
 			self.main_report_csv = main_report_csv
-		self.log_file = log.LogFile('bucketeer.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
+
 # not used now, maybe later if list creation continues to be a pain
 #		self.write_list_csv = log.CSVFile('list_report.csv',1, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=self.debug) # used to resume WRITING the full list on failures or cancels
 #		self.write_list_queue = wrq.Queue('list_reporter', 1, debug=self.debug)
@@ -714,9 +714,9 @@ class Bucketeer():
 								tmp_list.append( bt[13], bt[14], bt[7], (bt[6]/1024.0**2), 0, False, '', '', ''  )
 							guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), ['Container_Name', 'Downloaded_To', 'Blob_Path_Name', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Download_Completed_Date', 'Thread_Name', 'Thread_ID']]])
 							write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=()))
+						for t in write_threads:
+							t.daemon = True
+							t.start()
 						return(True)
-			for t in write_threads:
-				t.daemon = True
-				t.start()
-			else:
-				return(False)
+					else:
+						return(False)
