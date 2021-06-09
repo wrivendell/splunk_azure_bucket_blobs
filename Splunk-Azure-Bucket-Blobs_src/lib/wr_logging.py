@@ -161,7 +161,7 @@ class CSVFile():
 			if prefix_date:
 				self.log_file = datetime.datetime.now().strftime("%Y_%m_%d") + "_" + (self.name) + ".csv"
 			else:
-				self.log_file = "_" + (self.name) + ".log"
+				self.log_file = "_" + (self.name) + ".csv"
 		if remove_old_logs:
 			removeOldLogFiles(self.name, self.log_folder, self.log_file, self.log_retention_days)
 		if not os.path.exists(self.log_folder):
@@ -218,7 +218,7 @@ class CSVFile():
 		else:
 			return(False)
 
-	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under: str) -> list:
+	def getValueByHeaders(self, first_header_to_search_under: str, value_under_first_header_to_search, second_header_to_search_under='') -> list:
 		'''
 		Search by header for a string to find the row.
 		Return the (True, str(<value>)) if found.
@@ -226,7 +226,10 @@ class CSVFile():
 		if os.path.exists(self.log_path):
 			try:
 				df = pandas.read_csv(self.log_path)
-				value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
+				if second_header_to_search_under:
+					value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search, second_header_to_search_under].tolist()
+				else:
+					value = df.loc[df[first_header_to_search_under] == value_under_first_header_to_search].tolist()
 				return(True, value)
 				#value = df.loc[df['Blob_Path_Name'] == 'frozendata/barracuda/frozendb/db_1621091116_1625030436_62_98B6F435-6FB4-4FE5-8E89-6F7C865A4F9E/rawdata/journal.gz', 'Download_Complete'].tolist()
 			except:

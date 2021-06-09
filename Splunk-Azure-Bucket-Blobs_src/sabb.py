@@ -24,12 +24,12 @@ def clearConsole():
 # log files
 clearConsole()
 if arguments.args.write_out_full_list_only:
-	main_log = 'azure_blob_bucket_download_WOFLO.log'
-	main_report_csv = 'azure_blob_status_report_WOFLO.csv'
+	main_log = 'azure_blob_bucket_download_WOFLO'
+	main_report_csv = 'azure_blob_status_report_WOFLO'
 
 else:
-	main_log = 'azure_blob_bucket_download.log'
-	main_report_csv = 'azure_blob_status_report.csv'
+	main_log = 'azure_blob_bucket_download'
+	main_report_csv = 'azure_blob_status_report'
 
 # create log handler
 log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.log_level, log_retention_days=0, debug=arguments.args.debug_modules)
@@ -56,6 +56,7 @@ if not arguments.args.standalone:
 											 sp_idx_cluster_master_uri=arguments.args.cluster_master, 
 											 port=arguments.args.cluster_master_port,
 											 size_error_margin=arguments.args.size_error_margin,
+											 main_report_csv=main_report_csv,
 											 debug=arguments.args.debug_modules)
 	# create list handler
 	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid, remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)

@@ -40,16 +40,18 @@ class timer:
 			self.started = True
 			while self.started:
 				time.sleep(1)
+				self.current_time_sec += 1
+				cur_print = round(self.current_time_sec / 60, 2)
 				if not self.max_time_sec == 0:
-					print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(self.current_time_sec / 60) + " / " + str(self.max_time_sec / 60) + "-" )
+					print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + " / " + str( round(self.max_time_sec / 60, 2) ) + "-" )
 					if self.current_time_sec >= self.max_time_sec:
 						print("\n- WRC Timer: "+ self.name + " - Maxt time reached, stopping timer. -")
 						self.max_time_reached = True
 						self.stop()
 						break
 				else:
-					print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(self.current_time_sec / 60) + "-")
-				self.current_time_sec += 1
+					print("\n- WRC Timer: "+ self.name + " - Elapsed (min): " + str(cur_print) + "-")
+				
 					
 
 	def stop(self):
@@ -63,8 +65,6 @@ class timer:
 		print("\n- WRC Timer: "+ self.name + " - Reset and stopped. -")
 		self.started = False
 		self.max_time_reached = False
-		self.start_time_sec = start_time_sec
-		self.max_time_sec = max_time_sec
 		self.current_time_sec = 0
 
 	def elapsed(self, unit='s'):
@@ -76,9 +76,9 @@ class timer:
 		if unit == 's':
 			ret_time = self.current_time_sec
 		elif unit == 'm':
-			ret_time = self.current_time_sec / 60
+			ret_time = round(self.current_time_sec / 60, 2)
 		elif unit == 'h':
-			ret_time = self.current_time_sec / 3600
+			ret_time = round(self.current_time_sec / 3600, 2)
 		else:
 			ret_time =self.current_time_sec
 		return(ret_time)
