@@ -144,6 +144,7 @@ class LogFile():
 				retry = 0
 
 class CSVFile():
+	# this is the startup script, init?
 	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7, prefix_date=True, debug=False):
 		self.debug = debug
 		self.name = name # log file name - day will automatically be prefixed

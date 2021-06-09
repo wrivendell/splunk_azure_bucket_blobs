@@ -13,6 +13,7 @@ from . import wr_logging as log
 from . import wr_splunk_ops as wrsops
 from . import wr_splunk_wapi as wapi
 from . import wr_thread_queue as wrq
+from . import wr_common as wrc
 
 '''
 Feed this class a list of lists. Thats ONE list that contains ALL of the buckets needed for download
@@ -133,6 +134,10 @@ class Bucketeer():
 			self.csv_list.append(log.CSVFile(main_report_csv + "_" + g, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=self.debug)) # PEER download lists csv writer -  used to resume downloads and check already completed
 			self.csv_queues.append(wrq.Queue('csv_writer' + "_" + g, 1, debug=self.debug)) # queues csv writes to master status report
 			csv_write_job_dicts[g] = []
+
+		# start timer
+		bucketeer_timer = wrc.timer('len_list_timeout', 0) # timeout timer
+		threading.Thread(target=bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=True)
 
 	# get peer GUIDS in this idx cluster
 	def getPeerGUIDS(self):
@@ -465,11 +470,10 @@ class Bucketeer():
 		margin = 15
 		timed_out = False
 		try:
-			counter = 0
-			timeout_counter = 55000000 # 5min timeout to move on
+			len_list_timeout = wrc.timer('len_list_timeout', 1200) # timeout timer
+			threading.Thread(target=len_list_timeout.start, name='len_list_timeout', args=(), daemon=True)
 			while not len_balanced:
-				counter += 1
-				if counter >= timeout_counter:
+				if len_list_timeout.max_time_reached:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing job length stopped after 5 mins and moved on as is. -")
 					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing job length stopped after 5 mins and moved on as is."])
 					timed_out - True
@@ -514,13 +518,12 @@ class Bucketeer():
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
 			margin = average_size_per * self.size_error_margin # % margin
-			counter = 0
-			timeout_counter = 55000000 # 5 or so min timeout to move on
+			size_list_timeout = wrc.timer('size_list_timeout', 1200) # timeout timer
+			threading.Thread(target=size_list_timeout.start, name='size_list_timeout', args=(), daemon=True)
 			while not size_balanced:
-				counter += 1
-				if counter >= timeout_counter:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped after 5 mins and moved on as is. -")
-					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing by size stopped after 5 mins and moved on as is."])
+				if len_list_timeout.max_time_reached:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing by size stopped due to timeout and moved on as is."])
 					break
 				above_margin = []
 				below_margin = []
@@ -552,12 +555,12 @@ class Bucketeer():
 						donor_size_total = 0
 						tmp_to_remove = []
 						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
-							size_counter_timeout = 35000000
+							size1_list_timeout = wrc.timer('size1_list_timeout', 1200) # timeout timer
+							threading.Thread(target=size1_list_timeout.start, name='size1_list_timeout', args=(), daemon=True)
 							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								counter += 1
-								if counter >= size_counter_timeout:
-									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped after 5 mins and moved on as is. -")
-									self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing by size stopped after 5 mins and moved on as is."])
+								if size1_list_timeout.max_time_reached:
+									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+									self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing by size stopped due to timeout and moved on as is."])
 									timed_out - True
 									break
 								for d in lst2[0]: # for each item in list 2
@@ -569,12 +572,12 @@ class Bucketeer():
 										lst1[0].append(d)
 										tmp_to_remove.append(lst2[0].index(d))
 						else:
-							size_counter_timeout = 35000000
+							size2_list_timeout = wrc.timer('size2_list_timeout', 1200) # timeout timer
+							threading.Thread(target=size2_list_timeout.start, name='size1_list_timeout', args=(), daemon=True)
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								counter += 1
-								if counter >= size_counter_timeout:
-									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped after 5 mins and moved on as is. -")
-									self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing by size stopped after 5 mins and moved on as is."])
+								if size2_list_timeout.max_time_reached:
+									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+									self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Balancing by size stopped due to timeout and moved on as is."])
 									timed_out - True
 									break
 								for d in lst2[0]: # for each item in list 2
