@@ -4,7 +4,7 @@
 # 	E2: contact@willrivendell.com
 #
 #   This is a lib to easily access Azure Blob Storage items
-#   Requires: pip install azure-storage-blob if running the py script natively - use AIO for no dependencies
+#   Requires: pip3 install azure-storage-blob if running the py script natively - use AIO for no dependencies
 ##############################################################################################################
 
 ### IMPORTS ###########################################
