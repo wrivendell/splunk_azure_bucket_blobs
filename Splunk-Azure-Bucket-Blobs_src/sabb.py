@@ -36,11 +36,6 @@ else:
 sabb_op_timer = wrc.timer('sabb_timer', 0)
 threading.Thread(target=sabb_op_timer.start, name='sabb_op_timer', args=(), daemon=False).start()
 
-# NOTIFY if csv load directly
-if not arguments.args.skip_to_csv_load:
-	print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly! -")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly!"])
-
 ########################################### 
 # create handler classes
 ########################################### 
@@ -84,6 +79,11 @@ if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Blob interactive service class created: blob_service" + " -")
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Bucket Sorter class created: idx_bucket_sorter" + " -")
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket Sorter class created: idx_bucket_sorter"])
+# NOTIFY if csv load directly
+if not arguments.args.skip_to_csv_load:
+	print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly! -")
+	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly!"])
+
 ########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # create handler classes
 ########################################### 
