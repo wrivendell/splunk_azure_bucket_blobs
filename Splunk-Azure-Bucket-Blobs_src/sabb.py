@@ -529,7 +529,7 @@ def timeAndCompletionChecker():
 			print("-------------------------")
 			print("\n")
 			print("-------------------------")
-			print("Bucketeer Elapsed Timer(h): ", buckets.getElapsedHours())
+			print("Bucketeer Elapsed Timer(h): ", azure_bucket_sorter.getElapsedHours())
 			print("=========================")
 			print("Splunk Azure Bucket Blobs")
 			print("=========================")
