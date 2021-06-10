@@ -816,7 +816,7 @@ class Bucketeer():
 						guid_csv = self.getPeerCSV(p) # the peers CSV 
 						tmp_list = [] # tmp list for our prune csv list from the main
 						for bt in self.final_peer_download_lists[idx]:
-							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], '', '']
+							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5]]
 							header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
 							if len(bt) > 13: # we always break the buckets out into 13 details int he tuple, if there are more items in the tuple, it was additional data the user wanted back
 								if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)

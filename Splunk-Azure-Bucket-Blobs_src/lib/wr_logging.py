@@ -279,7 +279,7 @@ class CSVFile():
 		'''
 		if os.path.exists(self.log_path):
 			try:
-				df = pandas.read_csv(self.log_path, header=None)
+				df = pandas.read_csv(self.log_path, header=None, engine='python')
 				df = df.iloc[1:]
 				return(df.values.tolist())
 			except Exception as ex:
