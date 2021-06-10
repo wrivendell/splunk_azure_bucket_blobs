@@ -759,8 +759,8 @@ if __name__ == "__main__":
 		print("\n")
 		print("Starting: thread_blob_download_parent")
 		#print("exiting so not to download any real data outside of UK")
-		#sys.exit()
 		#sabb_op_timer.stop()
+		#sys.exit()
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_blob_download_parent"])
 		thread_blob_download_parent.start()
 
