@@ -218,11 +218,11 @@ class CSVFile():
 		'''
 		if os.path.exists(self.log_path):
 			try:
-				if not len(parameter_list) == 4:
-					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - updateCellsByHeader takes strictly 4 parameters more or less given. -")
-					retun(False)
 				df = pandas.read_csv(self.log_path)
 				for i in parameter_list:
+					if not len(parameter_list) == 4:
+						print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - updateCellsByHeader takes strictly 4 parameters more or less given. Skipping: " + str(i) +" -")
+						continue
 					header_to_search_under = str(i[0])
 					value_to_search = str(i[1])
 					header_to_update = str(i[2])

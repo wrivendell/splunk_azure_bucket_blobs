@@ -385,7 +385,7 @@ def updateCompletedWRQDownloadJobs():
 						tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					# 0 = blob name - 1 = bytes size - 2 = container - 3 = downloaded to path
 				if run_me:
-					wrq_csv_report.add(log_csv.updateCellsByHeader,[[]] (tmp_csv_dl_list)]])
+					wrq_csv_report.add(log_csv.updateCellsByHeader,[[(tmp_csv_dl_list)]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs), 3]])
 					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list), 3]])

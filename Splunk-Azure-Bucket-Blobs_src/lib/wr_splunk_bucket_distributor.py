@@ -92,7 +92,6 @@ class Bucketeer():
 		self.sp_pword = sp_pword
 		self.sp_idx_cluster_master_uri = sp_idx_cluster_master_uri
 		self.port = port
-		self.size_error_margin = size_error_margin / 100
 		self.include_additioanl_list_items_in_csv = include_additioanl_list_items_in_csv
 
 		# see if cluster master URI is available
@@ -547,6 +546,7 @@ class Bucketeer():
 				self.size_error_margin = 10
 			else:
 				self.size_error_margin = len(master_list_of_lists)/2
+			self.size_error_margin = self.size_error_margin / 100 # as a percent
 			margin = average_size_per * self.size_error_margin # % margin
 			size_list_timeout = wrc.timer('size_list_timeout', 1200) # timeout timer
 			threading.Thread(target=size_list_timeout.start, name='size_list_timeout', args=(), daemon=True).start()
@@ -743,14 +743,14 @@ class Bucketeer():
 						guid_csv = self.getPeerCSV(p)
 						tmp_list = []
 						for bt in self.final_peer_download_lists[idx]:
-							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5] ]
+							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], '', '']
 							header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
 							if len(bt) > 13:
 								if self.include_additioanl_list_items_in_csv:
 									bt_list.extend(bt[13:])
 									add_diff = len(bt_list) - 6
 									for x in range(add_diff):
-										header_row.append("Additional_" + str(x))
+										header_row.append("Additional_" + str(x + 1))
 							tmp_list.append(  bt_list )
 						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
 						if p == self.my_guid:
