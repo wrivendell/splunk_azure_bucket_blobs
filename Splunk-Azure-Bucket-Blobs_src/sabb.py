@@ -31,7 +31,12 @@ else:
 	main_log = 'sabb'
 	main_report_csv = 'azure_blob_status_report'
 
-# create log handler
+
+
+
+########################################### 
+# create handler classes
+########################################### 
 log_file = log.LogFile(main_log, remove_old_logs=True, log_level=arguments.args.log_level, log_retention_days=0, debug=arguments.args.debug_modules)
 
 # Print Console Info
@@ -46,7 +51,7 @@ blob_service = wazure.BlobService((arguments.args.connect_string)) # used to mak
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Blob interactive service class created: blob_service"])
 master_bucket_download_list = []
 
-# service class for Bucket sorter
+# bucket sorter "bucketeer" class
 if not arguments.args.standalone:
 	azure_bucket_sorter = buckets.Bucketeer('idx_bucket_sorter', 
 											 sp_home=arguments.args.splunk_home, 
@@ -60,13 +65,22 @@ if not arguments.args.standalone:
 	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
 else:
 	log_csv = log.CSVFile(main_report_csv, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
+
 # Print Console Info
 if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Blob interactive service class created: blob_service" + " -")
 	print("- SABB(" + str(sys._getframe().f_lineno) +"):  Bucket Sorter class created: idx_bucket_sorter" + " -")
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket Sorter class created: idx_bucket_sorter"])
+########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# create handler classes
+########################################### 
 
-# create queues
+
+
+########################################### 
+# create queues for throwing various jobs at
+########################################### 
+# download / csv updater / log writer queues
 if not arguments.args.write_out_full_list_only:
 	wrq_download = wrq.Queue('blob_downloader', (arguments.args.thread_count), debug=arguments.args.debug_modules) # downloads blobs from Azure
 	wrq_csv_report = wrq.Queue('parent_csv_reporter', 1, debug=arguments.args.debug_modules) # queues csv writes to master status report
@@ -96,6 +110,11 @@ if arguments.args.detailed_output:
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Processing Queue Created:"])
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue class: wrq_logging"])
 log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue name: parent_logging"])
+########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# create queues for throwing various jobs at
+########################################### 
+
+
 
 ### Functions ###########################################
 def currentDate(include_time=False, raw_or_str=False):
@@ -107,6 +126,7 @@ def currentDate(include_time=False, raw_or_str=False):
 		else:
 			return(datetime.datetime.now().strftime('%Y_%m_%d'))
 
+# check CSV to see if download complete cell has SUCCESS 
 def checkAlreadyDownloaded(blob_name) -> bool:
 	'''
 	Returns True or False, True if already downloaded.
@@ -125,6 +145,7 @@ def checkAlreadyDownloaded(blob_name) -> bool:
 	else:
 		return(False)
 
+# check bucket name/path to see if it has a GUID, if not, append guid of new idx its going to (only used when moviing TO clustered node)
 def appendGUIDCheck(bucket_detail_list:list) -> set:
 	'''
 	If needing a name change,
@@ -149,7 +170,7 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 	else:
 		return(False, "")
 
-# get list of all blobs to download
+# get list of all blobs to download - reaches out to Azure and pulls back blob files based on optional filters set by the user
 def makeBlobDownloadList(container_names_to_search_list=[], 
 						 container_names_to_ignore_list=[], 
 						 blob_names_to_search_list=[], 
@@ -177,7 +198,10 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 	try:
 		tmp_master_list_log_lines = []
 		all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers(container_names_to_search_list, blob_names_to_search_list)
-		# FEED BACK FOR USER
+
+		########################################### 
+		# FILTERS FEED BACK FOR USER
+		########################################### 
 		# Container filters
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed"])
@@ -221,8 +245,13 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				for filter in arguments.args.blob_ignore_list:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
 					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter])
-		
-		# Actual running
+		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		# FILTERS FEED BACK FOR USER
+		########################################### 
+
+		########################################### 
+		# RUN LOOP AGAINST AZURE and process through filters
+		########################################### 
 		if not all_blobs_by_containers_dict_list:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): No Containers Found -")
 			return(False)
@@ -267,17 +296,27 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
 				if arguments.args.list_create_output:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
+				
+				# check CSV if available to see if its already on the list
 				if arguments.args.standalone:
 					if log_csv.valueExistsInColumn('Blob_Path_Name', str(blob['name']))[0]:
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
 						continue
+				# files that made it to the end get added to a master list as is
 				master_bucket_download_list.append(tmp_list)
 	except Exception as ex:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Exception: -")
 		print(ex)
 		print("- SABB(" + str(sys._getframe().f_lineno) +"):  Failed pulling a blob name, trying to skip. -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Failed pulling a blob name, trying to skip."])
+		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		# RUN LOOP AGAINST AZURE and process through filters
+		########################################### 
+
 	try:
+		########################################### 
+		# Process master list through bucketeer sorter if clustered environment - master_bucket_download_list
+		########################################### 
 		if not arguments.args.standalone:
 			# send to bucket sorter for idx cluster distribution
 			if not azure_bucket_sorter.start(master_bucket_download_list):
@@ -309,7 +348,14 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 		print("- SABB(" + str(sys._getframe().f_lineno) +"):  FAILED to create master blob download list, exiting. -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):FAILED to create master blob download list, exiting."])
 		sys.exit()
+		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		# Process master list through bucketeer sorter if clustered environment - master_bucket_download_list
+		########################################### 
 
+
+########################################### 
+# General helper functions for processing and checking
+########################################### 
 # compare a byte size to a file byte size
 def compareDownloadSize(expected_size:int, full_path_to_file:str):
 	'''
@@ -341,10 +387,28 @@ def updateDownloadedCSVSuccess(blob_name):
 	if not update_cell:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): "+ blob_name +" appeared to finish, but couldn't find cell in CSV to update -")
 
+	# fun icon for show only
+def spinner(counter):
+	chars = ['|', '/', '--', '\\', '|', '/', '--', '\\']
+	try:
+		return(chars[counter])
+	except:
+		return(chars[0])
+
+########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# General helper functions for processing and checking
+########################################### 
+
+
+
+########################################### 
+# THREAD Monitors download jobs and adds updates to log/csv queues
+########################################### 
 def updateCompletedWRQDownloadJobs():
 	'''
 	Get a list of rows to be added to the master file
 	'''
+	
 	global list_index
 	global run_me
 	while run_me:
@@ -398,19 +462,18 @@ def updateCompletedWRQDownloadJobs():
 	else:
 		if arguments.args.detailed_output:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"):  updateCompletedWRQDownloadJobs is completed, thread should stop now. -")
+########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# THREAD Monitors download jobs and adds updates to log/csv queues
+########################################### 
 
-	# fun icon for show only
-def spinner(counter):
-	chars = ['|', '/', '--', '\\', '|', '/', '--', '\\']
-	try:
-		return(chars[counter])
-	except:
-		return(chars[0])
 
-	# this is the last function running in the PARENT - This should be the last of ALL threads to exit
+########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# MAIN Script lock - Last function to run in main thread and last to exit - Updates Console, exit's when time to
+########################################### 
 def timeAndCompletionChecker():
 	counter = -1
 	global run_me
+	start_length_of_download_list = len(master_bucket_download_list)
 	while run_me:
 			if len(wrq_download.jobs_active) <= 0 and len(wrq_logging.jobs_active) <= 0 and len(wrq_download.jobs_completed) > 0 and len(wrq_csv_report.jobs_active) > 0:
 				run_me = False # THIS STOPS THE LAST CSV REPORTER LOOP! DONT DELETE
@@ -465,6 +528,8 @@ def timeAndCompletionChecker():
 			print("- CSV Jobs Waiting: " + str(len(wrq_csv_report.jobs_waiting)))
 			print("-------------------------")
 			print("\n")
+			print("-------------------------")
+			print("Bucketeer Elapsed Timer(h): ", buckets.bucketeer_timer.elapsed(unit=h)
 			print("=========================")
 			print("Splunk Azure Bucket Blobs")
 			print("=========================")
@@ -501,6 +566,11 @@ def timeAndCompletionChecker():
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Goodbye. -")
 		#thread_update_status.join()
 		sys.exit(0)
+########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# MAIN Script lock - Last function to run in main thread and last to exit - Updates Console, exit's when time to
+########################################### 
+
+
 
 ### RUNTIME ###########################################
 if __name__ == "__main__":
@@ -520,9 +590,10 @@ if __name__ == "__main__":
 						container_names_ignore_list_equals_or_contains=arguments.args.container_ignore_list_type,
 						blob_names_to_ignore_list=arguments.args.blob_ignore_list,
 						blob_names_ignore_list_equals_or_contains=arguments.args.blob_ignore_list_type)
-
-	# add download jobs to download queue
-	start_length_of_download_list = len(master_bucket_download_list)
+	
+	########################################### 
+	# Standalone CSV write out of new items and read back for list download
+	########################################### 
 	if arguments.args.standalone:
 		if master_bucket_download_list:
 			print("\n\n\n#######################################################################################")
@@ -536,6 +607,10 @@ if __name__ == "__main__":
 		master_bucket_download_list_full = log_csv.readAllRowsToList()
 		for i in master_bucket_download_list_full:
 			master_bucket_download_list.append([ i[0], i[1], i[2] ])
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# Standalone CSV write out of new items and read back for list download
+	########################################### 
+
 
 	# exit if no blobs found to dl
 	if not master_bucket_download_list:
@@ -543,6 +618,9 @@ if __name__ == "__main__":
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):No Blobs found for download, exiting."])
 		sys.exit()
 
+	########################################### 
+	# WOFLO - Write out list only - No Downloading Option done here
+	########################################### 
 	if not arguments.args.write_out_full_list_only:
 		wrq_download.add(blob_service.downloadBlobByName, master_bucket_download_list, start_after_add=False)
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Adding download job list to download queue: wrq_download -")
@@ -560,8 +638,16 @@ if __name__ == "__main__":
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"):  Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
 		for i in master_bucket_download_list:
 			log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# WOFLO - Write out list only - No Downloading Option done here
+	########################################### 
 
-	## Thread prep
+
+
+	########################################### 
+	# Prep LOCAL threads. Kick off the queues where the jobs are added - those queues run their x amount of threads each - threads used so main can still run
+	# - wrq_download, wrq_logging, wrq_csv_report
+	########################################### 
 	''' 
 	Create parent threads
 	The following threads will run simultaneously
@@ -571,8 +657,8 @@ if __name__ == "__main__":
 		thread_update_status -> simple overall update status printing to log and console
 	'''
 	print("\n")
-	
-# CREATE parent threads
+
+	# CREATE parent threads
 
 	# thread_logging_parent
 	if arguments.args.detailed_output:
@@ -604,9 +690,18 @@ if __name__ == "__main__":
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating download thread parent called: thread_blob_download_parent"])
 		thread_blob_download_parent = threading.Thread(target=wrq_download.start, name='blob_download_parent', args=())
 		thread_blob_download_parent.daemon = True
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# Prep LOCAL threads. CREATE the queues where the jobs are added - those queues run their x amount of threads each - threads used so main can still run
+	# - wrq_download, wrq_logging, wrq_csv_report
+	########################################### 
 
-## Here we go
-# START parent threads
+
+
+	########################################### 
+	# START LOCAL threads. Kick off the queues where the jobs are added - those queues run their x amount of threads each - threads used so main can still run
+	# - wrq_download, wrq_logging, wrq_csv_report
+	########################################### 
+	# START parent threads
 
 	# thread_logging_parent
 	print("Starting: thread_logging_parent")
@@ -633,11 +728,16 @@ if __name__ == "__main__":
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_update_completed"])
 		thread_update_completed.start()
 
-
-	time.sleep(5)
+	time.sleep(5) # let everyone breathe before the madness
 	if not arguments.args.write_out_full_list_only:
-		timeAndCompletionChecker()
-	else:
+		timeAndCompletionChecker() # this is a loop that runs for the entirety of the operation
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# START LOCAL threads. Kick off the queues where the jobs are added - those queues run their x amount of threads each - threads used so main can still run
+	# - wrq_download, wrq_logging, wrq_csv_report
+	########################################### 
+
+	### Feedback for user when just writing out the list (WOFLO) since it can take a long time
+	if arguments.args.write_out_full_list_only:
 		print("\n\n\n#######################################################################################")
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Starting: Write To CSV at: /logs/" + (main_report_csv) )
 		print("#######################################################################################\n\n\n")

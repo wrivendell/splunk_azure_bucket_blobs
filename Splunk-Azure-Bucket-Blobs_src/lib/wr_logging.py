@@ -220,7 +220,10 @@ class CSVFile():
 			try:
 				df = pandas.read_csv(self.log_path)
 				for i in parameter_list:
-					if not len(parameter_list) == 4:
+					print(i)
+					print(len(i))
+					print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+					if not len(i) == 4:
 						print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - updateCellsByHeader takes strictly 4 parameters more or less given. Skipping: " + str(i) +" -")
 						continue
 					header_to_search_under = str(i[0])

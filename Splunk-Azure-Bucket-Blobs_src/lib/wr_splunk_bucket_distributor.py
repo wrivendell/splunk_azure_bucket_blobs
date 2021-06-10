@@ -35,6 +35,13 @@ class Bucketeer():
 	# this is the startup script, init?
 	def __init__(self, name: str, sp_home:str, sp_uname:str, sp_pword:str, list_of_bucket_list_details=[], sp_idx_cluster_master_uri='', port=8089, main_report_csv='', include_additioanl_list_items_in_csv=True, debug=False):
 		'''
+		THIS will run on ALL nodes in the indexer cluster. All nodes will process the exact same list and end up with the exact same results.
+		Final list of lists will be sorted and contain one list per GUID.
+		GUIDS will be sorted by GUID and they will be assigned it's corredponding index in the master list
+			GUID 0 get master_list 0
+			GUID 1 get master_list 1
+			and so on... 
+
 		Optionally, Provide Splunk IDX Cluster Master and API port e.g.  splunk_idx_cluster_master_uri="https://cm1.mysplunk.go_me.com" 
 			Port is set to default, port=8089 
 			If URI left empty, an attempt will be made to find it via the local file system.
@@ -72,9 +79,10 @@ class Bucketeer():
 				FROZEN example from Azure BLOB:
 					['frozendata/barracuda/frozendb/db_1621748072_1629322094_16_C27CDE8F-2593-4435-8739-B827B7975060/rawdata/journal.gz', 1.757321]
 
-
-
 		'''
+		########################################### 
+		# Log and init start
+		########################################### 
 		self.log_file = log.LogFile('bucketeer.log', log_folder='./logs/', remove_old_logs=True, log_level=3, log_retention_days=10)
 		if not sp_uname:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): No Splunk Username provided, yet Cluster is indicated. I'm not a mind reader! Cluster Master API call not possible. Exiting.")
@@ -115,6 +123,7 @@ class Bucketeer():
 			sys.exit()
 		else:
 			self.my_guid = str(self.my_guid[1])
+		
 		# get peer GUIDs
 		self.idx_cluster_peers = self.getPeerGUIDS()
 
@@ -123,12 +132,15 @@ class Bucketeer():
 			self.main_report_csv = 'bucket_sort_status_report.csv'
 		else:
 			self.main_report_csv = main_report_csv
-
-# not used now, maybe later if list creation continues to be a pain
-#		self.write_list_csv = log.CSVFile('list_report.csv',1, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=self.debug) # used to resume WRITING the full list on failures or cancels
-#		self.write_list_queue = wrq.Queue('list_reporter', 1, debug=self.debug)
-
-		# create csv handlers and write queues- one list per guid
+		'''
+		#not used now, maybe later if list creation continues to be a pain
+				self.write_list_csv = log.CSVFile('list_report.csv',1, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=self.debug) # used to resume WRITING the full list on failures or cancels
+				self.write_list_queue = wrq.Queue('list_reporter', 1, debug=self.debug)
+		'''
+		# create csv handlers and write queues - one list per guid - used to write all lists our to csv "simultaneously" 
+		'''
+		This doesnt write anything or create anything, it just creates the threads and classes in memory for use and job adds later
+		'''
 		self.csv_list = []
 		self.csv_queues = []
 		csv_write_job_dicts = {} # queues write jobs per guid
@@ -139,7 +151,10 @@ class Bucketeer():
 			self.csv_queues.append(wrq.Queue('csv_writer' + "_" + g, 1, inactive_queue_timeout_sec=8, debug=False)) # queues csv writes to master status report
 			csv_write_job_dicts[g] = []
 
-		# check if any previous csv exist
+		# check if any previous csv exist - 
+		'''
+		Do this once now as when we process hundreds of thousands of buckets, we only need to check a bool for each and know we can skip scanning ever CSV if they don't even exist
+		'''
 		self.csv_exists = False
 		for guid in self.guid_list:
 			csv = self.getPeerCSV(guid)
@@ -147,11 +162,19 @@ class Bucketeer():
 				self.csv_exists = True
 				break
 
-		# start timer
+		# start easy timer for the overall operation - runs for length
 		bucketeer_timer = wrc.timer('bucketeer_timer', 0) # timeout timer
 		threading.Thread(target=bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=True).start()
+		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		# Log and init start
+		########################################### 
 
-	# get peer GUIDS in this idx cluster
+
+
+	########################################### 
+	# General Helper Functions
+	########################################### 
+	# get peer GUIDS in this idx cluster and SORTS them (very important they are sorted)
 	def getPeerGUIDS(self):
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Creating 'wapi' service called: splunk_idx_cm_service -\n")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Creating 'wapi' service called: splunk_idx_cm_service."] )
@@ -179,6 +202,15 @@ class Bucketeer():
 			if self.my_guid in queue.name:
 				return(queue)
 
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# General Helper Functions
+	########################################### 
+
+
+
+	########################################### 
+	# First bucket details handler - get all the details for a bucket into easy variables
+	########################################### 
 	# split bucket details out into a tuple with get-able variables
 	def splitBucketDetails(self):
 		'''
@@ -275,8 +307,6 @@ class Bucketeer():
 						bucket_state_path = "\\"
 					else:
 						bucket_state_path = ""
-#					if self.debug:
-#						print("Finished Setting OS slash direction:", str(bucket_state_path))
 			except Exception as ex:
 				if self.debug:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Can't find bucket_state_path. Tuple index out of range. Might be internal_db. Adding it: " + str(bucket_path))
@@ -288,8 +318,6 @@ class Bucketeer():
 					bucket_state_path = "\\"
 				else:
 					bucket_state_path = ""
-#				if self.debug:
-#					print("Finished Setting OS slash direction:", str(bucket_state_path))
 
 			# get bucket_id_guid from from bucket path tuple
 			try:
@@ -311,8 +339,6 @@ class Bucketeer():
 				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Bucket is standalone and not part of a cluster: " + str(bucket_path) ])
 
 			# get bucket_id_origin from from bucket path tuple
-#			if self.debug:
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):Attempting to extract bucket_id_origin (replicated or original bucket status).")
 			try:
 				if 'rb' in str(bucket_id_full.split('_')[0]):
 					bucket_id_origin = False
@@ -372,8 +398,6 @@ class Bucketeer():
 				print(" -" + str( (bucket_id_id) ) )
 
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
-#			if self.debug:
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Making base list for return." + str(bucket_path) )
 			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_origin)
 			bid = str(bucket_id_earliest) + "_" + str(bucket_id_latest) + "_" + str(bucket_id_id) + "_" + str(bucket_id_guid)
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Making base list for return." + str(bucket_path) ])
@@ -381,9 +405,12 @@ class Bucketeer():
 							bucket_id_guid, bucket_id_standalone, bucket_id_origin, bucket_path[1], bucket_path[0],
 							str(bucket_state_path), str(bucket_index_path), str(bucket_db_path), str(uid), str(bid)
 							]
-
-			# add additional items not used back to the list
-#			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Adding any additional items we received on list back into final base list for return." + str(bucket_path) )
+			# add additional items not used back to the list - anything the main script passed in here from its list, we will return at the end of ours
+			'''
+			Because this is modular and can be given a list from Azure, GCP, AWS etc... there may be data the user wants to carry with the bucket details
+			i.e in Azure, the Container name is used to download the file later, but we dont need the container here, however it would cost a lot to cycle through
+				this final list and tack the container on when the bucket id is found later, so its better to keep it with the data all the time
+			'''
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Adding any additional items we received on list back into final base list for return." + str(bucket_path) ])
 			if len(bucket_path) > 2:
 				for idx, item in enumerate(bucket_path):
@@ -408,7 +435,24 @@ class Bucketeer():
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Finished parsing all bucket details, moving onto split and sort of MASTER list." )
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Finished parsing all bucket ids."])
 		return(bucket_dicts_master_list)
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# First bucket details handler - get all the details for a bucket into easy variables
+	########################################### 
 
+	########################################### 
+	# Sorters and Splitters - master list will be sorted at a micro level and then broken out into multiple lists (depending on peer amount)
+	########################################### 
+	'''
+	Because it can literally take days to sort 300K - 1mn items at this level, we instead "quick sort" using dictionaries
+	The end goal is group like buckets together so we can then split them up evenly.
+	If we split the master list now, all of "cisco" buckets could end up on a single indexer, where instead we want all cisco frozen db to be split up evenly
+		and all cisco warm db to be split up evenly and so on. Granular grouping is by "state, index and then db" 
+		-> /warm/cisco/db/, /warm/mcafee/db/ 
+		-> /cold/cisco/coldb etc....  
+		each of those are then split up evenly amongs the peers
+		the format from here starts like this
+		{/warm/cisco/db/, [ list from above containing the details of a single bucket file, and another, and another, etc ]}
+	'''
 	def orgnaizeFullListIntoBucketDicts(self, bucket_info_tuples_list:list):
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Sorting bucket files into dictionaries for fast iteration."])
 		if self.debug:
@@ -424,6 +468,13 @@ class Bucketeer():
 		return(result)
 
 	# split a large list into smaller lists
+	'''
+	This takes the most amount of time of the entire process next to downloading the actual files.
+	All granular lists in the dict format from the function above get processed through here and then distributed across tmp peer lists
+	Sub dicts are made for each chunk thats split off (again for performance)
+	We dont want to break the final bucket out yet as we still want to balance the lists. Balancing a few thousand dict lists is WAAAAAY faster than
+	a million bucket files directly
+	'''
 	def splitList(self, list_to_split:list, split_by:int) -> list:
 		'''
 		Split a list into sublists based on split factor specified
@@ -454,23 +505,23 @@ class Bucketeer():
 			return(master_list_of_sublists)
 		else:
 			per_chunk_count = int(total_list_item_count / split_by)
-#			first_index = 0 - per_chunk_count # minus the total for a negative so first iteration starts at 0
-#			last_index = 0
 			counter = -1
 			while total_list_item_count > 0:
 				counter += 1
 				for m_sub_list in master_list_of_sublists:
 					if counter % 2000 == 0:
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... iteration -> " + str(counter))
-#					first_index = first_index + per_chunk_count
-#					last_index = last_index + per_chunk_count
 					m_sub_list.extend(result_dict_list[0:per_chunk_count])
 					del result_dict_list[0:per_chunk_count]
-#					m_sub_list.extend(list(result.items())[first_index:last_index]) # old way
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
 
 	# balance list of lists by length and "size" in bytes
+	'''
+	Once the dict lists have bee broken up into separate granular dict lists we'll run them through a few balancers
+	We'll ensure the lists have roughly the same amount of jobs but some buckets could weight more than others in terms of disk space.
+	We'll then total up the size of each and and start moving some around to balance them out. Size is more important than amount in the end ;)
+	'''
 	def balanceListOfLists(self, master_list_of_lists:list) -> list:
 		'''
 		This will do the following:
@@ -528,7 +579,6 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by size of files in list. -")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Attempting to balance buckets by size of files in list."])
-#		master_list_of_lists.sort(key=operator.itemgetter('uid'))
 		size_balanced = False
 		total_size = 0
 		try:
@@ -539,7 +589,6 @@ class Bucketeer():
 					for b in d[1]: # get bucket tuples in bid dict
 						total_size = total_size + (b[6]/1024.0**2)
 						tmp_size = tmp_size + (b[6]/1024.0**2)
-				#print("List: ", tmp_size)
 			# get average MB per list
 			average_size_per = total_size / len(master_list_of_lists)
 			if len(master_list_of_lists)/2 >= 10:
@@ -649,6 +698,7 @@ class Bucketeer():
 		# finish
 		return(master_list_of_lists)
 
+	# Wrapper for the "splitlist" function above - see it for more details
 	def divideMasterBucketListAmongstPeers(self, peer_list:tuple, bucket_dicts_master:dict):
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Dividing bucket list amongst peers."])
@@ -689,7 +739,13 @@ class Bucketeer():
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED Dividing bucket list amongst peers.")
 		self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " FINISHED Dividing bucket list amongst peers."])
 		return(final_peer_download_dicts)
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# Sorters and Splitters - master list will be sorted at a micro level and then broken out into multiple lists (depending on peer amount)
+	########################################### 
 
+	########################################### 
+	# Final processing of sorted list
+	########################################### 
 	def verifyBucketList(self, bucket_list:list) -> bool:
 		'''
 		Verify each item is in the following format [<full_path_to_a_bucket_file>, <file_size_bytes>]
@@ -706,6 +762,7 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Master List of lists was empty, cannot continue."])
 			return(False)
 
+	# FINALLY we go through all of the dicts and pull out the nested bucket file details - in the end each list is just a simple list full of bucket detail tuples - sorted of course
 	def createMasterTupleListFromDicts(self, final_peer_download_dicts):
 		final_master_download_list_of_lists = []
 		for x in range(len(final_peer_download_dicts)):
@@ -716,37 +773,47 @@ class Bucketeer():
 					final_master_download_list_of_lists[idx].append(b)
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Amount of peer lists: ", len(final_master_download_list_of_lists))
 		return(final_master_download_list_of_lists)
-
+	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	# Final processing of sorted list
+	########################################### 
+	
+	########################################### 
+	#  START - All of the above starts here
+	########################################### 
 	def start(self, bucket_list=[], replace = True):
 		'''
 		After creating the class in external script for this module, you can start sorting the list by calling this function
 		Any buckets here will be ADDED to buckets you added by default!
 		Set replace_list to True to replace the original list with the one entered at startup
 		'''
+		# if user created this class but wants to add more buckets at the start of it, this handles that
 		if bucket_list:
 			if replace:
 				self.list_of_bucket_list_details = bucket_list
 			else:
 				self.list_of_bucket_list_details.extend(bucket_list)
+			
+			# make sure the bucket list is in the proper format ( bucketfilepath, size)
 			if self.verifyBucketList(self.list_of_bucket_list_details):
+				# break each bucket into a tuple with multiple elements, each containing a detail about the bucket
 				bucket_dicts_master = self.splitBucketDetails() # return final master dict list of buckets
-				if bucket_dicts_master: # theres new items in the list to add to csv
+				if bucket_dicts_master: # no csv yet or theres new items in the list to add to csv will make this true
 					final_peer_download_dicts = self.divideMasterBucketListAmongstPeers(self.idx_cluster_peers, bucket_dicts_master)
-					self.final_peer_download_lists = self.createMasterTupleListFromDicts(final_peer_download_dicts)
-					write_threads = []
+					self.final_peer_download_lists = self.createMasterTupleListFromDicts(final_peer_download_dicts) # create x amount of list full of simple tuples
+					write_threads = [] # we'll add our csv thread writer queues to this and then kick them off later
 					self.final_peer_download_lists.sort()
-					for idx, p in enumerate(self.idx_cluster_peers):
+					for idx, p in enumerate(self.idx_cluster_peers): # assign each list to a guid and write out its respective csv (each peer will do some extras when they hit THEIR list)
 						if p == self.my_guid:
-							self.this_peer_index = idx = idx
+							self.this_peer_index = idx
 						# write lists to csvs
-						guid_queue = self.getPeerCSVQ(p)
-						guid_csv = self.getPeerCSV(p)
-						tmp_list = []
+						guid_queue = self.getPeerCSVQ(p) # the peers queue
+						guid_csv = self.getPeerCSV(p) # the peers CSV 
+						tmp_list = [] # tmp list for our prune csv list from the main
 						for bt in self.final_peer_download_lists[idx]:
 							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], '', '']
 							header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
-							if len(bt) > 13:
-								if self.include_additioanl_list_items_in_csv:
+							if len(bt) > 13: # we always break the buckets out into 13 details int he tuple, if there are more items in the tuple, it was additional data the user wanted back
+								if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)
 									bt_list.extend(bt[13:])
 									add_diff = len(bt_list) - 6
 									for x in range(add_diff):
@@ -755,17 +822,18 @@ class Bucketeer():
 						guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
 						if p == self.my_guid:
 							my_queue = guid_queue
-						write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=()))
-					# start all other peers csv writes in the background
+						write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=())) # add this thread to the write queue
+					# start all peers csv writes in the background
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!!")
 					for t in write_threads:
 						t.daemon = False
 						t.start()
+					# since we started the CSV write in a thread we don't want the peer accessing it til its complete, so we wait
 					while not len(my_queue.jobs_active) == 0 and not len(my_queue.jobs_waiting) == 0 and not len(my_queue.jobs_completed) > 0: # wait for csv to be written out
 						time.sleep(10)
-						print("waiting... for jobs to finish.")
-				self.this_peer_download_list = (self.getPeerCSV()).readAllRowsToList()
-				if self.this_peer_download_list:
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Waiting... for jobs to finish.")
+				self.this_peer_download_list = (self.getPeerCSV()).readAllRowsToList() # set the variable in this class of this peers list (can be accessed from main)
+				if self.this_peer_download_list: # make sure the list isnt empty and send it back to main for download!
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Number in This Peers Download list is: " + str(len(self.this_peer_download_list)))
 					return(True)
 				else:
