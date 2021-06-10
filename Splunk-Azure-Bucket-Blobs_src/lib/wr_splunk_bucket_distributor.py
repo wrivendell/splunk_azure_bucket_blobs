@@ -5,7 +5,7 @@
 ##############################################################################################################
 
 ### Imports ###########################################
-import time, sys, re, threading
+import time, sys, re, threading, pandas
 
 from pathlib import Path
 from collections import OrderedDict
@@ -816,7 +816,7 @@ class Bucketeer():
 						guid_csv = self.getPeerCSV(p) # the peers CSV 
 						tmp_list = [] # tmp list for our prune csv list from the main
 						for bt in self.final_peer_download_lists[idx]:
-							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5]]
+							bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], 'NO', 0]
 							header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
 							if len(bt) > 13: # we always break the buckets out into 13 details int he tuple, if there are more items in the tuple, it was additional data the user wanted back
 								if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)
@@ -831,6 +831,7 @@ class Bucketeer():
 						write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=())) # add this thread to the write queue
 					# start all peers csv writes in the background
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!!")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!! "])
 					for t in write_threads:
 						t.daemon = False
 						t.start()
@@ -838,9 +839,36 @@ class Bucketeer():
 					while not len(my_queue.jobs_active) == 0 and not len(my_queue.jobs_waiting) == 0 and not len(my_queue.jobs_completed) > 0: # wait for csv to be written out
 						time.sleep(10)
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Waiting... for jobs to finish.")
-				self.this_peer_download_list = (self.getPeerCSV()).readAllRowsToList() # set the variable in this class of this peers list (can be accessed from main)
+				# next read csv into a dataframe and strip all items that have been downloaded according to the csv leaving us with a new download list -ready for action
+				try:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Removing all downloaded items before passing back list. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Removing all downloaded items before passing back list. "])
+					df = pandas.read_csv(self.getPeerCSV().log_path, engine='python')
+					df = df[df.Download_Complete != 'SUCCESS']
+					# remove headers now
+					df = df.iloc[1:]
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Done. "])
+				except Exception as ex:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Couldn't read csv list to dataframe. Exiting. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Couldn't read csv list to dataframe. Exiting. "])
+					print(ex)
+					sys.exit()
+				try:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Converting data frame to python list for download processing. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Converting data frame to python list for download processing. "])
+					self.this_peer_download_list = df.values.tolist() # set the variable in this class of this peers list (can be accessed from main)
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. -")
+				except Exception as ex:
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Couldn't convert dataframe to list. Exiting. -")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Couldn't convert dataframe to list. Exiting. "])
+					print(ex)
+					sys.exit()
 				if self.this_peer_download_list: # make sure the list isnt empty and send it back to main for download!
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Number in This Peers Download list is: " + str(len(self.this_peer_download_list)))
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Bucketeer is done processing. ")
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + " Number in This Peers Download list is: " + str(len(self.this_peer_download_list))])
+					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Bucketeer is done processing. "])
 					self.bucketeer_timer.stop()
 					return(True)
 				else:

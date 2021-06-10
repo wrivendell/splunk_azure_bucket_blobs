@@ -273,9 +273,10 @@ class CSVFile():
 			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Could not read csv specified. -")
 			return(False, False)
 
-	def readAllRowsToList(self) -> list:
+	def readAllRowsToList(self, remove_rows_header_equals_value_pairs=[]) -> list:
 		'''
 		Reads all of the rows in the csv for this calss to a list 
+		Optionally specify a list of kv pairs, header, value to exclude any rows where that matches in the new list
 		'''
 		if os.path.exists(self.log_path):
 			try:
