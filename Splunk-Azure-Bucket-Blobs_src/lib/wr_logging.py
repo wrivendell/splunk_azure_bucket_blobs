@@ -270,7 +270,7 @@ class CSVFile():
 			except:
 				return(False, [])
 		else:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
+			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Could not read csv specified. -")
 			return(False, False)
 
 	def readAllRowsToList(self) -> list:
@@ -283,11 +283,11 @@ class CSVFile():
 				df = df.iloc[1:]
 				return(df.values.tolist())
 			except Exception as ex:
-				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Read from CSV failed -")
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Read from CSV failed -")
 				print(ex)
 				return([])
 		else:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + "): - Could not read csv specified. -")
+			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.log_path + "): - Could not read csv specified. -")
 			return(False, False)
 	
 	def doesLogFileExist(self):

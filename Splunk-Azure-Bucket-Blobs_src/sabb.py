@@ -53,6 +53,7 @@ master_bucket_download_list = []
 
 # bucket sorter "bucketeer" class
 if not arguments.args.standalone:
+	csv_already_exists = True # only used for standalone but set to True in case someone adds something funky later
 	azure_bucket_sorter = buckets.Bucketeer('idx_bucket_sorter', 
 											 sp_home=arguments.args.splunk_home, 
 											 sp_uname=arguments.args.splunk_username,
@@ -65,6 +66,10 @@ if not arguments.args.standalone:
 	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
 else:
 	log_csv = log.CSVFile(main_report_csv + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
+	if os.path.exists(log_csv.log_path):
+		csv_already_exists = True
+	else:
+		csv_already_exists = False
 
 # Print Console Info
 if arguments.args.detailed_output:
@@ -133,11 +138,14 @@ def checkAlreadyDownloaded(blob_name) -> bool:
 	The return from the csv list should only contain one value so access with <returned>[1][0]
 	If it contains more, there are dupes in your CSV. That return is a set with a bool, list
 	'''
-	check_completed = log_csv.getValueByHeaders('File_Name', blob_name, 'Download_Complete')
-	if check_completed[0]:
-		if check_completed[1]:
-			if check_completed[1][0] == "SUCCESS":
-				return(True)
+	if csv_already_exists:
+		check_completed = log_csv.getValueByHeaders('File_Name', blob_name, 'Download_Complete')
+		if check_completed[0]:
+			if check_completed[1]:
+				if check_completed[1][0] == "SUCCESS":
+					return(True)
+				else:
+					return(False)
 			else:
 				return(False)
 		else:
@@ -299,9 +307,10 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				
 				# check CSV if available to see if its already on the list
 				if arguments.args.standalone:
-					if log_csv.valueExistsInColumn('File_Name', str(blob['name']))[0]:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
-						continue
+					if csv_already_exists:
+						if log_csv.valueExistsInColumn('File_Name', str(blob['name']))[0]:
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
+							continue
 				# files that made it to the end get added to a master list as is
 				master_bucket_download_list.append(tmp_list)
 	except Exception as ex:
@@ -603,8 +612,8 @@ if __name__ == "__main__":
 			print("#######################################################################################\n\n\n")
 			tmp_list = []
 			for b in master_bucket_download_list:
-				tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
-			log_csv.writeLinesToCSV( (tmp_list), ['File_Name', 'Expected_File_Size_bytes','Downloaded_To', 'Expected_File_Size_MB', 'Downloaded_File_Size_MB', 'Download_Complete'])
+				tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2)] )
+			log_csv.writeLinesToCSV( (tmp_list), ['File_Name', 'Expected_File_Size_bytes','Downloaded_To', 'Expected_File_Size_MB', 'Download_Complete', 'Downloaded_File_Size_MB'])
 		master_bucket_download_list = []
 		master_bucket_download_list_full = log_csv.readAllRowsToList()
 		for i in master_bucket_download_list_full:
