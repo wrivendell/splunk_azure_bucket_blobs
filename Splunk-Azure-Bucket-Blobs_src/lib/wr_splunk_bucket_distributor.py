@@ -240,7 +240,7 @@ class Bucketeer():
 
 			# break out the bucket details
 			if bucket_path[1] <= 0:
-				if not str(bucket_path[0]).endswith(".csv") or not str(bucket_path[0]).endswith(".result"):
+				if not str(bucket_path[0]).endswith(".csv") or not str(bucket_path[0]).endswith(".result") or not str(bucket_path[0]).endswith(".tsidx") or not str(bucket_path[0]).endswith(".bloomfilter") or not str(bucket_path[0]).endswith(".data") or not str(bucket_path[0]).endswith(".journal.gz") or not str(bucket_path[0]).endswith(".dat"):
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping file with 0 byte size: " + str(bucket_path) + " -")
 					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Exception: Skipping file with 0 byte size: " + str(bucket_path)] )
 					continue
