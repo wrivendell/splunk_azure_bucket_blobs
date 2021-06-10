@@ -612,16 +612,15 @@ if __name__ == "__main__":
 			print("#######################################################################################\n\n\n")
 			tmp_list = []
 			for b in master_bucket_download_list:
-				tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2)] )
-			log_csv.writeLinesToCSV( (tmp_list), ['File_Name', 'Expected_File_Size_bytes','Downloaded_To', 'Expected_File_Size_MB', 'Download_Complete', 'Downloaded_File_Size_MB'])
+				tmp_list.append( [ b[0], b[1], b[2], b[3], (b[1]/1024.0**2)] ) # filename, size, container, dl loc, expecte size in mb
+			log_csv.writeLinesToCSV( (tmp_list), ['File_Name', 'Expected_File_Size_bytes', 'Container', 'Downloaded_To', 'Expected_File_Size_MB', 'Download_Complete', 'Downloaded_File_Size_MB'])
 		master_bucket_download_list = []
 		master_bucket_download_list_full = log_csv.readAllRowsToList()
 		for i in master_bucket_download_list_full:
-			master_bucket_download_list.append([ i[0], i[1], i[2] ])
+			master_bucket_download_list.append([ i[0], i[1], i[2], i[3] ])
 	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	# Standalone CSV write out of new items and read back for list download
 	########################################### 
-
 
 	# exit if no blobs found to dl
 	if not master_bucket_download_list:
