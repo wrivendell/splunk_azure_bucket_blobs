@@ -529,12 +529,13 @@ def timeAndCompletionChecker():
 			print("-------------------------")
 			print("\n")
 			print("-------------------------")
-			print("Bucketeer Elapsed Timer(h): ", buckets.bucketeer_timer.elapsed(unit=h)
+			print("Bucketeer Elapsed Timer(h): ", buckets.getElapsedHours())
 			print("=========================")
 			print("Splunk Azure Bucket Blobs")
 			print("=========================")
 			if arguments.args.detailed_output:
 				print("\n")
+
 			if len(wrq_download.jobs_active) > 0 or len(wrq_logging.jobs_active) > 0 or len(wrq_csv_report.jobs_active) > 0:
 				# do log write to log less often
 				counter += 1

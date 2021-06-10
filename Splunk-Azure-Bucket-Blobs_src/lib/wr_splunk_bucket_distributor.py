@@ -162,9 +162,13 @@ class Bucketeer():
 				self.csv_exists = True
 				break
 
-		# start easy timer for the overall operation - runs for length
-		bucketeer_timer = wrc.timer('bucketeer_timer', 0) # timeout timer
-		threading.Thread(target=bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=True).start()
+		# start easy timer for the overall operation -
+		self.bucketeer_timer = wrc.timer('bucketeer_timer', 0) # timeout timer
+		threading.Thread(target=self.bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=True).start()
+
+		def getElapsedHours(self):
+			return(self.bucketeer_timer.elapsed(unit='h'))
+
 		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 		# Log and init start
 		########################################### 
@@ -516,7 +520,9 @@ class Bucketeer():
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
 
-	# balance list of lists by length and "size" in bytes
+	########################################### 
+	# Balance list of lists by length and "size" in bytes
+	########################################### 
 	'''
 	Once the dict lists have bee broken up into separate granular dict lists we'll run them through a few balancers
 	We'll ensure the lists have roughly the same amount of jobs but some buckets could weight more than others in terms of disk space.
@@ -835,6 +841,7 @@ class Bucketeer():
 				self.this_peer_download_list = (self.getPeerCSV()).readAllRowsToList() # set the variable in this class of this peers list (can be accessed from main)
 				if self.this_peer_download_list: # make sure the list isnt empty and send it back to main for download!
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Number in This Peers Download list is: " + str(len(self.this_peer_download_list)))
+					self.bucketeer_timer.stop()
 					return(True)
 				else:
 					return(False)
