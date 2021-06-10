@@ -163,7 +163,7 @@ class Bucketeer():
 				break
 
 		# start easy timer for the overall operation -
-		self.bucketeer_timer = wrc.timer('bucketeer_timer', 0) # timeout timer
+		self.bucketeer_timer = wrc.timer('bucketeer_timer', 0)
 		threading.Thread(target=self.bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=True).start()
 
 		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

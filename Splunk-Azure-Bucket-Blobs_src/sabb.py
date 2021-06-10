@@ -12,6 +12,7 @@ from lib import wr_thread_queue as wrq
 from lib import wr_logging as log
 from lib import wr_azure_lib as wazure
 from lib import wr_splunk_bucket_distributor as buckets
+from lib import wr_common as wrc
 
 # Clear Function First
 def clearConsole():
@@ -70,6 +71,9 @@ else:
 		csv_already_exists = True
 	else:
 		csv_already_exists = False
+	# start easy timer for the overall operation - in standalone
+	sabb_op_timer = wrc.timer('sabb_timer', 0)
+	threading.Thread(target=sabb_op_timer.start, name='sabb_op_timer', args=(), daemon=True).start()
 
 # Print Console Info
 if arguments.args.detailed_output:
