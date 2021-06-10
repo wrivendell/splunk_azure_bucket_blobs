@@ -73,7 +73,7 @@ else:
 		csv_already_exists = False
 	# start easy timer for the overall operation - in standalone
 	sabb_op_timer = wrc.timer('sabb_timer', 0)
-	threading.Thread(target=sabb_op_timer.start, name='sabb_op_timer', args=(), daemon=True).start()
+	threading.Thread(target=sabb_op_timer.start, name='sabb_op_timer', args=(), daemon=False).start()
 
 # Print Console Info
 if arguments.args.detailed_output:

@@ -164,7 +164,7 @@ class Bucketeer():
 
 		# start easy timer for the overall operation -
 		self.bucketeer_timer = wrc.timer('bucketeer_timer', 0)
-		threading.Thread(target=self.bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=True).start()
+		threading.Thread(target=self.bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=False).start()
 
 		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 		# Log and init start
