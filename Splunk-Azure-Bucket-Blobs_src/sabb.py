@@ -64,7 +64,7 @@ if not arguments.args.standalone:
 	# create list handler
 	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
 else:
-	log_csv = log.CSVFile(main_report_csv, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
+	log_csv = log.CSVFile(main_report_csv + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
 
 # Print Console Info
 if arguments.args.detailed_output:
@@ -299,7 +299,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 				
 				# check CSV if available to see if its already on the list
 				if arguments.args.standalone:
-					if log_csv.valueExistsInColumn('Blob_Path_Name', str(blob['name']))[0]:
+					if log_csv.valueExistsInColumn('File_Name', str(blob['name']))[0]:
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
 						continue
 				# files that made it to the end get added to a master list as is
@@ -383,7 +383,7 @@ def updateDownloadedCSVSuccess(blob_name):
 	'''
 	Returns True if updated, False if couldnt find cell to update
 	'''
-	update_cell = log_csv.updateCellByHeader('Blob_Path_Name', blob_name, 'Download_Complete', "SUCCESS")
+	update_cell = log_csv.updateCellByHeader('File_Name', blob_name, 'Download_Complete', "SUCCESS")
 	if not update_cell:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): "+ blob_name +" appeared to finish, but couldn't find cell in CSV to update -")
 
@@ -604,7 +604,7 @@ if __name__ == "__main__":
 			tmp_list = []
 			for b in master_bucket_download_list:
 				tmp_list.append( [ b[0], b[1], str(arguments.args.dest_download_loc_root), (b[1]/1024.0**2), 0, False, '', '' ] )
-			log_csv.writeLinesToCSV( (tmp_list), ['Blob_Path_Name', 'Expected_Blob_Size_bytes','Downloaded_To', 'Expected_Blob_Size_MB', 'Downloaded_Blob_Size_MB', 'Download_Complete', 'Thread_Name', 'Thread_ID'])
+			log_csv.writeLinesToCSV( (tmp_list), ['File_Name', 'Expected_File_Size_bytes','Downloaded_To', 'Expected_File_Size_MB', 'Downloaded_File_Size_MB', 'Download_Complete'])
 		master_bucket_download_list = []
 		master_bucket_download_list_full = log_csv.readAllRowsToList()
 		for i in master_bucket_download_list_full:
@@ -748,7 +748,7 @@ if __name__ == "__main__":
 		length_of_list = len(master_bucket_download_list)
 		wrq_logging.stop()
 		for idx, i in enumerate(master_bucket_download_list):
-			log_csv.writeLinesToCSV( [ [i[2], i[0], i[1]/1024.0**2] ], ['Container_Name', 'Blob_Path_Name', 'Expected_Blob_Size_MB'])
+			log_csv.writeLinesToCSV( [ [i[2], i[0], i[1]/1024.0**2] ], ['Container_Name', 'File_Name', 'Expected_File_Size_MB'])
 			if idx + 1 == length_of_list:
 				print("- SABB(" + str(sys._getframe().f_lineno) +"): Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", "100%" )
 			elif idx % periodic_check == 0:
