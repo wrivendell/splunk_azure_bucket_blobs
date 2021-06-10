@@ -544,6 +544,7 @@ def timeAndCompletionChecker():
 			print("- CSV Jobs Waiting: " + str(len(wrq_csv_report.jobs_waiting)))
 			print("-------------------------")
 			print("\n")
+			print("This Module (sabb) Elapsed Timer(h): ", sabb_op_timer.elapsed(unit='h'))
 			print("-------------------------")
 			if not arguments.args.standalone:
 				print("Bucketeer Elapsed Timer(h): ", azure_bucket_sorter.getElapsedHours())
