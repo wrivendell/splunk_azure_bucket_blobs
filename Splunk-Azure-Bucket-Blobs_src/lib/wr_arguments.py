@@ -59,6 +59,7 @@ def Arguments():
 	parser.add_argument("-biglt", "--blob_ignore_list_type", type=str2bool, nargs='?', const=True, default=False,  required=False, help="True for each item in blob_ignore_list to have to be an exact match, False for contains. If using contains, search in can be lessened to wild cards like 'frozenda' means '*frozenda*' ")
 	parser.add_argument("-dm", "--debug_modules", type=str2bool, nargs='?', const=True, default=False,  required=False, help="Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.")
 	parser.add_argument("-woflo", "--write_out_full_list_only", type=str2bool, nargs='?', const=True, default=False,  required=False, help="True will write out the entire list for all peers to a single CSV and do nothing else.")
+	parser.add_argument("-scsv", "--skip_to_csv_load", type=str2bool, nargs='?', const=True, default=False,  required=False, help="If True, it won't attempt to download latest. Will resume from CSV directly.")
 ############## RUNTIME
 Arguments()
 args = parser.parse_args()

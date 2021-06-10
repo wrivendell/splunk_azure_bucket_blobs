@@ -64,6 +64,7 @@ if not arguments.args.standalone:
 											 sp_idx_cluster_master_uri=arguments.args.cluster_master, 
 											 port=arguments.args.cluster_master_port,
 											 main_report_csv=main_report_csv,
+											 skip_to_csv_load=arguments.args.skip_to_csv_load,
 											 debug=arguments.args.debug_modules)
 	# create list handler
 	log_csv = log.CSVFile(main_report_csv + "_" + azure_bucket_sorter.my_guid + ".csv", log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=arguments.args.debug_modules)
@@ -206,118 +207,117 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 	if not arguments.args.list_create_output:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): You could set -lco to True for more entertaining feedback while you wait. -")
 	time.sleep(3)
-	try:
-		tmp_master_list_log_lines = []
-		all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers(container_names_to_search_list, blob_names_to_search_list)
+	if not arguments.args.skip_to_csv_load:
+		try:
+			all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers(container_names_to_search_list, blob_names_to_search_list)
 
-		########################################### 
-		# FILTERS FEED BACK FOR USER
-		########################################### 
-		# Container filters
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed -")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed"])
-		print("\n")
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters -")
+			########################################### 
+			# FILTERS FEED BACK FOR USER
+			########################################### 
+			# Container filters
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed -")
+			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed"])
+			print("\n")
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters -")
 
-		# Container filters
-		if len(container_names_to_search_list) > 0:
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters"])
-			if arguments.args.container_search_list_type:
-				cfilter_type = "EXACTLY MATCHES"
-			else:
-				cfilter_type = "CONTAINS"
-			for filter in arguments.args.container_search_list:
-				print("- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter + " -")
-				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter])
-		if len(container_names_to_ignore_list) > 0:
-			if arguments.args.container_ignore_list_type:
-				cfilter_type = "EXACTLY MATCHES"
-			else:
-				cfilter_type = "CONTAINS"
-			for filter in arguments.args.container_ignore_list:
-				print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where container " + cfilter_type + ": " + filter + " -")
-				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where container " + cfilter_type + ": " + filter])
-	
-		# Blob filters
-		if len(blob_names_to_search_list) > 0:
-			if arguments.args.blob_search_list_type:
-				cfilter_type = "EXACTLY MATCHES"
-			else:
-				cfilter_type = "CONTAINS"
-			for filter in arguments.args.blob_search_list:
-				print("- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
-				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where blob_name " + cfilter_type + ": " + filter])
-		print("\n")
-		if len(blob_names_to_ignore_list) > 0:
-				if arguments.args.blob_ignore_list_type:
+			# Container filters
+			if len(container_names_to_search_list) > 0:
+				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters"])
+				if arguments.args.container_search_list_type:
 					cfilter_type = "EXACTLY MATCHES"
 				else:
 					cfilter_type = "CONTAINS"
-				for filter in arguments.args.blob_ignore_list:
-					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter])
-		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-		# FILTERS FEED BACK FOR USER
-		########################################### 
-
-		########################################### 
-		# RUN LOOP AGAINST AZURE and process through filters
-		########################################### 
-		if not all_blobs_by_containers_dict_list:
-			print("- SABB(" + str(sys._getframe().f_lineno) +"): No Containers Found -")
-			return(False)
-		for container in all_blobs_by_containers_dict_list:
-			if arguments.args.list_create_output:
-				print("\n")
-				print("- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] + " -")
-				print("\n")
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] ])
-			if len(container_names_to_search_list) > 0:
-				if not blob_service.isInList(container['name'], container_names_to_search_list, container_names_search_list_equals_or_contains, False):
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] ])
-					if arguments.args.list_create_output:
-						print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] + " -")
-					continue
+				for filter in arguments.args.container_search_list:
+					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter + " -")
+					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter])
 			if len(container_names_to_ignore_list) > 0:
-				if blob_service.isInList(container['name'], container_names_to_ignore_list, container_names_ignore_list_equals_or_contains, False):
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] ])
-					if arguments.args.list_create_output:
-						print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] + " -")
-					continue
-			for blob in container['blobs']:
-				if len(blob_names_to_search_list) > 0:
-					if not blob_service.isInList(blob['name'], blob_names_to_search_list, blob_names_search_list_equals_or_contains, False):
-						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] ])
-						if arguments.args.list_create_output:
-							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] + " -")
-						continue
-				if len(blob_names_to_ignore_list) > 0:
-					if blob_service.isInList(blob['name'], blob_names_to_ignore_list, blob_names_ignore_list_equals_or_contains, False):
-						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] ])
-						if arguments.args.list_create_output:
-							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] + " -")
-						continue
-				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
-				if arguments.args.list_create_output:
-					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
-				
-				# check CSV if available to see if its already on the list
-				if arguments.args.standalone:
-					if csv_already_exists:
-						if log_csv.valueExistsInColumn('File_Name', str(blob['name']))[0]:
-							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
-							continue
-				# files that made it to the end get added to a master list as is
-				master_bucket_download_list.append(tmp_list)
-	except Exception as ex:
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): Exception: -")
-		print(ex)
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): Failed pulling a blob name, trying to skip. -")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Failed pulling a blob name, trying to skip."])
-		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-		# RUN LOOP AGAINST AZURE and process through filters
-		########################################### 
+				if arguments.args.container_ignore_list_type:
+					cfilter_type = "EXACTLY MATCHES"
+				else:
+					cfilter_type = "CONTAINS"
+				for filter in arguments.args.container_ignore_list:
+					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where container " + cfilter_type + ": " + filter + " -")
+					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where container " + cfilter_type + ": " + filter])
 
+			# Blob filters
+			if len(blob_names_to_search_list) > 0:
+				if arguments.args.blob_search_list_type:
+					cfilter_type = "EXACTLY MATCHES"
+				else:
+					cfilter_type = "CONTAINS"
+				for filter in arguments.args.blob_search_list:
+					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
+					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where blob_name " + cfilter_type + ": " + filter])
+			print("\n")
+			if len(blob_names_to_ignore_list) > 0:
+					if arguments.args.blob_ignore_list_type:
+						cfilter_type = "EXACTLY MATCHES"
+					else:
+						cfilter_type = "CONTAINS"
+					for filter in arguments.args.blob_ignore_list:
+						print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
+						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter])
+			########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			# FILTERS FEED BACK FOR USER
+			########################################### 
+
+			########################################### 
+			# RUN LOOP AGAINST AZURE and process through filters
+			########################################### 
+			if not all_blobs_by_containers_dict_list:
+				print("- SABB(" + str(sys._getframe().f_lineno) +"): No Containers Found -")
+				return(False)
+			for container in all_blobs_by_containers_dict_list:
+				if arguments.args.list_create_output:
+					print("\n")
+					print("- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] + " -")
+					print("\n")
+				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] ])
+				if len(container_names_to_search_list) > 0:
+					if not blob_service.isInList(container['name'], container_names_to_search_list, container_names_search_list_equals_or_contains, False):
+						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] ])
+						if arguments.args.list_create_output:
+							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] + " -")
+						continue
+				if len(container_names_to_ignore_list) > 0:
+					if blob_service.isInList(container['name'], container_names_to_ignore_list, container_names_ignore_list_equals_or_contains, False):
+						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] ])
+						if arguments.args.list_create_output:
+							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] + " -")
+						continue
+				for blob in container['blobs']:
+					if len(blob_names_to_search_list) > 0:
+						if not blob_service.isInList(blob['name'], blob_names_to_search_list, blob_names_search_list_equals_or_contains, False):
+							log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] ])
+							if arguments.args.list_create_output:
+								print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] + " -")
+							continue
+					if len(blob_names_to_ignore_list) > 0:
+						if blob_service.isInList(blob['name'], blob_names_to_ignore_list, blob_names_ignore_list_equals_or_contains, False):
+							log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] ])
+							if arguments.args.list_create_output:
+								print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] + " -")
+							continue
+					tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
+					if arguments.args.list_create_output:
+						print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
+
+					# check CSV if available to see if its already on the list
+					if arguments.args.standalone:
+						if csv_already_exists:
+							if log_csv.valueExistsInColumn('File_Name', str(blob['name']))[0]:
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
+								continue
+					# files that made it to the end get added to a master list as is
+					master_bucket_download_list.append(tmp_list)
+		except Exception as ex:
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): Exception: -")
+			print(ex)
+			print("- SABB(" + str(sys._getframe().f_lineno) +"): Failed pulling a blob name, trying to skip. -")
+			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Failed pulling a blob name, trying to skip."])
+			########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			# RUN LOOP AGAINST AZURE and process through filters
+			########################################### 
 	try:
 		########################################### 
 		# Process master list through bucketeer sorter if clustered environment - master_bucket_download_list
