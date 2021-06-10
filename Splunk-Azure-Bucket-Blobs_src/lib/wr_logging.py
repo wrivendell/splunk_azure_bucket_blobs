@@ -16,13 +16,13 @@ def verifyLogFileExist(log_file):
 		return(False)
 
 # after 50mb create a new log file and append number at the end
-def checkFileSize(log_file: str, roll_size_bytes=50000000, max_files_to_keep=0, debug=False) -> bool:
+def checkFileSize(log_file: str, roll_size_bytes=100000000, max_files_to_keep=0, debug=False) -> bool:
 	'''
 	Checks if current log is greater than bytes and creates a new by appending number to end
 	Will delete any logs greater than max_files_to_keep unless 0 which is keep all
 	'''
 	if os.path.exists(log_file):
-		if os.path.getsize(log_file) >= roll_size_bytes: #25000000:
+		if os.path.getsize(log_file) >= roll_size_bytes:
 			counter = 0
 			if debug:
 				print("- WRLog(" + str(sys._getframe().f_lineno) + "): File to be rotated / removed: {}".format(log_file))
@@ -133,7 +133,7 @@ class LogFile():
 								file.write("%s" % (prefix) + line)
 					file.close
 					retry = 0
-					checkFileSize(self.log_file, self.roll_size_bytes, self.max_files_to_keep, self.debug)
+					checkFileSize(self.log_path, self.roll_size_bytes, self.max_files_to_keep, self.debug)
 				except Exception as ex:
 					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + self.name + ") : Exception: -")
 					print(ex)

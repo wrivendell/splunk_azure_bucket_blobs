@@ -297,13 +297,6 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 						if arguments.args.list_create_output:
 							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] + " -")
 						continue
-#				if arguments.args.standalone:
-#					# already downloaded check
-#					if checkAlreadyDownloaded(str(blob['name'])):
-#						tmp_master_list_log_lines.append('File appears to already be downloaded, skipping: ' + str(blob['name']) )
-#						if arguments.args.list_create_output:
-#							print("- SABB(" + str(sys._getframe().f_lineno) +"): File appears to already be downloaded, skipping: " + str(blob['name']) + " -")
-#						continue
 				tmp_list = [ str(blob['name']), int(blob['size']), str(container['name']), str(dest_download_loc_root) ]
 				if arguments.args.list_create_output:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): This blob is being added to the list: " + blob['name'] + " -")
@@ -660,7 +653,7 @@ if __name__ == "__main__":
 	# exit if no blobs found to dl
 	if not master_bucket_download_list:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): No Blobs found for download, exiting. -")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):No Blobs found for download, exiting."])
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): No Blobs found for download, exiting."])
 		sabb_op_timer.stop()
 		sys.exit()
 
@@ -676,14 +669,17 @@ if __name__ == "__main__":
 		print("#######################################################################################\n\n\n")
 		time.sleep(10)
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) +" is number of items in the list -")
-	log_file.writeLinesToFile( [str(len(master_bucket_download_list)) + " is number of items in the list to download"] )
+	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) + " is number of items in the list to download."])
 
 	if not arguments.args.write_out_full_list_only:
 		if not arguments.args.standalone:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -")
 			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"): Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
-		for i in master_bucket_download_list:
-			log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
+		if arguments.args.debug_modules:
+			for i in master_bucket_download_list:
+				log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
+		else:
+				log_file.writeLinesToFile(['Download - Job Batch Added -'])
 	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	# WOFLO - Write out list only - No Downloading Option done here
 	########################################### 
@@ -709,7 +705,7 @@ if __name__ == "__main__":
 	# thread_logging_parent
 	if arguments.args.detailed_output:
 		print("Creating logging thread parent called: thread_logging_parent")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating logging thread parent called: thread_logging_parent"])
+	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating logging thread parent called: thread_logging_parent"])
 	thread_logging_parent = threading.Thread(target=wrq_logging.start, name='logging_parent', args=())
 	thread_logging_parent.daemon = True
 
@@ -719,21 +715,21 @@ if __name__ == "__main__":
 		# thread_update_completed
 		if arguments.args.detailed_output:
 			print("Creating csv updater thread parent called: thread_update_completed")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating csv updater thread parent called: thread_update_completed"])
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating csv updater thread parent called: thread_update_completed"])
 		thread_update_completed = threading.Thread(target=updateCompletedWRQDownloadJobs, name='thread_update_completed', args=())
 		thread_update_completed.daemon = True
 
 		# thread_csv_report_parent
 		if arguments.args.detailed_output:
 			print("Creating csv reporter thread (writes lines to csv report in queue) called: thread_csv_report_parent")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating logging thread parent called: thread_csv_report_parent"])
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating logging thread parent called: thread_csv_report_parent"])
 		thread_csv_report_parent = threading.Thread(target=wrq_csv_report.start, name='csv_report_parent', args=())
 		thread_csv_report_parent.daemon = True
 
 		# thread_blob_download_parent
 		if arguments.args.detailed_output:
 			print("Creating download thread parent called: thread_blob_download_parent")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Creating download thread parent called: thread_blob_download_parent"])
+		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating download thread parent called: thread_blob_download_parent"])
 		thread_blob_download_parent = threading.Thread(target=wrq_download.start, name='blob_download_parent', args=())
 		thread_blob_download_parent.daemon = True
 	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
