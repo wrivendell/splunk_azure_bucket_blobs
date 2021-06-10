@@ -166,9 +166,6 @@ class Bucketeer():
 		self.bucketeer_timer = wrc.timer('bucketeer_timer', 0) # timeout timer
 		threading.Thread(target=self.bucketeer_timer.start, name='bucketeer_timer', args=(), daemon=True).start()
 
-		def getElapsedHours(self):
-			return(self.bucketeer_timer.elapsed(unit='h'))
-
 		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 		# Log and init start
 		########################################### 
@@ -178,6 +175,9 @@ class Bucketeer():
 	########################################### 
 	# General Helper Functions
 	########################################### 
+	def getElapsedHours(self):
+		return(self.bucketeer_timer.elapsed(unit='h'))
+
 	# get peer GUIDS in this idx cluster and SORTS them (very important they are sorted)
 	def getPeerGUIDS(self):
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Creating 'wapi' service called: splunk_idx_cm_service -\n")
@@ -232,7 +232,7 @@ class Bucketeer():
 				for guid in self.guid_list:
 					csv = self.getPeerCSV(guid)
 					# check if file is listed there at all
-					if csv.valueExistsInColumn('Blob_Path_Name', bucket_path[0])[0]:
+					if csv.valueExistsInColumn('File_Name', bucket_path[0])[0]:
 						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Already on list, skipping -")
 						skip_this = True
 						break
