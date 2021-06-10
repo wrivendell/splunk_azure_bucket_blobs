@@ -239,10 +239,11 @@ class Bucketeer():
 					continue
 
 			# break out the bucket details
-			if bucket_path[1] <= 0 and not str(bucket_path[0]).endswith(".csv") or not str(bucket_path[0]).endswith(".result"):
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping file with 0 byte size: " + str(bucket_path) + " -")
-				self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Exception: Skipping file with 0 byte size: " + str(bucket_path)] )
-				continue
+			if bucket_path[1] <= 0:
+				if not str(bucket_path[0]).endswith(".csv") or not str(bucket_path[0]).endswith(".result"):
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Skipping file with 0 byte size: " + str(bucket_path) + " -")
+					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Exception: Skipping file with 0 byte size: " + str(bucket_path)] )
+					continue
 			# get buckets ID  from bucket path tuple
 			bucket_id_full = re.search('(db_.+?)((\\|\/)|$)', bucket_path[0], re.IGNORECASE)  # db_ or rb_ ?
 			if not bucket_id_full:
