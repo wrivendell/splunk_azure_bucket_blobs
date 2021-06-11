@@ -86,11 +86,11 @@ class Bucketeer():
 		if not sp_uname:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): No Splunk Username provided, yet Cluster is indicated. I'm not a mind reader! Cluster Master API call not possible. Exiting.")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): No Splunk Username provided, yet Cluster is indicated. I'm not a mind reader! Cluster Master API call not possible. Exiting."] )
-			sys.exit()
+			return(False)
 		if not sp_pword:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): No Splunk Password provided, yet Cluster is indicated. I'm not a mind reader! Cluster Master API call not possible. Exiting.")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): No Splunk Password provided, yet Cluster is indicated. I'm not a mind reader! Cluster Master API call not possible. Exiting."] )
-			sys.exit()
+			return(False)
 		self.debug = debug # enable debug printouts from THIS class
 		self.name = name # unique thread name
 		self.list_of_bucket_list_details = list_of_bucket_list_details # master list of buckets to be downloaded
@@ -109,7 +109,7 @@ class Bucketeer():
 			if not self.sp_idx_cluster_master_uri[0]:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Couldn't find an IDX Cluster Master URI and non specified. No buckets will be downloaded here. Exiting.")
 				self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Couldn't find an IDX Cluster Master URI and non specified. No buckets will be downloaded here. Exiting."] )
-				sys.exit()
+				return(False)
 			else:
 				self.sp_idx_cluster_master_uri = str(self.sp_idx_cluster_master_uri[1])
 				if ':' in self.sp_idx_cluster_master_uri:
@@ -120,7 +120,7 @@ class Bucketeer():
 		if not self.my_guid[0]:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Couldn't find this node's GUID. No buckets will be downloaded here. Exiting")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Couldn't find this node's GUID. No buckets will be downloaded here. Exiting"] )
-			sys.exit()
+			return(False)
 		else:
 			self.my_guid = str(self.my_guid[1])
 		
@@ -534,51 +534,11 @@ class Bucketeer():
 		'''
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-#		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by amount of jobs per peer. -")
-#		self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Attempting to balance buckets by amount of jobs per peer."])
 		for list_item in master_list_of_lists:
 			if not list_item:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Master List of lists was empty, cannot continue -")
 				self.bucketeer_timer.stop()
-				sys.exit()
-##		master_list_of_lists.sort(key=operator.itemgetter('uid'))
-#		lowest = 999999999999999999999
-#		highest = 0
-#		len_balanced = False
-#		lowest_lst = []
-#		highest_lst = []
-#		margin = 15
-#		timed_out = False
-#		try:
-#			len_list_timeout = wrc.timer('len_list_timeout', 1200) # timeout timer
-#			threading.Thread(target=len_list_timeout.start, name='len_list_timeout', args=(), daemon=True).start()
-#			while not len_balanced:
-#				if len_list_timeout.max_time_reached:
-#					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-#					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-#					timed_out = True
-#					break
-#				for lst in master_list_of_lists: # get lowest and highest lists in the master list
-#					if len(lst) < lowest:
-#						lowest = len(lst)
-#						lowest_lst = lst
-#					elif len(lst) > highest:
-#							highest = len(lst)
-#							highest_lst = lst
-#				high_low_diff = highest - lowest
-#				if high_low_diff > margin:     # if lists are within margin lengths of each other, consider that fine
-#					high_low_diff = high_low_diff / 2
-#					lowest_lst = lowest_lst.extend(highest_lst[0:high_low_diff]) # move half the delta to the lowest from highest
-#					del highest_lst[0:high_low_diff]
-#				else:
-#					len_balanced = True
-#			len_list_timeout.stop()
-#			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs per peer balance: Finished."])
-#		except Exception as ex:
-#			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length -")
-#			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs per peer balance: Failed."])
-#			print(ex)
-		
+				return(False)		
 		# check list byte sizes (MB)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
@@ -722,7 +682,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Final tuple extract of lists. -")
 			print(ex)
 			self.bucketeer_timer.stop()
-			sys.exit()
+			return(False)
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): FINISHED Dividing bucket list amongst peers.")
@@ -745,7 +705,7 @@ class Bucketeer():
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Bucket list format example found was " + str(b) +" and verification failed, cannot continue, ensure format starts with proper <str>, <bytes> -")
 					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Bucket list format example found was " + str(b) +" and verification failed, cannot continue, ensure format starts with proper <str>, <bytes>"])
 					self.bucketeer_timer.stop()
-					sys.exit()
+					return(False)
 			return(True)
 		else:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Master List of lists was empty, cannot continue -")
@@ -769,7 +729,7 @@ class Bucketeer():
 			print(ex)
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed creating simple list from Tuples. Exiting."])
 			self.bucketeer_timer.stop()
-			sys.exit()
+			return(False)
 		return(final_master_download_list_of_lists)
 	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	# Final processing of sorted list
@@ -806,7 +766,7 @@ class Bucketeer():
 							print(ex)
 							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sort of master list of lists failed. Exiting."])
 							self.bucketeer_timer.stop()
-							sys.exit()
+							return(False)
 						for idx, p in enumerate(self.idx_cluster_peers): # assign each list to a guid and write out its respective csv (each peer will do some extras when they hit THEIR list)
 							if p == self.my_guid:
 								self.this_peer_index = idx
@@ -819,7 +779,7 @@ class Bucketeer():
 								print(ex)
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed getting GUID and/csv from queue. Exiting."])
 								self.bucketeer_timer.stop()
-								sys.exit()
+								return(False)
 							tmp_list = [] # tmp list for our prune csv list from the main
 							try:
 								for bt in self.final_peer_download_lists[idx]:
@@ -841,7 +801,7 @@ class Bucketeer():
 								print(ex)
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed prepping CSV. Exiting."])
 								self.bucketeer_timer.stop()
-								sys.exit()
+								return(False)
 						# start all peers csv writes in the background
 						try:
 							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!!")
@@ -854,7 +814,7 @@ class Bucketeer():
 							print(ex)
 							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Threads to write CSV had an issue. Exiting."])
 							self.bucketeer_timer.stop()
-							sys.exit()
+							return(False)
 						# since we started the CSV write in a thread we don't want the peer accessing it til its complete, so we wait
 						while not len(my_queue.jobs_active) == 0 and not len(my_queue.jobs_waiting) == 0 and not len(my_queue.jobs_completed) > 0: # wait for csv to be written out
 							time.sleep(10)
@@ -874,7 +834,7 @@ class Bucketeer():
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Couldn't read csv list to dataframe. Exiting. "])
 			print(ex)
 			self.bucketeer_timer.stop()
-			sys.exit()
+			return(False)
 		try:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Converting data frame to python list for download processing. -")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Converting data frame to python list for download processing. "])
@@ -886,7 +846,7 @@ class Bucketeer():
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. "])
 			print(ex)
 			self.bucketeer_timer.stop()
-			sys.exit()
+			return(False)
 		if self.this_peer_download_list: # make sure the list isnt empty and send it back to main for download!
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Number in This Peers Download list is: " + str(len(self.this_peer_download_list)))
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Bucketeer is done processing. ")
