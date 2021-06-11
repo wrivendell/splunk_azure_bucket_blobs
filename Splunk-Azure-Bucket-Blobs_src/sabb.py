@@ -331,6 +331,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 			if not azure_bucket_sorter.start(master_bucket_download_list):  ###### THIS IS WHERE THE LIST IS GIVEN TO BUCKETEER ######
 				print("- SABB(" + str(sys._getframe().f_lineno) +"): FAILED to create sorted peer list, exiting. -")
 				sabb_op_timer.stop()
+				azure_bucket_sorter.stop()
 				sys.exit()
 			else:
 				# master_bucket_download_list_orig = master_bucket_download_list # uncomment if ever wanting to keep the master list for whatever reason
@@ -360,6 +361,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): FAILED to create master blob download list, exiting. -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):FAILED to create master blob download list, exiting."])
 		sabb_op_timer.stop()
+		azure_bucket_sorter.stop()
 		sys.exit()
 		########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 		# Process master list through bucketeer sorter if clustered environment - master_bucket_download_list
@@ -638,6 +640,7 @@ if __name__ == "__main__":
 			log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Couldn't read csv list to dataframe. Exiting. "])
 			print(ex)
 			sabb_op_timer.stop()
+			azure_bucket_sorter.stop()
 			sys.exit()
 		try:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Converting data frame to python list for download processing. -")
@@ -649,6 +652,7 @@ if __name__ == "__main__":
 			log_file.writeLinesToFile([str(sys._getframe().f_lineno) + "): Couldn't convert dataframe to list. Exiting. "])
 			print(ex)
 			sabb_op_timer.stop()
+			azure_bucket_sorter.stop()
 			sys.exit()
 	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	# Standalone CSV write out of new items and read back for list download
@@ -659,6 +663,7 @@ if __name__ == "__main__":
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): No Blobs found for download, exiting. -")
 		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): No Blobs found for download, exiting."])
 		sabb_op_timer.stop()
+		azure_bucket_sorter.stop()
 		sys.exit()
 
 	########################################### 

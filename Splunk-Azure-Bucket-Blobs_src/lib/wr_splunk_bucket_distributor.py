@@ -5,7 +5,7 @@
 ##############################################################################################################
 
 ### Imports ###########################################
-import time, sys, re, threading, pandas
+import time, sys, re, threading, pandas, statistics
 
 from pathlib import Path
 from collections import OrderedDict
@@ -537,49 +537,50 @@ class Bucketeer():
 		'''
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by amount of jobs per peer. -")
-		self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Attempting to balance buckets by amount of jobs per peer."])
+#		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by amount of jobs per peer. -")
+#		self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Attempting to balance buckets by amount of jobs per peer."])
 		for list_item in master_list_of_lists:
 			if not list_item:
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Master List of lists was empty, cannot continue -")
+				self.bucketeer_timer.stop()
 				sys.exit()
-#		master_list_of_lists.sort(key=operator.itemgetter('uid'))
-		lowest = 999999999999999999999
-		highest = 0
-		len_balanced = False
-		lowest_lst = []
-		highest_lst = []
-		margin = 15
-		timed_out = False
-		try:
-			len_list_timeout = wrc.timer('len_list_timeout', 1200) # timeout timer
-			threading.Thread(target=len_list_timeout.start, name='len_list_timeout', args=(), daemon=True).start()
-			while not len_balanced:
-				if len_list_timeout.max_time_reached:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-					timed_out = True
-					break
-				for lst in master_list_of_lists: # get lowest and highest lists in the master list
-					if len(lst) < lowest:
-						lowest = len(lst)
-						lowest_lst = lst
-					elif len(lst) > highest:
-							highest = len(lst)
-							highest_lst = lst
-				high_low_diff = highest - lowest
-				if high_low_diff > margin:     # if lists are within margin lengths of each other, consider that fine
-					high_low_diff = high_low_diff / 2
-					lowest_lst = lowest_lst.extend(highest_lst[0:high_low_diff]) # move half the delta to the lowest from highest
-					del highest_lst[0:high_low_diff]
-				else:
-					len_balanced = True
-			len_list_timeout.stop()
-			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs per peer balance: Finished."])
-		except Exception as ex:
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length -")
-			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs per peer balance: Failed."])
-			print(ex)
+##		master_list_of_lists.sort(key=operator.itemgetter('uid'))
+#		lowest = 999999999999999999999
+#		highest = 0
+#		len_balanced = False
+#		lowest_lst = []
+#		highest_lst = []
+#		margin = 15
+#		timed_out = False
+#		try:
+#			len_list_timeout = wrc.timer('len_list_timeout', 1200) # timeout timer
+#			threading.Thread(target=len_list_timeout.start, name='len_list_timeout', args=(), daemon=True).start()
+#			while not len_balanced:
+#				if len_list_timeout.max_time_reached:
+#					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+#					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
+#					timed_out = True
+#					break
+#				for lst in master_list_of_lists: # get lowest and highest lists in the master list
+#					if len(lst) < lowest:
+#						lowest = len(lst)
+#						lowest_lst = lst
+#					elif len(lst) > highest:
+#							highest = len(lst)
+#							highest_lst = lst
+#				high_low_diff = highest - lowest
+#				if high_low_diff > margin:     # if lists are within margin lengths of each other, consider that fine
+#					high_low_diff = high_low_diff / 2
+#					lowest_lst = lowest_lst.extend(highest_lst[0:high_low_diff]) # move half the delta to the lowest from highest
+#					del highest_lst[0:high_low_diff]
+#				else:
+#					len_balanced = True
+#			len_list_timeout.stop()
+#			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs per peer balance: Finished."])
+#		except Exception as ex:
+#			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Failed to balance by length -")
+#			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs per peer balance: Failed."])
+#			print(ex)
 		
 		# check list byte sizes (MB)
 		if self.debug:
@@ -587,25 +588,35 @@ class Bucketeer():
 		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Attempting to balance buckets by size of files in list. -")
 		self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Attempting to balance buckets by size of files in list."])
 		size_balanced = False
-		total_size = 0
+		total_size = 0 # of all files added up
+		total_d_count = 0 # amount of "parents" housing files that need to stay together
+		d_size_amt_list = []
 		try:
 			# get total size of all lists combined
 			for lst in master_list_of_lists:
 				tmp_size = 0
 				for d in lst: # get each tuble containing list of buckets by bucket id
+					total_d_count += 1
 					for b in d[1]: # get bucket tuples in bid dict
-						total_size = total_size + (b[6]/1024.0**2)
 						tmp_size = tmp_size + (b[6]/1024.0**2)
-			# get average MB per list
-			average_size_per = total_size / len(master_list_of_lists)
-			if len(master_list_of_lists)/2 >= 10:
-				self.size_error_margin = 10
-			else:
-				self.size_error_margin = len(master_list_of_lists)/2
-			self.size_error_margin = self.size_error_margin / 100 # as a percent
-			margin = average_size_per * self.size_error_margin # % margin
-			size_list_timeout = wrc.timer('size_list_timeout', 1200) # timeout timer
-			threading.Thread(target=size_list_timeout.start, name='size_list_timeout', args=(), daemon=True).start()
+					total_size += tmp_size
+					d_size_amt_list.append(tmp_size)
+				self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):: STARTING List Total Size (mb) " + str(master_list_of_lists.index(lst)) + ": " + str(tmp_size)])
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): STARTING List Total Size (mb) " + str(master_list_of_lists.index(lst)) + ": " + str(tmp_size) )
+			# get bid dict size median
+			d_size_median = statistics.median(d_size_amt_list)
+			# get averages
+			average_size_per_bid_dict = total_size / total_d_count
+			average_size_per_list = total_size / len(master_list_of_lists) # how many TB/GB etc SHOULD be in each list
+			self.size_error_margin = d_size_median / average_size_per_list * 100 # margin %
+#			if len(master_list_of_lists)/2 >= 10:
+#				self.size_error_margin = 10
+#			else:
+#				self.size_error_margin = len(master_list_of_lists)/2
+#			self.size_error_margin = self.size_error_margin / 100 # as a percent
+			margin = average_size_per_list * self.size_error_margin # margin total size number
+#			size_list_timeout = wrc.timer('size_list_timeout', 3600) # timeout timer
+#			threading.Thread(target=size_list_timeout.start, name='size_list_timeout', args=(), daemon=True).start()
 			while not size_balanced:
 				if size_list_timeout.max_time_reached:
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
@@ -620,7 +631,7 @@ class Bucketeer():
 					for d in lst:
 						for b in d[1]:
 							tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
-					tmp_diff_from_avg = tmp_size_total - average_size_per
+					tmp_diff_from_avg = tmp_size_total - average_size_per_list
 					if abs(tmp_diff_from_avg) > margin:
 						if tmp_diff_from_avg < 0:
 							tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
@@ -636,20 +647,22 @@ class Bucketeer():
 				if not below_margin:
 					size_balanced = True
 					break
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)))
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)) ])
 				for idx, lst1 in enumerate(below_margin):
 					receiver_original_ask = lst1[1]
 					for lst2 in above_margin:
 						donor_size_total = 0
 						tmp_to_remove = []
 						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
-							size1_list_timeout = wrc.timer('size1_list_timeout', 1200) # timeout timer
-							threading.Thread(target=size1_list_timeout.start, name='size1_list_timeout', args=(), daemon=True).start()
+#							size1_list_timeout = wrc.timer('size1_list_timeout', 1200) # timeout timer
+#							threading.Thread(target=size1_list_timeout.start, name='size1_list_timeout', args=(), daemon=True).start()
 							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								if size1_list_timeout.max_time_reached:
-									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-									self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-									timed_out = True
-									break
+#								if size1_list_timeout.max_time_reached:
+#									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+#									self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
+#									timed_out = True
+#									break
 								for d in lst2[0]: # for each item in list 2
 									for b in d[1]:
 										if donor_size_total >= lst2[1]:
@@ -658,16 +671,16 @@ class Bucketeer():
 										lst1[1] = lst1[1] + (b[6]/1024.0**2)
 										lst1[0].append(d)
 										tmp_to_remove.append(lst2[0].index(d))
-							size1_list_timeout.stop()
+#							size1_list_timeout.stop()
 						else:
-							size2_list_timeout = wrc.timer('size2_list_timeout', 1200) # timeout timer
-							threading.Thread(target=size2_list_timeout.start, name='size2_list_timeout', args=(), daemon=True).start()
+#							size2_list_timeout = wrc.timer('size2_list_timeout', 1200) # timeout timer
+#							threading.Thread(target=size2_list_timeout.start, name='size2_list_timeout', args=(), daemon=True).start()
 							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
-								if size2_list_timeout.max_time_reached:
-									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-									self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-									timed_out = True
-									break
+#								if size2_list_timeout.max_time_reached:
+#									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+#									self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
+#									timed_out = True
+#									break
 								for d in lst2[0]: # for each item in list 2
 									for b in d[1]:
 										if donor_size_total >= receiver_original_ask:
@@ -676,7 +689,7 @@ class Bucketeer():
 										lst1[1] = lst1[1] + (b[6]/1024.0**2)
 										lst1[0].append(d)
 										tmp_to_remove.append(lst2[0].index(d))
-							size2_list_timeout.stop()
+#							size2_list_timeout.stop()
 						for i in sorted(tmp_to_remove, reverse=True):
 							try:
 								del lst2[0][i]
@@ -740,6 +753,7 @@ class Bucketeer():
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Exception: Final tuple extract of lists. -")
 			print(ex)
+			self.bucketeer_timer.stop()
 			sys.exit()
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
@@ -762,6 +776,7 @@ class Bucketeer():
 				if not isinstance(b[0], str) and isinstance(b[1], int):
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Bucket list format example found was " + str(b) +" and verification failed, cannot continue, ensure format starts with proper <str>, <bytes> -")
 					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Bucket list format example found was " + str(b) +" and verification failed, cannot continue, ensure format starts with proper <str>, <bytes>"])
+					self.bucketeer_timer.stop()
 					sys.exit()
 			return(True)
 		else:
@@ -771,14 +786,22 @@ class Bucketeer():
 
 	# FINALLY we go through all of the dicts and pull out the nested bucket file details - in the end each list is just a simple list full of bucket detail tuples - sorted of course
 	def createMasterTupleListFromDicts(self, final_peer_download_dicts):
-		final_master_download_list_of_lists = []
-		for x in range(len(final_peer_download_dicts)):
-			final_master_download_list_of_lists.append([])
-		for idx, lst in enumerate(final_peer_download_dicts):
-			for d in lst:
-				for b in d[1]:
-					final_master_download_list_of_lists[idx].append(b)
-		print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Amount of peer lists: ", len(final_master_download_list_of_lists))
+		try:
+			final_master_download_list_of_lists = []
+			for x in range(len(final_peer_download_dicts)):
+				final_master_download_list_of_lists.append([])
+			for idx, lst in enumerate(final_peer_download_dicts):
+				for d in lst:
+					for b in d[1]:
+						final_master_download_list_of_lists[idx].append(b)
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Amount of peer lists: ", len(final_master_download_list_of_lists))
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Amount of peer lists: ", len(final_master_download_list_of_lists)])
+		except Exception as ex:
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Failed creating simple list from Tuples. Exiting.")
+			print(ex)
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed creating simple list from Tuples. Exiting."])
+			self.bucketeer_timer.stop()
+			sys.exit()
 		return(final_master_download_list_of_lists)
 	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	# Final processing of sorted list
@@ -800,7 +823,6 @@ class Bucketeer():
 					self.list_of_bucket_list_details = bucket_list
 				else:
 					self.list_of_bucket_list_details.extend(bucket_list)
-
 				# make sure the bucket list is in the proper format ( bucketfilepath, size)
 				if self.verifyBucketList(self.list_of_bucket_list_details):
 					# break each bucket into a tuple with multiple elements, each containing a detail about the bucket
@@ -809,34 +831,62 @@ class Bucketeer():
 						final_peer_download_dicts = self.divideMasterBucketListAmongstPeers(self.idx_cluster_peers, bucket_dicts_master)
 						self.final_peer_download_lists = self.createMasterTupleListFromDicts(final_peer_download_dicts) # create x amount of list full of simple tuples
 						write_threads = [] # we'll add our csv thread writer queues to this and then kick them off later
-						self.final_peer_download_lists.sort()
+						try:
+							self.final_peer_download_lists.sort()
+						except Exception as ex:
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sort of master list of lists failed. Exiting.")
+							print(ex)
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sort of master list of lists failed. Exiting."])
+							self.bucketeer_timer.stop()
+							sys.exit()
 						for idx, p in enumerate(self.idx_cluster_peers): # assign each list to a guid and write out its respective csv (each peer will do some extras when they hit THEIR list)
 							if p == self.my_guid:
 								self.this_peer_index = idx
 							# write lists to csvs
-							guid_queue = self.getPeerCSVQ(p) # the peers queue
-							guid_csv = self.getPeerCSV(p) # the peers CSV 
+							try:
+								guid_queue = self.getPeerCSVQ(p) # the peers queue
+								guid_csv = self.getPeerCSV(p) # the peers CSV
+							except Exception as ex:
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Failed getting GUID and/csv from queue. Exiting.")
+								print(ex)
+								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed getting GUID and/csv from queue. Exiting."])
+								self.bucketeer_timer.stop()
+								sys.exit()
 							tmp_list = [] # tmp list for our prune csv list from the main
-							for bt in self.final_peer_download_lists[idx]:
-								bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], 'NO', 0]
-								header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
-								if len(bt) > 13: # we always break the buckets out into 13 details int he tuple, if there are more items in the tuple, it was additional data the user wanted back
-									if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)
-										bt_list.extend(bt[13:])
-										add_diff = len(bt_list) - 8
-										for x in range(add_diff):
-											header_row.append("Additional_" + str(x + 1))
-								tmp_list.append(  bt_list )
-							guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
-							if p == self.my_guid:
-								my_queue = guid_queue
-							write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=())) # add this thread to the write queue
+							try:
+								for bt in self.final_peer_download_lists[idx]:
+									bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], 'NO', 0]
+									header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
+									if len(bt) > 13: # we always break the buckets out into 13 details int he tuple, if there are more items in the tuple, it was additional data the user wanted back
+										if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)
+											bt_list.extend(bt[13:])
+											add_diff = len(bt_list) - 8
+											for x in range(add_diff):
+												header_row.append("Additional_" + str(x + 1))
+									tmp_list.append(  bt_list )
+								guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
+								if p == self.my_guid:
+									my_queue = guid_queue
+								write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=())) # add this thread to the write queue
+							except Exception as ex:
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Failed prepping CSV. Exiting.")
+								print(ex)
+								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed prepping CSV. Exiting."])
+								self.bucketeer_timer.stop()
+								sys.exit()
 						# start all peers csv writes in the background
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!!")
-						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!! "])
-						for t in write_threads:
-							t.daemon = False
-							t.start()
+						try:
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!!")
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!! "])
+							for t in write_threads:
+								t.daemon = False
+								t.start()
+						except Exception as ex:
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Threads to write CSV had an issue. Exiting.")
+							print(ex)
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Threads to write CSV had an issue. Exiting."])
+							self.bucketeer_timer.stop()
+							sys.exit()
 						# since we started the CSV write in a thread we don't want the peer accessing it til its complete, so we wait
 						while not len(my_queue.jobs_active) == 0 and not len(my_queue.jobs_waiting) == 0 and not len(my_queue.jobs_completed) > 0: # wait for csv to be written out
 							time.sleep(10)
@@ -855,6 +905,7 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Couldn't read csv list to dataframe. Exiting. -")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Couldn't read csv list to dataframe. Exiting. "])
 			print(ex)
+			self.bucketeer_timer.stop()
 			sys.exit()
 		try:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Converting data frame to python list for download processing. -")
@@ -866,6 +917,7 @@ class Bucketeer():
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Couldn't convert dataframe to list. Exiting. "])
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. "])
 			print(ex)
+			self.bucketeer_timer.stop()
 			sys.exit()
 		if self.this_peer_download_list: # make sure the list isnt empty and send it back to main for download!
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Number in This Peers Download list is: " + str(len(self.this_peer_download_list)))
@@ -875,4 +927,5 @@ class Bucketeer():
 			self.bucketeer_timer.stop()
 			return(True)
 		else:
+			self.bucketeer_timer.stop()
 			return(False)
