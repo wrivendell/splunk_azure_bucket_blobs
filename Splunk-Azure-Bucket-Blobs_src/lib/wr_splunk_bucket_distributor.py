@@ -338,7 +338,7 @@ class Bucketeer():
 				bucket_id_standalone = False
 			except:
 				if self.debug:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Appears to not be a clustered bucket setting as standalone" + str(bucket_id_guid))
+					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Appears to not be a clustered bucket setting as standalone: " + str(bucket_id_guid))
 				bucket_id_guid = 'none'
 				bucket_id_standalone = True
 				self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Bucket is standalone and not part of a cluster: " + str(bucket_path) ])
@@ -398,9 +398,6 @@ class Bucketeer():
 					print(ex)
 					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Can't find bucket_id_id, Skipping: " + str(bucket_path) ])
 					continue
-				print(" -" + str( (bucket_id_earliest) ) )
-				print(" -" + str( (bucket_id_latest) ) )
-				print(" -" + str( (bucket_id_id) ) )
 
 			# make final list then convert to tuple for this set -> NOTE additional items that were passed in are tacked on at the end in the same order
 			uid = str(bucket_state_path) + "_" + str(bucket_index_path) + "_" + str(bucket_db_path) + "_" + str(bucket_id_origin)
@@ -614,10 +611,10 @@ class Bucketeer():
 				self.size_error_margin = len(master_list_of_lists) / 2
 			self.size_error_margin = self.size_error_margin / 100 # as a percent in decimal
 			margin = average_size_per_list * self.size_error_margin # margin total size number
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Total size mb: ", total_size)
+			print("\n- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Total size mb: ", total_size)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): average_size_per_list: ", average_size_per_list)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Margin MB: ", margin)
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Margin %: ", self.size_error_margin)
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Margin %: ", self.size_error_margin * 100)
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Total size mb: " + str(total_size)])
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): average_size_per_list: " + str(average_size_per_list)])
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Margin MB: " + str(margin)])
@@ -630,7 +627,7 @@ class Bucketeer():
 				tmp_size_total = 0
 				for d in lst:
 					for b in d[1]:
-						tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
+						tmp_size_total += (b[6]/1024.0**2)
 				tmp_diff_from_avg = tmp_size_total - average_size_per_list
 				if abs(tmp_diff_from_avg) > margin:
 					if tmp_diff_from_avg < 0:
@@ -648,43 +645,30 @@ class Bucketeer():
 			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Below margin: " + str(len(below_margin)) + " | Above/Within Margin: " + str(len(above_margin)) ])
 			for idx, lst1 in enumerate(below_margin):
 				receiver_original_ask = lst1[1]
+				receivers_total = 0
 				for idx_2, lst2 in enumerate(above_margin):
 					donor_size_total = 0
 					tmp_to_remove = []
-					if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
-						while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
-							for d_idx, d in enumerate(lst2[0]): # for each item in list 2
-								tmp_b_size = 0
-								for b in d[1]: # total size of the bid dict
-									if donor_size_total >= lst2[1]:
-										break
-									tmp_b_size += (b[6]/1024.0**2)
+					while receivers_total < receiver_original_ask: # if our total take is less than need, keep taking
+						if receivers_total >= receiver_original_ask or donor_size_total > lst2[1]:
+							break
+						for d_idx, d in enumerate(lst2[0]): # for each item in list 2
+							if receivers_total >= receiver_original_ask or donor_size_total > lst2[1]: # we have what we need or we have all lst2 can give without going under break out
+								break
+							tmp_b_size = 0
+							for b in d[1]: # total size of the bid dict
+								tmp_b_size += (b[6]/1024.0**2)
+							donor_size_total += tmp_b_size
+							receiver_original_ask += tmp_b_size
+							if d_idx % 1000 == 0:
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Above Margin List: " + str(idx_2) + " is giving item to Below Margin List: " + str(idx) + " | Iteration: " + str(d_idx)  )
-								self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Above Margin List: " + str(idx_2) + " is giving item to Below Margin List: " + str(idx) + " | Iteration: " + str(d_idx) ])
-								donor_size_total += tmp_b_size
-								lst1[1] += tmp_b_size
-								lst1[0].append(d)
-								tmp_to_remove.append(lst2[0].index(d))
-					else:
-						while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
-							for d_idx, d in enumerate(lst2[0]): # for each item in list 2
-								tmp_b_size = 0
-								for b in d[1]: # total size of the bid dict
-									if donor_size_total >= receiver_original_ask:
-										break
-									tmp_b_size += (b[6]/1024.0**2)
-								donor_size_total += tmp_b_size
-								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Above Margin List: " + str(idx_2) + " is giving item to Below Margin List: " + str(idx) + " | Iteration: " + str(d_idx)  )
-								self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Above Margin List: " + str(idx_2) + " is giving item to Below Margin List: " + str(idx) + " | Iteration: " + str(d_idx) ])
-								lst1[1] += tmp_b_size
-								lst1[0].append(d)
-								tmp_to_remove.append(lst2[0].index(d))
+							lst1[0].append(d)
+							tmp_to_remove.append(lst2[0].index(d))
 					for i in sorted(tmp_to_remove, reverse=True):
 						try:
 							del lst2[0][i]
 						except Exception as ex:
 							continue
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Still " + str(len(below_margin)) + " lists below margin, still balancing List: " + str(idx) + "-")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
@@ -841,14 +825,14 @@ class Bucketeer():
 								for bt in self.final_peer_download_lists[idx]:
 									bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], 'NO', 0]
 									header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
-									if len(bt) > 13: # we always break the buckets out into 13 details int he tuple, if there are more items in the tuple, it was additional data the user wanted back
+									if len(bt) > 13: # we always break the buckets out into 13 details in the tuple, if there are more items in the tuple, it was additional data the user wanted back
 										if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)
 											bt_list.extend(bt[13:])
 											add_diff = len(bt_list) - 8
 											for x in range(add_diff):
 												header_row.append("Additional_" + str(x + 1))
-									tmp_list.append(  bt_list )
-								guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
+									tmp_list.append(bt_list)
+									guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
 								if p == self.my_guid:
 									my_queue = guid_queue
 								write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=())) # add this thread to the write queue
