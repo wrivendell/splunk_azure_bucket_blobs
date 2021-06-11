@@ -381,7 +381,7 @@ def compareDownloadSize(expected_size:int, full_path_to_file:str):
 		if int(downloaded_size) == int(expected_size):
 			downloaded_size = downloaded_size/1024.0**2
 			expected_size_mb = expected_size/1024.0**2
-			return(True, downloaded_size)
+			return(True, expected_size_mb, downloaded_size)
 		else:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): File Download: FAILED - " + full_path_to_file + " -")
 			return(False, expected_size, downloaded_size)
