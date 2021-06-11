@@ -617,84 +617,84 @@ class Bucketeer():
 			margin = average_size_per_list * self.size_error_margin # margin total size number
 #			size_list_timeout = wrc.timer('size_list_timeout', 3600) # timeout timer
 #			threading.Thread(target=size_list_timeout.start, name='size_list_timeout', args=(), daemon=True).start()
-			while not size_balanced:
-				if size_list_timeout.max_time_reached:
-					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-					timed_out = True
-					break
-				above_margin = []
-				below_margin = []
-				within_margin = []
-				for lst in master_list_of_lists:
-					tmp_size_total = 0
-					for d in lst:
-						for b in d[1]:
-							tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
-					tmp_diff_from_avg = tmp_size_total - average_size_per_list
-					if abs(tmp_diff_from_avg) > margin:
-						if tmp_diff_from_avg < 0:
-							tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
-							below_margin.append([lst, abs(tmp_diff_from_margin)])
-						else:
-							tmp_diff_from_margin = tmp_diff_from_avg - margin
-							above_margin.append([lst, abs(tmp_diff_from_margin)])
+#			while not size_balanced:
+#				if size_list_timeout.max_time_reached:
+#					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+#					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
+#					timed_out = True
+#					break
+			above_margin = []
+			below_margin = []
+			within_margin = []
+			for lst in master_list_of_lists:
+				tmp_size_total = 0
+				for d in lst:
+					for b in d[1]:
+						tmp_size_total = tmp_size_total + (b[6]/1024.0**2)
+				tmp_diff_from_avg = tmp_size_total - average_size_per_list
+				if abs(tmp_diff_from_avg) > margin:
+					if tmp_diff_from_avg < 0:
+						tmp_diff_from_margin = abs(tmp_diff_from_avg) - margin
+						below_margin.append([lst, abs(tmp_diff_from_margin)])
 					else:
-						within_margin.append([lst, abs(tmp_diff_from_avg)])
-				for i in within_margin:
-					above_margin.append(i)
-					within_margin = []
-				if not below_margin:
-					size_balanced = True
-					break
-				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)))
-				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)) ])
-				for idx, lst1 in enumerate(below_margin):
-					receiver_original_ask = lst1[1]
-					for lst2 in above_margin:
-						donor_size_total = 0
-						tmp_to_remove = []
-						if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
-#							size1_list_timeout = wrc.timer('size1_list_timeout', 1200) # timeout timer
-#							threading.Thread(target=size1_list_timeout.start, name='size1_list_timeout', args=(), daemon=True).start()
-							while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
-#								if size1_list_timeout.max_time_reached:
-#									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-#									self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-#									timed_out = True
-#									break
-								for d in lst2[0]: # for each item in list 2
-									for b in d[1]:
-										if donor_size_total >= lst2[1]:
-											break
-										donor_size_total = donor_size_total + (b[6]/1024.0**2)
-										lst1[1] = lst1[1] + (b[6]/1024.0**2)
-										lst1[0].append(d)
-										tmp_to_remove.append(lst2[0].index(d))
-#							size1_list_timeout.stop()
-						else:
-#							size2_list_timeout = wrc.timer('size2_list_timeout', 1200) # timeout timer
-#							threading.Thread(target=size2_list_timeout.start, name='size2_list_timeout', args=(), daemon=True).start()
-							while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
-#								if size2_list_timeout.max_time_reached:
-#									print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-#									self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-#									timed_out = True
-#									break
-								for d in lst2[0]: # for each item in list 2
-									for b in d[1]:
-										if donor_size_total >= receiver_original_ask:
-											break
-										donor_size_total = donor_size_total + (b[6]/1024.0**2)
-										lst1[1] = lst1[1] + (b[6]/1024.0**2)
-										lst1[0].append(d)
-										tmp_to_remove.append(lst2[0].index(d))
-#							size2_list_timeout.stop()
-						for i in sorted(tmp_to_remove, reverse=True):
-							try:
-								del lst2[0][i]
-							except Exception as ex:
-								continue
+						tmp_diff_from_margin = tmp_diff_from_avg - margin
+						above_margin.append([lst, abs(tmp_diff_from_margin)])
+				else:
+					within_margin.append([lst, abs(tmp_diff_from_avg)])
+			for i in within_margin:
+				above_margin.append(i)
+				within_margin = []
+#			if not below_margin:
+#				size_balanced = True
+#				break
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)))
+			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)) ])
+			for idx, lst1 in enumerate(below_margin):
+				receiver_original_ask = lst1[1]
+				for lst2 in above_margin:
+					donor_size_total = 0
+					tmp_to_remove = []
+					if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
+#						size1_list_timeout = wrc.timer('size1_list_timeout', 1200) # timeout timer
+#						threading.Thread(target=size1_list_timeout.start, name='size1_list_timeout', args=(), daemon=True).start()
+						while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
+#							if size1_list_timeout.max_time_reached:
+#								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+#								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
+#								timed_out = True
+#								break
+							for d in lst2[0]: # for each item in list 2
+								for b in d[1]:
+									if donor_size_total >= lst2[1]:
+										break
+									donor_size_total = donor_size_total + (b[6]/1024.0**2)
+									lst1[1] = lst1[1] + (b[6]/1024.0**2)
+									lst1[0].append(d)
+									tmp_to_remove.append(lst2[0].index(d))
+#						size1_list_timeout.stop()
+					else:
+#						size2_list_timeout = wrc.timer('size2_list_timeout', 1200) # timeout timer
+#						threading.Thread(target=size2_list_timeout.start, name='size2_list_timeout', args=(), daemon=True).start()
+						while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
+#							if size2_list_timeout.max_time_reached:
+#								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
+#								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
+#								timed_out = True
+#								break
+							for d in lst2[0]: # for each item in list 2
+								for b in d[1]:
+									if donor_size_total >= receiver_original_ask:
+										break
+									donor_size_total = donor_size_total + (b[6]/1024.0**2)
+									lst1[1] = lst1[1] + (b[6]/1024.0**2)
+									lst1[0].append(d)
+									tmp_to_remove.append(lst2[0].index(d))
+#						size2_list_timeout.stop()
+					for i in sorted(tmp_to_remove, reverse=True):
+						try:
+							del lst2[0][i]
+						except Exception as ex:
+							continue
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Still " + str(len(below_margin)) + " lists below margin, still balancing List: " + str(idx) + "-")
 			size_list_timeout.stop()
 			if timed_out:
