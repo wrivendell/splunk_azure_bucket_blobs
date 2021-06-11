@@ -185,11 +185,11 @@ class Queue():
 			time.sleep(10)
 			if self.debug:
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " Queue is paused. -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Queue is paused."] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Queue is paused."] )
 		else:
 			if self.debug:
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " Still "+str(len(self.jobs_active))+" running. -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Still "+str(len(self.jobs_active))+" running."] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Still "+str(len(self.jobs_active))+" running."] )
 
 	# checks to see how much room active jobs can hold and relays that to activateNextJobs()
 	def activeJobsRoom(self):
@@ -204,7 +204,7 @@ class Queue():
 		job_max = 1
 		if self.debug:
 			print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " " + str( len(self.jobs_active) )+" running, adding next. -")
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ":" +  str( len(self.jobs_active) )+" running, adding next."] )
+			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ":" +  str( len(self.jobs_active) )+" running, adding next."] )
 		# add as many jobs as we have room and start them in the active queue
 		if len(self.jobs_waiting) > 0:
 			if not self.threads_at_once == 1:
@@ -230,11 +230,11 @@ class Queue():
 						continue
 			if self.debug:
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " Started "+str( job_max )+" new processes. -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Started " + str( job_max ) + " new processes."] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Started " + str( job_max ) + " new processes."] )
 		else:
 			if self.debug:
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " No more jobs waiting in the queue, only active left. -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": No more jobs waiting in the queue, only active left."] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": No more jobs waiting in the queue, only active left."] )
 			while len(self.jobs_active) > 0:
 				time.sleep(10)
 				self.activeJobsHandler()
@@ -291,12 +291,12 @@ class Queue():
 		if self.paused:
 			if self.debug:
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " Queue already paused, unpausing. -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Queue already paused, unpausing."] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Queue already paused, unpausing."] )
 			self.paused = False
 			timeout = self.pause_timeout_sec
 		else:
 			print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " Queue will pause after current jobs finish. -")
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Queue will pause after current jobs finish."] )
+			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Queue will pause after current jobs finish."] )
 			self.paused = True
 			timeout = self.pause_timeout_sec
 			while self.paused:
@@ -309,10 +309,10 @@ class Queue():
 					while not self.clearJobs():
 						time.sleep(10)
 						print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " " + self.name + " is waiting for active jobs to finish before timing out. -")
-						self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": is waiting for active jobs to finish before timing out."] )
+						self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": is waiting for active jobs to finish before timing out."] )
 					else:
 						print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " " + self.name + " - All jobs cleared after pause timeout. -")
-						self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": - All jobs cleared after pause timeout."] )
+						self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": - All jobs cleared after pause timeout."] )
 						sys.exit(1)
 
 	def stop(self):
@@ -324,10 +324,10 @@ class Queue():
 			while not self.clearJobs():
 				time.sleep(10)
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " " + self.name + " is waiting for active jobs to finish before fully stopping. -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": is waiting for active jobs to finish before fully stopping."] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": is waiting for active jobs to finish before fully stopping."] )
 			else:
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " " + self.name + " - All jobs cleared after stop. -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": - All jobs cleared after stop."] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": - All jobs cleared after stop."] )
 				sys.exit(1)
 		else:
 			self.stopped = True
@@ -358,7 +358,7 @@ class Queue():
 		for i in arg_list_to_process:
 			if self.debug:
 				print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " job added: " + str(i) + " -")
-				self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": job added: " + str(i)] )
+				self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": job added: " + str(i)] )
 			job_name = str(self.name) + '_j_' + str(uuid.uuid4().hex)
 			t = threading.Thread( target=function_to_run, name=job_name, args=(i) )
 			t.daemon = True
@@ -390,7 +390,7 @@ class Queue():
 				self.inactive_timeout_counter = self.inactive_queue_timeout_sec
 				if self.debug:
 					print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + ": Still actively looking for and processing jobs... -")
-					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Still actively looking for and processing jobs..."] )
+					self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Still actively looking for and processing jobs..."] )
 				# Wait until a job finishes before starting another or stay in loop while paused
 				while len(self.jobs_active) >= (self.threads_at_once) or self.paused:
 					if self.stopped:
@@ -407,13 +407,11 @@ class Queue():
 				self.inactive_timeout_counter -= 1
 				if self.debug:
 					print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds -")
-					self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds"] )
+					self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds"] )
 		else:
 			print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " " + self.name + " is exiting due to no new jobs added. -")
-			self.log_file.writeLinesToFile([str(sys._getframe().f_lineno) + self.name + ": is exiting due to no new jobs added."] )
+			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": is exiting due to no new jobs added."] )
 			while not self.clearJobs():
 				time.sleep(3)
 			else:
 				sys.exit(0)
-
-		

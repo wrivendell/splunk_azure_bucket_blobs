@@ -50,7 +50,7 @@ print("\n")
 
 # service class for Azure (wazure)
 blob_service = wazure.BlobService((arguments.args.connect_string)) # used to make requests to Azure Blobs
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Blob interactive service class created: blob_service"])
+log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Blob interactive service class created: blob_service"])
 master_bucket_download_list = []
 
 # bucket sorter "bucketeer" class
@@ -78,11 +78,11 @@ else:
 if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Blob interactive service class created: blob_service" + " -")
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Bucket Sorter class created: idx_bucket_sorter" + " -")
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Bucket Sorter class created: idx_bucket_sorter"])
+log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Bucket Sorter class created: idx_bucket_sorter"])
 # NOTIFY if csv load directly
 if not arguments.args.skip_to_csv_load:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly! -")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly!"])
+	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly!"])
 
 ########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # create handler classes
@@ -110,19 +110,19 @@ if arguments.args.detailed_output:
 		print("   Queue class: wrq_download")
 	print("   Queue name: blob_downloader")
 	print("\n")
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Processing Queue Created:"])
+log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Processing Queue Created:"])
 if not arguments.args.write_out_full_list_only:
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue class: wrq_download"])
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue name: blob_downloader"])
+	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Queue class: wrq_download"])
+log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Queue name: blob_downloader"])
 if arguments.args.detailed_output:
 	print("\n")
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Processing Queue Created: -")
 	print("   Queue class: wrq_logging")
 	print("   Queue name: parent_logging")
 	print("\n")
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Processing Queue Created:"])
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue class: wrq_logging"])
-log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Queue name: parent_logging"])
+log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Processing Queue Created:"])
+log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Queue class: wrq_logging"])
+log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Queue name: parent_logging"])
 ########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # create queues for throwing various jobs at
 ########################################### 
@@ -174,7 +174,7 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 			tmp_split = bucket_detail_list[0].split('_' + str(bucket_detail_list[5])) # split original path at the _bucketID
 			new_bucket_name = str(tmp_split[0]) + "_" + str(bucket_detail_list[5]) + "_" + str(azure_bucket_sorter.my_guid) + str(tmp_split[1])
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name +"-")
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name])
+			log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Standalone bucket going to cluster. Appending GUID. New bucket path will be: " + new_bucket_name])
 			del bucket_detail_list[-1]
 			del bucket_detail_list[-1]
 			bucket_detail_list.append( new_bucket_name )
@@ -182,7 +182,7 @@ def appendGUIDCheck(bucket_detail_list:list) -> set:
 		except Exception as ex:
 			print(ex)
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): FAILED appending GUID to stnadalone bucket -")
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): FAILED appending GUID to stnadalone bucket."])
+			log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): FAILED appending GUID to stnadalone bucket."])
 	else:
 		return(False, "")
 
@@ -207,7 +207,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 	Leaving those lists blank, return all blobs in all containers by default
 	'''
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Attempting to create master blob download list, this could take awhile. -")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Attempting to create master blob download list, this could take awhile."])
+	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Attempting to create master blob download list, this could take awhile."])
 	if not arguments.args.list_create_output:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): You could set -lco to True for more entertaining feedback while you wait. -")
 	time.sleep(3)
@@ -220,20 +220,20 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 			########################################### 
 			# Container filters
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed -")
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed"])
+			log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): All blobs from all containers found and listed"])
 			print("\n")
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters -")
 
 			# Container filters
 			if len(container_names_to_search_list) > 0:
-				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters"])
+				log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Filtering list based on the following filters"])
 				if arguments.args.container_search_list_type:
 					cfilter_type = "EXACTLY MATCHES"
 				else:
 					cfilter_type = "CONTAINS"
 				for filter in arguments.args.container_search_list:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter + " -")
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter])
+					log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where container " + cfilter_type + ": " + filter])
 			if len(container_names_to_ignore_list) > 0:
 				if arguments.args.container_ignore_list_type:
 					cfilter_type = "EXACTLY MATCHES"
@@ -241,7 +241,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 					cfilter_type = "CONTAINS"
 				for filter in arguments.args.container_ignore_list:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where container " + cfilter_type + ": " + filter + " -")
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where container " + cfilter_type + ": " + filter])
+					log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where container " + cfilter_type + ": " + filter])
 
 			# Blob filters
 			if len(blob_names_to_search_list) > 0:
@@ -251,7 +251,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 					cfilter_type = "CONTAINS"
 				for filter in arguments.args.blob_search_list:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where blob_name " + cfilter_type + ": " + filter])
+					log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Will ONLY download blobs found where blob_name " + cfilter_type + ": " + filter])
 			print("\n")
 			if len(blob_names_to_ignore_list) > 0:
 					if arguments.args.blob_ignore_list_type:
@@ -260,7 +260,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 						cfilter_type = "CONTAINS"
 					for filter in arguments.args.blob_ignore_list:
 						print("- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter + " -")
-						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter])
+						log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Will NOT download blobs found where blob_name " + cfilter_type + ": " + filter])
 			########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 			# FILTERS FEED BACK FOR USER
 			########################################### 
@@ -276,29 +276,29 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 					print("\n")
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] + " -")
 					print("\n")
-				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] ])
+				log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Now processing container: " + container['name'] ])
 				if len(container_names_to_search_list) > 0:
 					if not blob_service.isInList(container['name'], container_names_to_search_list, container_names_search_list_equals_or_contains, False):
-						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] ])
+						log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] ])
 						if arguments.args.list_create_output:
 							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER since not in INCLUDE list: " + container['name'] + " -")
 						continue
 				if len(container_names_to_ignore_list) > 0:
 					if blob_service.isInList(container['name'], container_names_to_ignore_list, container_names_ignore_list_equals_or_contains, False):
-						log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] ])
+						log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] ])
 						if arguments.args.list_create_output:
 							print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping CONTAINER based on EXCLUDE list: " + container['name'] + " -")
 						continue
 				for blob in container['blobs']:
 					if len(blob_names_to_search_list) > 0:
 						if not blob_service.isInList(blob['name'], blob_names_to_search_list, blob_names_search_list_equals_or_contains, False):
-							log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] ])
+							log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] ])
 							if arguments.args.list_create_output:
 								print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB since not in INCLUDE list: " + blob['name'] + " -")
 							continue
 					if len(blob_names_to_ignore_list) > 0:
 						if blob_service.isInList(blob['name'], blob_names_to_ignore_list, blob_names_ignore_list_equals_or_contains, False):
-							log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] ])
+							log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] ])
 							if arguments.args.list_create_output:
 								print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping BLOB based on EXCLUDE list: " + blob['name'] + " -")
 							continue
@@ -318,7 +318,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Failed pulling a blob name, trying to skip. -")
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Failed pulling a blob name, trying to skip."])
+			log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Failed pulling a blob name, trying to skip."])
 			########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 			# RUN LOOP AGAINST AZURE and process through filters
 			########################################### 
@@ -336,11 +336,11 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 			else:
 				# master_bucket_download_list_orig = master_bucket_download_list # uncomment if ever wanting to keep the master list for whatever reason
 				print("- SABB(" + str(sys._getframe().f_lineno) +"): Received master download list from Bucketeer. Thanks! -")
-				log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Received master download list from Bucketeer. Thanks! -"])
+				log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Received master download list from Bucketeer. Thanks! -"])
 				master_bucket_download_list_full = azure_bucket_sorter.this_peer_download_list # has columns we dont need later but do now
 				if not arguments.args.write_out_full_list_only:
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Check master list for any standalone buckets and appending this GUID to them. -")
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Check master list for any standalone buckets and appending this GUID to them. -"])
+					log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Check master list for any standalone buckets and appending this GUID to them. -"])
 					master_bucket_download_list = []
 					for i in master_bucket_download_list_full:
 						# check and see if the bucket came from a standalone and needs a GUID appeneded
@@ -354,12 +354,12 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 							master_bucket_download_list.append( [ i[0], i[1], i[8], i[9] ] ) # filename, size, container, dl loc
 					# master download list is complete
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Done. -")
-					log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Done. -"])
+					log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Done. -"])
 	except Exception as ex:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Exception: -")
 		print(ex)
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): FAILED to create master blob download list, exiting. -")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):FAILED to create master blob download list, exiting."])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):FAILED to create master blob download list, exiting."])
 		sabb_op_timer.stop()
 		azure_bucket_sorter.bucketeer_timer.stop()
 		sys.exit()
@@ -374,16 +374,17 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 # compare a byte size to a file byte size
 def compareDownloadSize(expected_size:int, full_path_to_file:str):
 	'''
-	Returns a set, (True/False, downloaded_size mb)
+	Returns a set, (True/False, expected_size_mb, downloaded_size mb)
 	'''
 	try:
 		downloaded_size = os.path.getsize((full_path_to_file))
 		if int(downloaded_size) == int(expected_size):
 			downloaded_size = downloaded_size/1024.0**2
+			expected_size_mb = expected_size/1024.0**2
 			return(True, downloaded_size)
 		else:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): File Download: FAILED - " + full_path_to_file + " -")
-			return(False, downloaded_size)
+			return(False, expected_size, downloaded_size)
 	except Exception as ex:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): Exception: -")
 		print(ex)
@@ -392,7 +393,7 @@ def compareDownloadSize(expected_size:int, full_path_to_file:str):
 		tmp_log_list = []
 		tmp_log_list.append(log_line)
 		wrq_logging.add(log_file.writeLinesToFile, (tmp_log_list))
-		return(False, 0)
+		return(False, 0, 0)
 
 def updateDownloadedCSVSuccess(blob_name):
 	'''
@@ -456,8 +457,8 @@ def updateCompletedWRQDownloadJobs():
 					file_verify = compareDownloadSize( int(command_args_list[1]), str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					if file_verify[0]:
 						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"))
-						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Expected_File_Size_MB', str(command_args_list[1]/1024.0**2) ))
-						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])))
+						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Expected_File_Size_MB', str(file_verify[1]) ))
+						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[2]) ))
 					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"]])
 					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])]])
 						tmp_log_dl_list.append('File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
@@ -474,7 +475,7 @@ def updateCompletedWRQDownloadJobs():
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): FAILED while attempting to get jobs_completed info -")
-			wrq_logging.add(log_file.writeLinesToFile, [[["FAILED while attempting to get jobs_completed info."]]])
+			wrq_logging.add(log_file.writeLinesToFile, [[["FAILED while attempting to get jobs_completed info. Exception: " + str(ex)]]])
 	else:
 		if arguments.args.detailed_output:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): updateCompletedWRQDownloadJobs is completed, thread should stop now. -")
@@ -596,7 +597,7 @@ def timeAndCompletionChecker():
 if __name__ == "__main__":
 	start_time_str = currentDate(True)
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Start Time: " + start_time_str + " -")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Start Time: " + currentDate(True)])
+	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Start Time: " + currentDate(True)])
 	start_time = currentDate(raw_or_str=True)
 	
 	## Download prep
@@ -663,7 +664,7 @@ if __name__ == "__main__":
 	# exit if no blobs found to dl
 	if not master_bucket_download_list:
 		print("- SABB(" + str(sys._getframe().f_lineno) +"): No Blobs found for download, exiting. -")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): No Blobs found for download, exiting."])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): No Blobs found for download, exiting."])
 		sabb_op_timer.stop()
 		azure_bucket_sorter.bucketeer_timer.stop()
 		sys.exit()
@@ -680,12 +681,12 @@ if __name__ == "__main__":
 		print("#######################################################################################\n\n\n")
 		time.sleep(10)
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) +" is number of items in the list -")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) + " is number of items in the list to download."])
+	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): " + str(len(master_bucket_download_list)) + " is number of items in the list to download."])
 
 	if not arguments.args.write_out_full_list_only:
 		if not arguments.args.standalone:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -")
-			log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"): Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
+			log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):- SABB(" + str(sys._getframe().f_lineno) +"): Clustered Env - GUID: " + str(azure_bucket_sorter.my_guid) + " using list number: " + str(azure_bucket_sorter.this_peer_index) + " -"])
 		if arguments.args.debug_modules:
 			for i in master_bucket_download_list:
 				log_file.writeLinesToFile(['Download - Job Added: ' + str(i) + ' - To Queue: wrq_download - blob_downloader'], 3)
@@ -716,7 +717,7 @@ if __name__ == "__main__":
 	# thread_logging_parent
 	if arguments.args.detailed_output:
 		print("Creating logging thread parent called: thread_logging_parent")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating logging thread parent called: thread_logging_parent"])
+	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Creating logging thread parent called: thread_logging_parent"])
 	thread_logging_parent = threading.Thread(target=wrq_logging.start, name='logging_parent', args=())
 	thread_logging_parent.daemon = True
 
@@ -726,21 +727,21 @@ if __name__ == "__main__":
 		# thread_update_completed
 		if arguments.args.detailed_output:
 			print("Creating csv updater thread parent called: thread_update_completed")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating csv updater thread parent called: thread_update_completed"])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Creating csv updater thread parent called: thread_update_completed"])
 		thread_update_completed = threading.Thread(target=updateCompletedWRQDownloadJobs, name='thread_update_completed', args=())
 		thread_update_completed.daemon = True
 
 		# thread_csv_report_parent
 		if arguments.args.detailed_output:
 			print("Creating csv reporter thread (writes lines to csv report in queue) called: thread_csv_report_parent")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating logging thread parent called: thread_csv_report_parent"])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Creating logging thread parent called: thread_csv_report_parent"])
 		thread_csv_report_parent = threading.Thread(target=wrq_csv_report.start, name='csv_report_parent', args=())
 		thread_csv_report_parent.daemon = True
 
 		# thread_blob_download_parent
 		if arguments.args.detailed_output:
 			print("Creating download thread parent called: thread_blob_download_parent")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"): Creating download thread parent called: thread_blob_download_parent"])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Creating download thread parent called: thread_blob_download_parent"])
 		thread_blob_download_parent = threading.Thread(target=wrq_download.start, name='blob_download_parent', args=())
 		thread_blob_download_parent.daemon = True
 	########################################### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -758,7 +759,7 @@ if __name__ == "__main__":
 
 	# thread_logging_parent
 	print("Starting: thread_logging_parent")
-	log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_logging_parent"])
+	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_logging_parent"])
 	thread_logging_parent.start()
 
 	if not arguments.args.write_out_full_list_only:
@@ -768,18 +769,18 @@ if __name__ == "__main__":
 		#print("exiting so not to download any real data outside of UK")
 		#sabb_op_timer.stop()
 		#sys.exit()
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_blob_download_parent"])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_blob_download_parent"])
 		thread_blob_download_parent.start()
 
 		# thread_csv_report_parent
 		print("Starting: thread_csv_report_parent")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_csv_report_parent"])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_csv_report_parent"])
 		# create csv file and headers
 		thread_csv_report_parent.start()
 
 		# thread_update_completed
 		print("Starting: thread_update_completed")
-		log_file.writeLinesToFile(["- SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_update_completed"])
+		log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Starting: thread_update_completed"])
 		thread_update_completed.start()
 
 	time.sleep(5) # let everyone breathe before the madness

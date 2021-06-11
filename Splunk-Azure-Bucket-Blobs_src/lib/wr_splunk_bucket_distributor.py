@@ -816,9 +816,7 @@ class Bucketeer():
 								df['Expected_File_Size_MB']=''
 								df['Download_Complete']='NO'
 								df['Downloaded_File_Size_MB']=''
-								print(df)
 								df = df[new_header_row] # arrange the columns the way we want to send them back
-								print(df)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Creating dataframe." )
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Creating dataframe." + str(idx) ])
 								df.to_csv(guid_csv.log_path, index=False)
