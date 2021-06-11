@@ -618,6 +618,10 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): average_size_per_list: ", average_size_per_list)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Margin MB: ", margin)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Margin %: ", self.size_error_margin)
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Total size mb: " + str(total_size)])
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): average_size_per_list: " + str(average_size_per_list)])
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Margin MB: " + str(margin)])
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Margin %: " + str(self.size_error_margin)])
 			print("\n")
 			above_margin = []
 			below_margin = []
@@ -774,8 +778,8 @@ class Bucketeer():
 				for d in lst:
 					for b in d[1]:
 						final_master_download_list_of_lists[idx].append(b)
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Amount of peer lists: ", len(final_master_download_list_of_lists))
-			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Amount of peer lists: ", len(final_master_download_list_of_lists)])
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Amount of peer lists: " + str(len(final_master_download_list_of_lists)) )
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Amount of peer lists: " + len(final_master_download_list_of_lists)])
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Failed creating simple list from Tuples. Exiting.")
 			print(ex)
