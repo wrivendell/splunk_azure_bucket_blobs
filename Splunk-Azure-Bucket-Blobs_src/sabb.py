@@ -456,6 +456,7 @@ def updateCompletedWRQDownloadJobs():
 					file_verify = compareDownloadSize( int(command_args_list[1]), str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
 					if file_verify[0]:
 						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"))
+						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Expected_File_Size_MB', str(command_args_list[1]/1024.0**2) ))
 						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])))
 					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"]])
 					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])]])
