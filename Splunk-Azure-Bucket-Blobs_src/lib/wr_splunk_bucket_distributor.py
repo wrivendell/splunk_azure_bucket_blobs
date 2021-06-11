@@ -598,9 +598,9 @@ class Bucketeer():
 				for d in lst: # get each tuble containing list of buckets by bucket id
 					total_d_count += 1
 					for b in d[1]: # get bucket tuples in bid dict
-						tmp_size = tmp_size + (b[6]/1024.0**2)
-					total_size += tmp_size
+						tmp_size += (b[6]/1024.0**2)
 					d_size_amt_list.append(tmp_size)
+				total_size += tmp_size
 				self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):: STARTING List Total Size (mb) " + str(master_list_of_lists.index(lst)) + ": " + str(tmp_size)])
 				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): STARTING List Total Size (mb) " + str(master_list_of_lists.index(lst)) + ": " + str(tmp_size) )
 			# get bid dict size median
@@ -608,21 +608,17 @@ class Bucketeer():
 			# get averages
 			average_size_per_bid_dict = total_size / total_d_count
 			average_size_per_list = total_size / len(master_list_of_lists) # how many TB/GB etc SHOULD be in each list
-			self.size_error_margin = d_size_median / average_size_per_list * 100 # margin %
-#			if len(master_list_of_lists)/2 >= 10:
-#				self.size_error_margin = 10
-#			else:
-#				self.size_error_margin = len(master_list_of_lists)/2
-#			self.size_error_margin = self.size_error_margin / 100 # as a percent
+			if len(master_list_of_lists) / 2 >= 10:
+				self.size_error_margin = 10
+			else:
+				self.size_error_margin = len(master_list_of_lists) / 2
+			self.size_error_margin = self.size_error_margin / 100 # as a percent in decimal
 			margin = average_size_per_list * self.size_error_margin # margin total size number
-#			size_list_timeout = wrc.timer('size_list_timeout', 3600) # timeout timer
-#			threading.Thread(target=size_list_timeout.start, name='size_list_timeout', args=(), daemon=True).start()
-#			while not size_balanced:
-#				if size_list_timeout.max_time_reached:
-#					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-#					self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-#					timed_out = True
-#					break
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Total size mb: ", total_size)
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): average_size_per_list: ", average_size_per_list)
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Margin MB: ", margin)
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Margin %: ", self.size_error_margin)
+			print("\n")
 			above_margin = []
 			below_margin = []
 			within_margin = []
@@ -644,25 +640,15 @@ class Bucketeer():
 			for i in within_margin:
 				above_margin.append(i)
 				within_margin = []
-#			if not below_margin:
-#				size_balanced = True
-#				break
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)))
-			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Below margin: " + str(len(below_margin)) + " | Above Margin: " + str(len(above_margin)) ])
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Below margin: " + str(len(below_margin)) + " | Above/Within Margin: " + str(len(above_margin)))
+			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + "): Below margin: " + str(len(below_margin)) + " | Above/Within Margin: " + str(len(above_margin)) ])
 			for idx, lst1 in enumerate(below_margin):
 				receiver_original_ask = lst1[1]
 				for idx_2, lst2 in enumerate(above_margin):
 					donor_size_total = 0
 					tmp_to_remove = []
 					if lst2[1] < lst1[1]: # we can only give up to what lst2 can afford cant cover it all
-#						size1_list_timeout = wrc.timer('size1_list_timeout', 1200) # timeout timer
-#						threading.Thread(target=size1_list_timeout.start, name='size1_list_timeout', args=(), daemon=True).start()
 						while donor_size_total < lst2[1]: # if our total "take" is NOT equal or more than what he had to give, keep adding
-#							if size1_list_timeout.max_time_reached:
-#								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-#								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-#								timed_out = True
-#								break
 							for d_idx, d in enumerate(lst2[0]): # for each item in list 2
 								tmp_b_size = 0
 								for b in d[1]: # total size of the bid dict
@@ -675,16 +661,8 @@ class Bucketeer():
 								lst1[1] += tmp_b_size
 								lst1[0].append(d)
 								tmp_to_remove.append(lst2[0].index(d))
-#						size1_list_timeout.stop()
 					else:
-#						size2_list_timeout = wrc.timer('size2_list_timeout', 1200) # timeout timer
-#						threading.Thread(target=size2_list_timeout.start, name='size2_list_timeout', args=(), daemon=True).start()
 						while donor_size_total < receiver_original_ask: # if our total "take" is NOT equal or more than what he had to give, keep adding
-#							if size2_list_timeout.max_time_reached:
-#								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Balancing by size stopped due to timeout and moved on as is. -")
-#								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Balancing by size stopped due to timeout and moved on as is."])
-#								timed_out = True
-#								break
 							for d_idx, d in enumerate(lst2[0]): # for each item in list 2
 								tmp_b_size = 0
 								for b in d[1]: # total size of the bid dict
@@ -697,18 +675,12 @@ class Bucketeer():
 								lst1[1] += tmp_b_size
 								lst1[0].append(d)
 								tmp_to_remove.append(lst2[0].index(d))
-#						size2_list_timeout.stop()
 					for i in sorted(tmp_to_remove, reverse=True):
 						try:
 							del lst2[0][i]
 						except Exception as ex:
 							continue
 					print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Still " + str(len(below_margin)) + " lists below margin, still balancing List: " + str(idx) + "-")
-#			size_list_timeout.stop()
-#			if timed_out:
-#				self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs balanced as best as possible but couldn't hit the specified margin: " + str(self.size_error_margin*100) + "%"])
-#				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced as best as possible but couldn't hit the specified margin: " + str(self.size_error_margin*100) + "%")
-#			else:
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%"])
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Jobs balanced by size to a margin of: " + str(self.size_error_margin*100) + "%")
 			for lst in master_list_of_lists:
