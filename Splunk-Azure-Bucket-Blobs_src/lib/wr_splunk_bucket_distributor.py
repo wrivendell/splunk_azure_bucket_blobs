@@ -501,7 +501,7 @@ class Bucketeer():
 			while total_list_item_count > 0:
 				for idx, item in enumerate(result_dict_list):
 					if idx % 2000 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... iteration -> " + str(idx) )
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):	   Still working... iteration -> " + str(idx) )
 					master_list_of_sublists[idx].append(item)
 					total_list_item_count -= 1
 			return(master_list_of_sublists)
@@ -512,7 +512,7 @@ class Bucketeer():
 				counter += 1
 				for m_sub_list in master_list_of_sublists:
 					if counter % 2000 == 0:
-						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):       Still working... iteration -> " + str(counter))
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"):	   Still working... iteration -> " + str(counter))
 					m_sub_list.extend(result_dict_list[0:per_chunk_count])
 					del result_dict_list[0:per_chunk_count]
 					total_list_item_count -= 1
@@ -760,14 +760,22 @@ class Bucketeer():
 						self.final_peer_download_lists = self.createMasterTupleListFromDicts(final_peer_download_dicts) # create x amount of list full of simple tuples
 						write_threads = [] # we'll add our csv thread writer queues to this and then kick them off later
 						try:
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list of peer lists.")
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sorting master list of peer lists."])
 							self.final_peer_download_lists.sort()
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done.")
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done."])
 						except Exception as ex:
 							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sort of master list of lists failed. Exiting.")
 							print(ex)
 							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sort of master list of lists failed. Exiting."])
 							self.bucketeer_timer.stop()
 							return(False)
+						print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Starting CSV build loop on peers...")
+						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Starting CSV build loop on peers..."])
 						for idx, p in enumerate(self.idx_cluster_peers): # assign each list to a guid and write out its respective csv (each peer will do some extras when they hit THEIR list)
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Getting csv and write queue on peer: " + str(idx) )
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "):  Getting csv and write queue on peer: " + str(idx) ])
 							if p == self.my_guid:
 								self.this_peer_index = idx
 							# write lists to csvs
@@ -780,51 +788,54 @@ class Bucketeer():
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed getting GUID and/csv from queue. Exiting."])
 								self.bucketeer_timer.stop()
 								return(False)
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done.")
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done."])
+
 							tmp_list = [] # tmp list for our prune csv list from the main
+							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Priming CSV build on peer: " + str(idx) )
+							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): priming CSV build on peer: " + str(idx) ])
 							try:
-								for bt in self.final_peer_download_lists[idx]:
-									bt_list = [ bt[7], bt[6], (bt[6]/1024.0**2), bt[4], bt[2], bt[5], 'NO', 0]
-									header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
-									if len(bt) > 13: # we always break the buckets out into 13 details in the tuple, if there are more items in the tuple, it was additional data the user wanted back
-										if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)
-											bt_list.extend(bt[13:])
-											add_diff = len(bt_list) - 8
-											for x in range(add_diff):
-												header_row.append("Additional_" + str(x + 1))
-									tmp_list.append(bt_list)
-									guid_queue.add(guid_csv.writeLinesToCSV, [[(tmp_list), (header_row)]])
-								if p == self.my_guid:
-									my_queue = guid_queue
-								write_threads.append(threading.Thread(target=guid_queue.start, name='guid_queue' + guid_queue.name, args=())) # add this thread to the write queue
+								header_done = False
+								item_count = len(self.final_peer_download_lists[idx][0])
+								add_diff = item_count - 13
+								# put dummy headers in for the columns we arent gonna need sending back but keep the additional as promised
+								header_row = ['rm_1', 'rm_2', 'Bucket_ID', 'rm_3', 'Was_Standalone', 'db_Bucket(not_rb)', 'Expected_File_Size_bytes', 'File_Name', 'rm_4', 'rm_5', 'rm_6', 'rm_7', 'rm_8']
+								new_header_row = ['File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB']
+								if item_count > 13: # we always break the buckets out into 15 details in the tuple, if there are more items in the tuple, it was additional data the user wanted back
+									if self.include_additioanl_list_items_in_csv: # add the additional tuple items to the list and then csv (if the user set the option to do so)
+										for x in range(add_diff):
+											header_row.append("Additional_" + str(x + 1))
+											new_header_row.append("Additional_" + str(x + 1))
+								df = pandas.DataFrame(self.final_peer_download_lists[idx],columns=[header_row]) # create data frame with full list
+								'''
+								Remove the columns we dont need.
+								We always write out these columns in this order: 'File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB' + any Additional_x
+								'''
+								for x in ['rm_1', 'rm_2', 'rm_3', 'rm_4', 'rm_5', 'rm_6', 'rm_7', 'rm_8']:
+									del df[x]
+								df['Expected_File_Size_MB']=''
+								df['Download_Complete']='NO'
+								df['Downloaded_File_Size_MB']=''
+								print(df)
+								df = df[new_header_row] # arrange the columns the way we want to send them back
+								print(df)
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Creating dataframe." )
+								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Creating dataframe." + str(idx) ])
+								df.to_csv(guid_csv.log_path, index=False)
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Writing dataframe to CSV." )
+								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Writing dataframe to CSV." + str(idx) ])	
 							except Exception as ex:
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Failed prepping CSV. Exiting.")
 								print(ex)
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Failed prepping CSV. Exiting."])
 								self.bucketeer_timer.stop()
 								return(False)
-						# start all peers csv writes in the background
-						try:
-							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!!")
-							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Writing peer lists out to csvs in csv_lists folder. <_name_GUID.csv>  - Do NOT rename or edit these!! "])
-							for t in write_threads:
-								t.daemon = False
-								t.start()
-						except Exception as ex:
-							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Threads to write CSV had an issue. Exiting.")
-							print(ex)
-							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Threads to write CSV had an issue. Exiting."])
-							self.bucketeer_timer.stop()
-							return(False)
-						# since we started the CSV write in a thread we don't want the peer accessing it til its complete, so we wait
-						while not len(my_queue.jobs_active) == 0 and not len(my_queue.jobs_waiting) == 0 and not len(my_queue.jobs_completed) > 0: # wait for csv to be written out
-							time.sleep(10)
-							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Waiting... for jobs to finish.")
 		# next read csv into a dataframe and strip all items that have been downloaded according to the csv leaving us with a new download list -ready for action
 		try:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Removing all downloaded items before passing back list. -")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Removing all downloaded items before passing back list. "])
 			df = pandas.read_csv(self.getPeerCSV().log_path, engine='python')
-			df = df[df.Download_Complete != 'SUCCESS']
+			df = df[df.Download_Complete != 'SUCCESS'] # remove ROWS where lines under that HEADER are not "SUCCESS"
 			# remove headers now
 			df = df.iloc[1:]
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. -")
