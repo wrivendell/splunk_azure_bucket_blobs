@@ -529,6 +529,7 @@ def timeAndCompletionChecker():
 			print("- Downloads Waiting: " + str(len(wrq_download.jobs_waiting)))
 			print("- Average Download Time(min): " + str( round(wrq_download.average_job_time, 2) ) )
 			print("- Estimated Finish Time(min): " + str( round(wrq_download.estimated_finish_time, 2) ) )
+			print("- Estimated Finish Time(hr): " + str( round(wrq_download.estimated_finish_time/60, 2) ) )
 			print("-------------------------")
 			print("\n")
 			print("WRQ_Logging--------------")
