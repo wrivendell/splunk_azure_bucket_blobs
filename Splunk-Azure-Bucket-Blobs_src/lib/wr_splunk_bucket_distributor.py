@@ -779,7 +779,7 @@ class Bucketeer():
 					for b in d[1]:
 						final_master_download_list_of_lists[idx].append(b)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Amount of peer lists: " + str(len(final_master_download_list_of_lists)) )
-			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Amount of peer lists: " + len(final_master_download_list_of_lists)])
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Amount of peer lists: " + str(len(final_master_download_list_of_lists))])
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Failed creating simple list from Tuples. Exiting.")
 			print(ex)
