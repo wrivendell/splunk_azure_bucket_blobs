@@ -28,8 +28,8 @@ def str2bool(string: str) -> bool:
 
 def checkPositive(value: str) -> int:
 	ivalue = int(value)
-	if ivalue <= 0:
-		raise argparse.ArgumentTypeError("%s is an invalid (below 1) int value" % value)
+	if ivalue < 0:
+		raise argparse.ArgumentTypeError("%s is an invalid (below 0) int value" % value)
 	return ivalue
 
 def Arguments():
