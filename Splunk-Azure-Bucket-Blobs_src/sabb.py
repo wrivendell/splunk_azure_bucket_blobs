@@ -47,6 +47,10 @@ print("- SABB(" + str(sys._getframe().f_lineno) +"): --- Splunk Azure Blob Bucke
 print("- SABB(" + str(sys._getframe().f_lineno) +"): Main Log Created at: ./logs/" + (main_log) + " -")
 print("- SABB(" + str(sys._getframe().f_lineno) +"): Main CSV Status Report Created at: ./csv_lists/" + (main_report_csv) + " -")
 print("\n")
+if arguments.args.test_amount > 0:
+	print("- SABB(" + str(sys._getframe().f_lineno) +"): ################################################################### -")
+	print("- SABB(" + str(sys._getframe().f_lineno) +"): TEST RUN - Limited number of items will be fetch, amount: " + (main_report_csv) + " -")
+	print("- SABB(" + str(sys._getframe().f_lineno) +"): ################################################################### -")
 
 # service class for Azure (wazure)
 blob_service = wazure.BlobService((arguments.args.connect_string)) # used to make requests to Azure Blobs
@@ -213,7 +217,7 @@ def makeBlobDownloadList(container_names_to_search_list=[],
 	time.sleep(3)
 	if not arguments.args.skip_to_csv_load:
 		try:
-			all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers(container_names_to_search_list, blob_names_to_search_list, arguments.args.test_amount)
+			all_blobs_by_containers_dict_list = blob_service.getAllBlobsByContainers(container_names_to_search_list, blob_names_to_search_list, break_at_amount=arguments.args.test_amount)
 
 			########################################### 
 			# FILTERS FEED BACK FOR USER
@@ -790,20 +794,3 @@ if __name__ == "__main__":
 	# START LOCAL threads. Kick off the queues where the jobs are added - those queues run their x amount of threads each - threads used so main can still run
 	# - wrq_download, wrq_logging, wrq_csv_report
 	########################################### 
-
-	### Feedback for user when just writing out the list (WOFLO) since it can take a long time
-	if arguments.args.write_out_full_list_only:
-		print("\n\n\n#######################################################################################")
-		print("- SABB(" + str(sys._getframe().f_lineno) +"): Starting: Write To CSV at: /logs/" + (main_report_csv) )
-		print("#######################################################################################\n\n\n")
-		time.sleep(10)
-		periodic_check = 200
-		length_of_list = len(master_bucket_download_list)
-		wrq_logging.stop()
-		for idx, i in enumerate(master_bucket_download_list):
-			log_csv.writeLinesToCSV( [ [i[2], i[0], i[1]/1024.0**2] ], ['Container_Name', 'File_Name', 'Expected_File_Size_MB'])
-			if idx + 1 == length_of_list:
-				print("- SABB(" + str(sys._getframe().f_lineno) +"): Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", "100%" )
-			elif idx % periodic_check == 0:
-				percent = (idx + 1) / length_of_list * 100
-				print("- SABB(" + str(sys._getframe().f_lineno) +"): Working on: " + str(idx + 1) + " / " + str(length_of_list), " | ", str(percent) + "%" )
