@@ -821,7 +821,7 @@ class Bucketeer():
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Temp Header Row:", (header_row))
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Final Header Row:", (new_header_row))
 								print(self.final_peer_download_lists[idx])
-								df = pandas.DataFrame(self.final_peer_download_lists[idx],columns=[header_row]) # create data frame with full list
+								df = pandas.DataFrame(self.final_peer_download_lists[idx],columns=(header_row)) # create data frame with full list
 								'''
 								Remove the columns we dont need.
 								We always write out these columns in this order: 'File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB' + any Additional_x
