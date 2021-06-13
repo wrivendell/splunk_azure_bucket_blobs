@@ -820,7 +820,6 @@ class Bucketeer():
 											new_header_row.append("Additional_" + str(x + 1))
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Temp Header Row:", (header_row))
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Final Header Row:", (new_header_row))
-								print(self.final_peer_download_lists[idx])
 								df = pandas.DataFrame(self.final_peer_download_lists[idx],columns=(header_row)) # create data frame with full list
 								'''
 								Remove the columns we dont need.
