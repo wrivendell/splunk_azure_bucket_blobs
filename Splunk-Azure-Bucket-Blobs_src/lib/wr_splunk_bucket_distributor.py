@@ -634,7 +634,7 @@ class Bucketeer():
 							for b in d[1]: # total size of the bid dict
 								tmp_b_size += (b[6]/1024.0**2)
 							donor_size_total += tmp_b_size
-							receiver_original_ask += tmp_b_size
+							receivers_total += tmp_b_size
 							if d_idx % 1000 == 0:
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Above Margin List: " + str(idx_2) + " is giving item to Below Margin List: " + str(idx) + " | Iteration: " + str(d_idx)  )
 							lst1[0].append(d)
@@ -805,7 +805,6 @@ class Bucketeer():
 							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done.")
 							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done."])
 
-							tmp_list = [] # tmp list for our prune csv list from the main
 							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Priming CSV build on peer: " + str(idx) )
 							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): priming CSV build on peer: " + str(idx) ])
 							try:
@@ -819,7 +818,8 @@ class Bucketeer():
 										for x in range(add_diff):
 											header_row.append("Additional_" + str(x + 1))
 											new_header_row.append("Additional_" + str(x + 1))
-								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Header Row:", (new_header_row))
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Temp Header Row:", (new_header_row))
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Final Header Row:", (new_header_row))
 								df = pandas.DataFrame(self.final_peer_download_lists[idx],columns=[header_row]) # create data frame with full list
 								'''
 								Remove the columns we dont need.
@@ -834,13 +834,17 @@ class Bucketeer():
 								df['Downloaded_File_Size_MB']=''
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe before sort.")
 								print(df)
+								print("\n\n\n")
+								time.sleep(5)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting columns.")
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sorting columns."])
 								df = df[new_header_row] # arrange the columns the way we want to send them back
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe AFTER sort.")
 								print(df)
-								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Creating dataframe." )
-								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Creating dataframe." + str(idx) ])
+								print("\n\n\n")
+								time.sleep(5)
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Creating dataframe, writing to CSV NOW." )
+								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Creating dataframe, writing to CSV NOW." + str(idx) ])
 								df.to_csv(guid_csv.log_path, index=False)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Writing dataframe to CSV." )
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Writing dataframe to CSV." + str(idx) ])	

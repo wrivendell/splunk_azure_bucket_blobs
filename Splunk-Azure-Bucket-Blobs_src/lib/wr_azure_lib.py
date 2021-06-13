@@ -164,7 +164,7 @@ class BlobService():
 			for blob in blob_list:
 				if break_at_amount > 0:
 					counter += 1
-					if counter >= break_at_amount:
+					if counter > break_at_amount:
 						print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Test Run Breaking at: " + str(counter) + " -")
 						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Test Run Breaking at: " + str(counter) ] )
 						break
@@ -244,7 +244,7 @@ class BlobService():
 				else:
 					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + str(container['name']) + " Added -")
 					self.log_file.writeLinesToFile( ["(" + str(sys._getframe().f_lineno) + ") " + str(container['name']) + " Added." ] )
-				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'], blob_search_list, break_at_amount=break_at_amount)
+				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'], blob_search_list, break_at_amount)
 				tmp_container_dict = container
 				tmp_container_dict['blobs'] = (tmp_blobs_dict_list)
 				tmp_container_blob_dict_list.append(tmp_container_dict)
