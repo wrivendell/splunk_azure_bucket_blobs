@@ -148,7 +148,7 @@ class BlobService():
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
 
-	def getBlobsByContainer(self, container_name, blob_search_list=[], breakt_at_amount=0, names_only=False) -> list:
+	def getBlobsByContainer(self, container_name, blob_search_list=[], break_at_amount=0, names_only=False) -> list:
 		'''
 		Get all blobs in a specified container. Returns a list contianing dicts.
 		Default is one dict per blob with all info for that blob file.
@@ -162,9 +162,9 @@ class BlobService():
 #			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(tmp_blist)) + " -")
 			counter = 0
 			for blob in blob_list:
-				if breakt_at_amount > 0:
+				if break_at_amount > 0:
 					counter += 1
-					if counter >= breakt_at_amount:
+					if counter >= break_at_amount:
 						print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Test Run Breaking at: " + str(counter) + " -")
 						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Test Run Breaking at: " + str(counter) ] )
 						break
@@ -217,7 +217,7 @@ class BlobService():
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Exception: " + str(blob['name']) ] ) 
 			print(ex)
 
-	def getAllBlobsByContainers(self, container_search_list=[], blob_search_list=[]) -> list:
+	def getAllBlobsByContainers(self, container_search_list=[], blob_search_list=[], break_at_amount=0) -> list:
 		'''
 		Probes all available containers to the provided connectionstring (access to) and gets all container names.
 		Probes each container for blobs contained and writes all out to a list of dicts. One dict per container
@@ -244,7 +244,7 @@ class BlobService():
 				else:
 					print("- WAZURE(" + str(sys._getframe().f_lineno) +"): " + str(container['name']) + " Added -")
 					self.log_file.writeLinesToFile( ["(" + str(sys._getframe().f_lineno) + ") " + str(container['name']) + " Added." ] )
-				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'], blob_search_list)
+				tmp_blobs_dict_list = self.getBlobsByContainer(container['name'], blob_search_list, break_at_amount=break_at_amount)
 				tmp_container_dict = container
 				tmp_container_dict['blobs'] = (tmp_blobs_dict_list)
 				tmp_container_blob_dict_list.append(tmp_container_dict)
