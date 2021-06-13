@@ -832,9 +832,12 @@ class Bucketeer():
 								df['Expected_File_Size_MB']=''
 								df['Download_Complete']='NO'
 								df['Downloaded_File_Size_MB']=''
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe before sort.")
+								print(df)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting columns.")
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sorting columns."])
 								df = df[new_header_row] # arrange the columns the way we want to send them back
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe AFTER sort.")
 								print(df)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Creating dataframe." )
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Creating dataframe." + str(idx) ])
