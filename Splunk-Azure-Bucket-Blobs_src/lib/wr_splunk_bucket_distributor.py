@@ -818,7 +818,7 @@ class Bucketeer():
 										for x in range(add_diff):
 											header_row.append("Additional_" + str(x + 1))
 											new_header_row.append("Additional_" + str(x + 1))
-								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Temp Header Row:", (new_header_row))
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Temp Header Row:", (header_row))
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Final Header Row:", (new_header_row))
 								df = pandas.DataFrame(self.final_peer_download_lists[idx],columns=[header_row]) # create data frame with full list
 								'''
@@ -832,14 +832,14 @@ class Bucketeer():
 								df['Expected_File_Size_MB']=''
 								df['Download_Complete']='NO'
 								df['Downloaded_File_Size_MB']=''
-								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe before sort.")
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe before sort.\n")
 								print(df)
 								print("\n\n\n")
 								time.sleep(5)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting columns.")
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sorting columns."])
 								df = df[new_header_row] # arrange the columns the way we want to send them back
-								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe AFTER sort.")
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe AFTER sort.\n")
 								print(df)
 								print("\n\n\n")
 								time.sleep(5)
@@ -859,9 +859,15 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Removing all downloaded items before passing back list. -")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Removing all downloaded items before passing back list. "])
 			df = pandas.read_csv(self.getPeerCSV().log_path, engine='python')
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): This Peer Dataframe before completed Remove.\n")
+			print(df)
+			print("\n\n\n")
+			time.sleep(5)
 			df = df[df.Download_Complete != 'SUCCESS'] # remove ROWS where lines under that HEADER are not "SUCCESS"
-			# remove headers now
-			df = df.iloc[1:]
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): This Peer Dataframe final.\n")
+			print(df)
+			print("\n\n\n")
+			time.sleep(5)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. -")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. "])
 		except Exception as ex:
@@ -874,6 +880,13 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Converting data frame to python list for download processing. -")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Converting data frame to python list for download processing. "])
 			self.this_peer_download_list = df.values.tolist() # set the variable in this class of this peers list (can be accessed from main)
+			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Number in This Peers Download list is: " + str(len(self.this_peer_download_list)))
+			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Number in This Peers Download list is: " + str(len(self.this_peer_download_list))])
+			if not self.this_peer_download_list:
+				print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Appears there are no items to download in this list, perhaps its cmpleted? Exiting.")
+				self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Appears there are no items to download in this list, perhaps its cmpleted? Exiting."])
+				time.sleep(5)
+				return(False)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. -")
 		except Exception as ex:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Couldn't convert dataframe to list. Exiting. -")
@@ -883,7 +896,6 @@ class Bucketeer():
 			self.bucketeer_timer.stop()
 			return(False)
 		if self.this_peer_download_list: # make sure the list isnt empty and send it back to main for download!
-			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Number in This Peers Download list is: " + str(len(self.this_peer_download_list)))
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Bucketeer is done processing. ")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Number in This Peers Download list is: " + str(len(self.this_peer_download_list))])
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Bucketeer is done processing. "])
