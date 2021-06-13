@@ -496,7 +496,7 @@ def timeAndCompletionChecker():
 	global run_me
 	start_length_of_download_list = len(master_bucket_download_list)
 	while run_me:
-			if len(wrq_download.jobs_active) <= 0 and len(wrq_logging.jobs_active) <= 0 and len(wrq_download.jobs_completed) > 0 and len(wrq_csv_report.jobs_active) > 0:
+			if len(wrq_download.jobs_active) <= 0 and len(wrq_logging.jobs_active) <= 0 and len(wrq_download.jobs_completed) > 0 and len(wrq_csv_report.jobs_active) <= 0:
 				run_me = False # THIS STOPS THE LAST CSV REPORTER LOOP! DONT DELETE
 			if arguments.args.detailed_output:
 				time.sleep(3)
