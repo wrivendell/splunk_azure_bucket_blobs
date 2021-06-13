@@ -18,7 +18,8 @@
     -bslt False \
     -dm True \
     -woflo False \
-    -scsv False
+    -scsv False \
+    -ta 0
 
 
 # SEE README FOR ARG DETAILS - THIS SH file is for running the compiled AIO(all in one) version
@@ -47,3 +48,4 @@
 # dm = debug_modules - Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint
 # woflo = write_out_full_list_only - True will write out the entire list for all peers to a single CSV and do nothing else. Should set -dm to False when using this unless you have errors
 # scsv = skip_to_csv_load - If True, it won't attempt to download latest. Will resume from CSV directly
+# ta = test_amount - Throw a number in here and azure scrape will stop in each container at this number (lets you test quickly before running on full amount)

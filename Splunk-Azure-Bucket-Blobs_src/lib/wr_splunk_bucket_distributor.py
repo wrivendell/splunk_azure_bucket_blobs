@@ -522,15 +522,30 @@ class Bucketeer():
 	# Balance list of lists by length and "size" in bytes
 	########################################### 
 	'''
-	Once the dict lists have bee broken up into separate granular dict lists we'll run them through a few balancers
-	We'll ensure the lists have roughly the same amount of jobs but some buckets could weight more than others in terms of disk space.
-	We'll then total up the size of each and and start moving some around to balance them out. Size is more important than amount in the end ;)
+	Once the dict lists have bee broken up into separate granular dict lists we'll run them through a balancer
+	Even if they all have the same amount of jobs, some buckets could weight more than others in terms of disk space.
+	We'll total up the size of each and and start moving some around to balance them out. Size is more important than amount in the end ;)
 	'''
 	def balanceListOfLists(self, master_list_of_lists:list) -> list:
 		'''
-		This will do the following:
-		1. Ensure the lists sizes in terms of sheer number of items is as even as can be among them
-		2. Check byte sizes of downloads sum and redisctribute when needed / possible
+		There are x amount of list in the master list of lists, where x is the amount of peers to divide by.
+		The items in each of those lists are python dictionaries with one kv pair.
+		The key is a custom bucket ID string: <earliest_latest_bucketidnum_guid>
+		The value is a list of tuples containing all of the files that bucket contains as well as the bucket info and file info, inc byte sizes
+		i.e  (obviously with real values though)
+		
+		123212312_2343432422_343_HSOEF-23fWDF-WEfwefwe-FWEFWE : [ [ <bucket_id_earliest>, <bucket_id_latest>, 454,
+																  <bucket_id_guid>, <bucket_id_standalone>, True, <full/path/to/file.gz>, <size of file in bytes>,
+																  'frozendata', 'cisco', 'frozendb', <str(uid)>, <str(bid)>],
+																  [ <bucket_id_earliest>, <bucket_id_latest>, 454,
+																  <bucket_id_guid>, <bucket_id_standalone>, True, <full/path/to/result.csv>, <size of file in bytes>,
+																  'frozendata', 'cisco', 'frozendb', <str(uid)>, <str(bid)>]
+																]
+		This will take only the bytes from the file tuples and add them up to get a total for the dict.
+		It then finds the total for all lists and calulates a grand total and average size each list should have. Its not important how many files each node downloads so much as
+			how much data they each download is spread out evenly.
+		A margin is generated between 1 and 10%. This will move items that are higher on the margin to lower ones. The entire dict is moved so all the files stay with it. This is worlds quicker than trying to move individual files.
+		When all lists are even (relatively within the margin) we move on. After this is where the dicts are eliminated and the file tuples are added to the main lists directly.
 		'''
 		if self.debug:
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) + ")" )
@@ -758,7 +773,6 @@ class Bucketeer():
 					if bucket_dicts_master: # no csv yet or theres new items in the list to add to csv will make this true
 						final_peer_download_dicts = self.divideMasterBucketListAmongstPeers(self.idx_cluster_peers, bucket_dicts_master)
 						self.final_peer_download_lists = self.createMasterTupleListFromDicts(final_peer_download_dicts) # create x amount of list full of simple tuples
-						write_threads = [] # we'll add our csv thread writer queues to this and then kick them off later
 						try:
 							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting master list of peer lists.")
 							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sorting master list of peer lists."])
@@ -795,7 +809,6 @@ class Bucketeer():
 							print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Priming CSV build on peer: " + str(idx) )
 							self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): priming CSV build on peer: " + str(idx) ])
 							try:
-								header_done = False
 								item_count = len(self.final_peer_download_lists[idx][0])
 								add_diff = item_count - 13
 								# put dummy headers in for the columns we arent gonna need sending back but keep the additional as promised
@@ -806,17 +819,23 @@ class Bucketeer():
 										for x in range(add_diff):
 											header_row.append("Additional_" + str(x + 1))
 											new_header_row.append("Additional_" + str(x + 1))
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Header Row:", (new_header_row))
 								df = pandas.DataFrame(self.final_peer_download_lists[idx],columns=[header_row]) # create data frame with full list
 								'''
 								Remove the columns we dont need.
 								We always write out these columns in this order: 'File_Name', 'Expected_File_Size_bytes', 'Expected_File_Size_MB', 'Was_Standalone', 'Bucket_ID', 'db_Bucket(not_rb)', 'Download_Complete', 'Downloaded_File_Size_MB' + any Additional_x
 								'''
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Removing not needed columns.")
+								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Removing not needed columns."])
 								for x in ['rm_1', 'rm_2', 'rm_3', 'rm_4', 'rm_5', 'rm_6', 'rm_7', 'rm_8']:
 									del df[x]
 								df['Expected_File_Size_MB']=''
 								df['Download_Complete']='NO'
 								df['Downloaded_File_Size_MB']=''
+								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting columns.")
+								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sorting columns."])
 								df = df[new_header_row] # arrange the columns the way we want to send them back
+								print(df)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Creating dataframe." )
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Creating dataframe." + str(idx) ])
 								df.to_csv(guid_csv.log_path, index=False)

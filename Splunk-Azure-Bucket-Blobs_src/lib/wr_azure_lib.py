@@ -148,7 +148,7 @@ class BlobService():
 			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
 
-	def getBlobsByContainer(self, container_name, blob_search_list=[], names_only=False) -> list:
+	def getBlobsByContainer(self, container_name, blob_search_list=[], breakt_at_amount=0, names_only=False) -> list:
 		'''
 		Get all blobs in a specified container. Returns a list contianing dicts.
 		Default is one dict per blob with all info for that blob file.
@@ -160,12 +160,14 @@ class BlobService():
 			blob_list = container_client.list_blobs()
 #			tmp_blist = list(tmp_blist)
 #			print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Amount of BLOBS: " + str(len(tmp_blist)) + " -")
-#			counter = 0
+			counter = 0
 			for blob in blob_list:
-#				counter += 1
-#				if counter >= 5001:
-#					print("breaking at 5000 for testing")
-#					break
+				if breakt_at_amount > 0:
+					counter += 1
+					if counter >= breakt_at_amount:
+						print("- WAZURE(" + str(sys._getframe().f_lineno) +"): Test Run Breaking at: " + str(counter) + " -")
+						self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + ") Test Run Breaking at: " + str(counter) ] )
+						break
 				if names_only:
 					tmp_blob_list.append( blob['name'] )
 				else:

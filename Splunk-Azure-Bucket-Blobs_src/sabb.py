@@ -80,7 +80,7 @@ if arguments.args.detailed_output:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Bucket Sorter class created: idx_bucket_sorter" + " -")
 log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"):Bucket Sorter class created: idx_bucket_sorter"])
 # NOTIFY if csv load directly
-if not arguments.args.skip_to_csv_load:
+if arguments.args.skip_to_csv_load:
 	print("- SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly! -")
 	log_file.writeLinesToFile(["SABB(" + str(sys._getframe().f_lineno) +"): Skipping download and loading list from CSV directly!"])
 

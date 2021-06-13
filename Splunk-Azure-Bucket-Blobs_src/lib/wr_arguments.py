@@ -60,6 +60,7 @@ def Arguments():
 	parser.add_argument("-dm", "--debug_modules", type=str2bool, nargs='?', const=True, default=False,  required=False, help="Will enable deep level debug on all the modules that make up the script. Enable if getting errors, to help dev pinpoint.")
 	parser.add_argument("-woflo", "--write_out_full_list_only", type=str2bool, nargs='?', const=True, default=False,  required=False, help="True will write out the entire list for all peers to a single CSV and do nothing else.")
 	parser.add_argument("-scsv", "--skip_to_csv_load", type=str2bool, nargs='?', const=True, default=False,  required=False, help="If True, it won't attempt to download latest. Will resume from CSV directly.")
+	parser.add_argument("-ta", "--test_amount", type=checkPositive, nargs='?', default=0, required=False, help="Throw a number in here and azure scrape will stop in each container at this number (lets you test quickly before running on full amount) 0 for real run.")
 ############## RUNTIME
 Arguments()
 args = parser.parse_args()
