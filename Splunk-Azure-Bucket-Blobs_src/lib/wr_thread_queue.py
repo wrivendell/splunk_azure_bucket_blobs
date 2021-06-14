@@ -385,7 +385,9 @@ class Queue():
 		self.queue_started = True
 		self.inactive_timeout_counter = self.inactive_queue_timeout_sec
 		# Run this processing loop as long as there are items in the either job list
+		counter = -1
 		while self.inactive_timeout_counter > 0:
+			counter += 1
 			while len(self.jobs_waiting) > 0 or len(self.jobs_active) > 0 and not self.stopped:
 				self.inactive_timeout_counter = self.inactive_queue_timeout_sec
 				if self.debug:
@@ -405,9 +407,11 @@ class Queue():
 				if self.stopped:
 					self.stop()
 				self.inactive_timeout_counter -= 1
-				if self.debug:
-					print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds -")
-					self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds"] )
+				notify = self.inactive_queue_timeout_sec / 10
+				if counter % notify == 0:
+					if self.debug:
+						print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds -")
+						self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": Inactive timeout in: " + str(self.inactive_timeout_counter) + " seconds"] )
 		else:
 			print("- WRQ(" + str(sys._getframe().f_lineno) +") " + self.name + " " + self.name + " is exiting due to no new jobs added. -")
 			self.log_file.writeLinesToFile([ "(" + str(sys._getframe().f_lineno) + ") - " + self.name + ": is exiting due to no new jobs added."] )

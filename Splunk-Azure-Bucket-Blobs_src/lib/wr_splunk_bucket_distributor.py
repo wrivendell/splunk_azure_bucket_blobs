@@ -835,14 +835,12 @@ class Bucketeer():
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe before sort.\n")
 								print(df)
 								print("\n\n\n")
-								time.sleep(5)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Sorting columns.")
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Sorting columns."])
 								df = df[new_header_row] # arrange the columns the way we want to send them back
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Dataframe AFTER sort.\n")
 								print(df)
 								print("\n\n\n")
-								time.sleep(5)
 								print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. Creating dataframe, writing to CSV NOW." )
 								self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. Creating dataframe, writing to CSV NOW." + str(idx) ])
 								df.to_csv(guid_csv.log_path, index=False)
@@ -862,12 +860,10 @@ class Bucketeer():
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): This Peer Dataframe before completed Remove.\n")
 			print(df)
 			print("\n\n\n")
-			time.sleep(5)
 			df = df[df.Download_Complete != 'SUCCESS'] # remove ROWS where lines under that HEADER are not "SUCCESS"
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): This Peer Dataframe final.\n")
 			print(df)
 			print("\n\n\n")
-			time.sleep(5)
 			print("- BUCKETEER(" + str(sys._getframe().f_lineno) +"): Done. -")
 			self.log_file.writeLinesToFile(["(" + str(sys._getframe().f_lineno) + "): Done. "])
 		except Exception as ex:

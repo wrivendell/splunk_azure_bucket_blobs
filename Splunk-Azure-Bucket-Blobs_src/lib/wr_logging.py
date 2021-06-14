@@ -82,7 +82,8 @@ def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retentio
 				except:
 					print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : " +  (f) + " could not be deleted, permissions? -")
 		if not any_old_found:
-			print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : No (more) logs older than " + str(log_retention_days) + " days found. -")
+			if str(log_file) in f:
+				print("- WRLog(" + str(sys._getframe().f_lineno) +") (" + class_name + ") : No (more) logs older than " + str(log_retention_days) + " days found. -")
 
 ### CLASSES ###########################################
 
