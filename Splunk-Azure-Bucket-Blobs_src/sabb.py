@@ -431,7 +431,7 @@ def updateCompletedWRQDownloadJobs():
 	
 	global list_index
 	global run_me
-	while len(wrq_download.jobs_active) > 0 and len(wrq_logging.jobs_active) > 0 and len(wrq_csv_report.jobs_active) <= 0:
+	while run_me:
 		time.sleep(10)
 		if wrq_download.inactive_timeout_counter <= 0:
 			break
@@ -452,29 +452,30 @@ def updateCompletedWRQDownloadJobs():
 					tmp_log_lines.append('Found newly completed download job: ' + str(jc[0].name))
 				tmp_log_dl_list = []
 				tmp_csv_dl_list = []
-				for j in wrq_download.jobs_completed[list_index:last_index]:
-					if arguments.args.detailed_output:
-						print("   - Adding newly completed download job to status report: " + str(j[0].name))
-					tmp_log_lines_jobs.append('Adding newly completed download job to status report: ' + str(j[0].name) )
-					command_args_list = j[1].replace("'","").replace('"',"").replace("[","").replace("]","").replace(" ","")
-					command_args_list = list(command_args_list.split(","))
-					file_verify = compareDownloadSize( int(command_args_list[1]), str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
-					if file_verify[0]:
-						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"))
-						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Expected_File_Size_MB', str(file_verify[1]) ))
-						tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[2]) ))
-					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"]])
-					#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])]])
-						tmp_log_dl_list.append('File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
-					else:
-						tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
-					# 0 = blob name - 1 = bytes size - 2 = container - 3 = downloaded to path
-				if run_me:
-					wrq_csv_report.add(log_csv.updateCellsByHeader,[[(tmp_csv_dl_list)]])
-					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
-					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs), 3]])
-					wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list), 3]])
-				list_index = last_index
+				if not last_index == list_index:
+					for j in wrq_download.jobs_completed[list_index:last_index]:
+						if arguments.args.detailed_output:
+							print("   - Adding newly completed download job to status report: " + str(j[0].name))
+						tmp_log_lines_jobs.append('Adding newly completed download job to status report: ' + str(j[0].name) )
+						command_args_list = j[1].replace("'","").replace('"',"").replace("[","").replace("]","").replace(" ","")
+						command_args_list = list(command_args_list.split(","))
+						file_verify = compareDownloadSize( int(command_args_list[1]), str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
+						if file_verify[0]:
+							tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"))
+							tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Expected_File_Size_MB', str(file_verify[1]) ))
+							tmp_csv_dl_list.append(('File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[2]) ))
+						#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Download_Complete', "SUCCESS"]])
+						#	wrq_csv_report.add(log_csv.updateCellByHeader, [['File_Name', str(command_args_list[0]), 'Downloaded_File_Size_MB', str(file_verify[1])]])
+							tmp_log_dl_list.append('File Download: SUCCESS - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
+						else:
+							tmp_log_dl_list.append('File Download: FAILED - ' + str(command_args_list[3]) + str(command_args_list[2]) + '/' + str(command_args_list[0]) )
+						# 0 = blob name - 1 = bytes size - 2 = container - 3 = downloaded to path
+					if run_me:
+						wrq_csv_report.add(log_csv.updateCellsByHeader,[[(tmp_csv_dl_list)]])
+						wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines)]])
+						wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_lines_jobs), 3]])
+						wrq_logging.add(log_file.writeLinesToFile, [[(tmp_log_dl_list), 3]])
+					list_index = last_index
 		except Exception as ex:
 			print("- SABB(" + str(sys._getframe().f_lineno) +"): Exception: -")
 			print(ex)
