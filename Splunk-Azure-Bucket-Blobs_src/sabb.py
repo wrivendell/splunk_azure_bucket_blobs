@@ -431,7 +431,7 @@ def updateCompletedWRQDownloadJobs():
 	
 	global list_index
 	global run_me
-	while run_me:
+	while len(wrq_download.jobs_active) > 0 and len(wrq_logging.jobs_active) > 0 and len(wrq_csv_report.jobs_active) <= 0:
 		time.sleep(10)
 		if wrq_download.inactive_timeout_counter <= 0:
 			break
@@ -496,13 +496,8 @@ def timeAndCompletionChecker():
 	global run_me
 	start_length_of_download_list = len(master_bucket_download_list)
 	while run_me:
-			print(len(wrq_download.jobs_active))
-			print(len(wrq_download.jobs_completed))
-			print(len(wrq_logging.jobs_active))
-			print(len(wrq_csv_report.jobs_active))
 			if len(wrq_download.jobs_active) <= 0 and len(wrq_logging.jobs_active) <= 0 and len(wrq_download.jobs_completed) > 0 and len(wrq_csv_report.jobs_active) <= 0:
 				run_me = False # THIS STOPS THE LAST CSV REPORTER LOOP! DONT DELETE
-				thread_update_completed.join()
 			if arguments.args.detailed_output:
 				time.sleep(3)
 				print("\n")
@@ -591,6 +586,7 @@ def timeAndCompletionChecker():
 					thread_csv_report_parent.join()
 					thread_update_completed.join()
 					print("- SABB(" + str(sys._getframe().f_lineno) +"): Exiting. -")
+					print("- SABB(" + str(sys._getframe().f_lineno) +"): Goodbye. -")
 					sabb_op_timer.stop()
 					break
 	else:
