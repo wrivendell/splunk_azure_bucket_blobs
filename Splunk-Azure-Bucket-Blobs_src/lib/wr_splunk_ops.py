@@ -28,7 +28,7 @@ def findClusterMasterByFile(splunk_home:str) -> tuple:
 		apps_folder = 'etc/apps/'
 		local_folder = 'etc/system/local/'
 	
-	server_conf_locations = ( splunk_home + apps_folder, splunk_home + local_folder )
+	server_conf_locations = splunk_home + apps_folder, splunk_home + local_folder
 	found_server_confs = wrc.findFileByName('server.conf', search_in=(server_conf_locations))
 	if found_server_confs[0]:
 		for server_conf in found_server_confs[1]:
@@ -53,8 +53,8 @@ def findGUIDByFile(splunk_home:str) -> tuple:
 	else:
 		etc_folder = 'etc/'
 	
-	etc_location = (splunk_home + etc_folder)
-	found_cfg = wrc.findFileByName('instance.cfg', search_in=(etc_location))
+	etc_location = splunk_home + etc_folder,
+	found_cfg = wrc.findFileByName('instance.cfg', search_in=etc_location)
 	if found_cfg[0]:
 		for found_file in found_cfg[1]:
 			my_guid = wrc.findLineInFile(['guid'], found_file, header='[general]')

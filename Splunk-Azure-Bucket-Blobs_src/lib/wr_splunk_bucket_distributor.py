@@ -132,11 +132,7 @@ class Bucketeer():
 			self.main_report_csv = 'bucket_sort_status_report.csv'
 		else:
 			self.main_report_csv = main_report_csv
-		'''
-		#not used now, maybe later if list creation continues to be a pain
-				self.write_list_csv = log.CSVFile('list_report.csv',1, log_folder='./csv_lists/', remove_old_logs=False, log_retention_days=20, prefix_date=False, debug=self.debug) # used to resume WRITING the full list on failures or cancels
-				self.write_list_queue = wrq.Queue('list_reporter', 1, debug=self.debug)
-		'''
+
 		# create csv handlers and write queues - one list per guid - used to write all lists our to csv "simultaneously" 
 		'''
 		This doesnt write anything or create anything, it just creates the threads and classes in memory for use and job adds later
