@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-#
+##############################################################################################################
+# Contact: Will Rivendell 
+# 	E1: wrivendell@splunk.com
+# 	E2: contact@willrivendell.com
 ##############################################################################################################
 
 ### IMPORTS ###########################################
@@ -8,6 +11,23 @@ import os, time, datetime, csv, pandas, sys
 from pathlib import Path
 
 ### FUNCTIONS ###########################################
+# pass any path in here, windows or linux and normalize it to whatever OS the script is running on
+def normalizePathOS(path:str) -> str:
+	'''
+	Formats path string to be windows or linux depending on OS
+	Always adds the trailing slash!!
+	Returns formatted path as a string
+	'''
+	if 'win' in sys.platform:
+		path.replace('/', '\\')
+		if not path.endswith('\\'):
+			path = path + '\\'
+	else:
+		path.replace('\\', '/')
+		if not path.endswith('/'):
+			path = path + '/'
+	path.replace('//','/').replace('\\\\','\\')
+	return(path)
 
 def verifyLogFileExist(log_file):
 	if os.path.exists(log_file):
@@ -89,6 +109,7 @@ def removeOldLogFiles(class_name:str, log_folder:str, log_file:str, log_retentio
 
 class LogFile():
 	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_level=1, log_retention_days=7, roll_size_bytes=50000000, max_files_to_keep=0,  prefix_date=True, debug=False):
+		log_folder = normalizePathOS(str(log_folder))
 		self.name = name # log file name - day will automatically be prefixed
 		self.log_folder = log_folder # folder to write the log to
 		self.log_level = log_level
@@ -153,6 +174,7 @@ class LogFile():
 class CSVFile():
 	# this is the startup script, init?
 	def __init__(self, name: str, log_folder='./logs/', remove_old_logs=False, log_retention_days=7, prefix_date=True, debug=False):
+		log_folder = normalizePathOS(str(log_folder))
 		self.debug = debug
 		self.name = name # log file name - day will automatically be prefixed
 		self.log_folder = log_folder # folder to write the log to
